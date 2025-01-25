@@ -1,0 +1,21 @@
+- name: Remote Command
+  args:
+    - name: command
+      text: Command
+      type: input
+  actions:
+    - action: command
+      command: "{{ command }}"
+- name: Remote Command 2
+  args:
+    - name: command_1
+      text: Command 1
+      type: input
+    - name: command_2
+      text: Command 2
+      type: input
+  actions:
+    - action: command
+      command: "{{ command_1 }}"
+    - action: command
+      command: "{{ command_2 }}"
