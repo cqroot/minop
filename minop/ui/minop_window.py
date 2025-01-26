@@ -1,21 +1,17 @@
 import os
 
-from PySide6.QtWidgets import (
-    QWidget,
-    QGridLayout,
-)
+from PySide6.QtWidgets import QGridLayout
 
 from minop.app.client import Client
 from minop.app.hosts import read_hosts, Host
 from minop.app.modules import Module
-from minop.components.minput import MInput
+from minop.ui.components import MWidget, stylesheet, MSidebar, MInput
 from minop.ui.minop_container import MinopContainer
 from minop.ui.minop_output import MinopOutput
 from minop.ui.minop_header import MinopHeader
-from minop.ui.minop_sidebar import MinopSidebar
 
 
-class MinopWindow(QWidget):
+class MinopWindow(MWidget):
     def __init__(self, modules: list[Module], config_path: str) -> None:
         super().__init__()
         self.modules: list[Module] = modules
@@ -23,21 +19,19 @@ class MinopWindow(QWidget):
 
         self.__setup_ui()
         self.__connect_all()
+        self.setStyleSheet(
+            stylesheet(
+                os.path.join(os.path.dirname(os.path.realpath(__file__)), "default.css")
+            )
+        )
 
     def __setup_ui(self) -> None:
         self.setWindowTitle("MinOP - {}".format(self.config_path))
-        self.setStyleSheet(
-            """
-            MinopWindow {
-                background-color: #ffffff
-            }
-            """
-        )
 
         module_names: list[str] = []
         for module in self.modules:
             module_names.append(module.name)
-        self.minop_sidebar: MinopSidebar = MinopSidebar(module_names)
+        self.minop_sidebar: MSidebar = MSidebar(module_names)
         self.minop_sidebar.setCurrentRow(0)
 
         self.minop_header: MinopHeader = MinopHeader()

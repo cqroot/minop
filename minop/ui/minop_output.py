@@ -12,7 +12,7 @@ class MinopOutput(QWidget):
         self.output_widget.setStyleSheet(
             """
             MinopOutput QTextEdit {
-                color: white;
+                color: #ffffff;
                 background-color: #5b5b5d;
                 border-radius: 5px;
                 padding: 10px;

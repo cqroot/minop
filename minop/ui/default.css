@@ -1,0 +1,74 @@
+:root {
+    --sidebar-background-color: #2e3235;
+    --sidebar-hover-color: #464646;
+    --foreground-color: #ffffff;
+    --foreground-color-2: #dddddd;
+    --background-color: #ffffff;
+    --background-color-2: #f6f6f6;
+    --border-color: #d9d9d9;
+    --border-color2: #5b5b5d;
+    --hover-color: #cacbcd;
+    --checked-color: #babbbc;
+}
+
+/* ===== MWidget ===== */
+MWidget {
+    background-color: var(--foreground-color);
+}
+
+/* ===== MButton ===== */
+MButton {
+    background-color: var(--background-color);
+    padding: 5px;
+    border: none;
+    border-radius: 5px;
+}
+
+MButton:hover {
+    background-color: var(--hover-color);
+}
+
+MButton:pressed,
+MButton:checked {
+    background-color: var(--checked-color);
+}
+
+/* ===== MInput ===== */
+MInput {
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    padding: 3px;
+}
+
+MInput:hover {
+    border-bottom: 1px solid var(--border-color2);
+}
+
+MInput:focus {
+    background-color: var(--background-color-2);
+    border-bottom: 1px solid var(--border-color2);
+}
+
+
+/* ===== MSidebar ===== */
+MSidebar {
+    outline: none;
+    background-color: var(--sidebar-background-color);
+    border: transparent;
+    padding: 8px;
+}
+
+MSidebar::item {
+    color: var(--foreground-color-2);
+    background-color: var(--sidebar-background-color);
+    border: transparent;
+    border-radius: 5px;
+    padding: 8px;
+}
+
+MSidebar::item:selected {
+    color: var(--foreground-color);
+    background-color: var(--sidebar-hover-color);
+}
+

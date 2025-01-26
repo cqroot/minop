@@ -7,8 +7,7 @@ from PySide6.QtWidgets import (
 )
 
 from minop.app.modules import Module, MArgType
-
-from minop.components.minput import MInput
+from minop.ui.components import MInput
 
 
 class MinopContainer(QStackedWidget):
