@@ -1,5 +1,6 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
+    QLabel,
     QLineEdit,
     QListWidget,
     QPushButton,
@@ -16,6 +17,10 @@ class MCard(QWidget):
 
 
 class MInput(QLineEdit):
+    pass
+
+
+class MLabel(QLabel):
     pass
 
 
@@ -58,7 +63,7 @@ def stylesheet(path: str) -> str:
         value: str = line.split(":")[1].rstrip(";").strip()
         colors[key] = value
 
-    qss = "\n".join(qss.splitlines()[prop_end + 1 : -1])
+    qss = "\n".join(qss.splitlines()[prop_end + 1: -1])
     for key, value in colors.items():
         qss = qss.replace("var({})".format(key), value)
 

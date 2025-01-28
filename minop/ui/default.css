@@ -1,7 +1,7 @@
 :root {
     --sidebar-background-color: #2e3235;
     --sidebar-hover-color: #464646;
-    --foreground-color: #ffffff;
+    --foreground-color: #1d1e21;
     --foreground-color-2: #dddddd;
     --background-color: #ffffff;
     --background-color-2: #f6f6f6;
@@ -13,11 +13,18 @@
 
 /* ===== MWidget ===== */
 MWidget {
-    background-color: var(--foreground-color);
+    background-color: var(--background-color);
+}
+
+/* ===== MLabel ===== */
+MLabel {
+    background-color: var(--background-color);
+    color: var(--foreground-color)
 }
 
 /* ===== MButton ===== */
 MButton {
+    color: var(--foreground-color);
     background-color: var(--background-color);
     padding: 5px;
     border: none;
@@ -68,7 +75,7 @@ MSidebar::item {
 }
 
 MSidebar::item:selected {
-    color: var(--foreground-color);
+    color: var(--background-color);
     background-color: var(--sidebar-hover-color);
 }
 
