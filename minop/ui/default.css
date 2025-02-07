@@ -35,8 +35,7 @@ MButton:hover {
     background-color: var(--hover-color);
 }
 
-MButton:pressed,
-MButton:checked {
+MButton:pressed {
     background-color: var(--checked-color);
 }
 

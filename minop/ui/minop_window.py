@@ -85,7 +85,7 @@ class MinopWindow(MWidget):
         self.worker = FabricWorker(
             tasks=tasks,
             servers_file=self.config_path,
-            parallel=False,
+            parallel=self.minop_header.toggle_parallel_button.isChecked(),
         )
         self.worker.output_signal.connect(self.update_output)
         self.worker.finished_signal.connect(self.task_finished)
