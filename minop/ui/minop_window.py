@@ -1,10 +1,12 @@
 import os
 
+import yaml
+from PySide6.QtCore import QThread
 from PySide6.QtWidgets import QGridLayout
+from jinja2 import Template
 
-from minop.app.client import Client
-from minop.app.hosts import read_hosts, Host
 from minop.app.modules import Module
+from minop.app.worker import FabricWorker
 from minop.ui.components import MWidget, stylesheet, MSidebar, MInput
 from minop.ui.minop_container import MinopContainer
 from minop.ui.minop_output import MinopOutput
@@ -16,6 +18,7 @@ class MinopWindow(MWidget):
         super().__init__()
         self.modules: list[Module] = modules
         self.config_path: str = config_path
+        self.thread: QThread = QThread()
 
         self.__setup_ui()
         self.__connect_all()
@@ -55,7 +58,7 @@ class MinopWindow(MWidget):
         self.minop_header.sidebar_toggle_button.clicked.connect(
             self.minop_sidebar.action_toggle
         )
-        self.minop_header.run_button.clicked.connect(self.action_run)
+        self.minop_header.run_button.clicked.connect(self.start_task)
 
     def get_curr_args(self) -> dict:
         args: dict = {}
@@ -66,20 +69,34 @@ class MinopWindow(MWidget):
             args[input_widget.property("name")] = input_widget.text()
         return args
 
-    def action_run(self) -> None:
+    def start_task(self) -> None:
+        self.minop_header.run_button.setEnabled(False)
+        self.minop_output.output_widget.clear()
+
         args: dict = self.get_curr_args()
+        tasks: list[dict[str, str]] = []
+        for action in self.modules[self.minop_sidebar.currentRow()].actions:
+            task = {}
+            for k, v in action.items():
+                templator: Template = Template(v)
+                task[k] = templator.render(args)
+            tasks.append(task)
 
-        hosts: list[Host] = read_hosts(self.config_path)
-        for host in hosts:
-            host_info: str = "{}@{}:{}".format(host.user, host.addr, host.port)
-            self.minop_output.output_widget.append(
-                '<font color="#61afef">{}<br />{}</font>'.format(
-                    host_info, "=" * len(host_info)
-                ),
-            )
+        self.worker = FabricWorker(
+            tasks=tasks,
+            servers_file=self.config_path,
+            parallel=False,
+        )
+        self.worker.output_signal.connect(self.update_output)
+        self.worker.finished_signal.connect(self.task_finished)
+        self.worker.start()
 
-            client: Client = Client(host)
-            for action in self.modules[self.minop_sidebar.currentRow()].actions:
-                output: str = action.run(client, args)
-                self.minop_output.output_widget.append(output)
-            client.close()
+    def update_output(self, text):
+        self.minop_output.output_widget.insertHtml(text)
+        self.minop_output.output_widget.verticalScrollBar().setValue(
+            self.minop_output.output_widget.verticalScrollBar().maximum()
+        )
+
+    def task_finished(self):
+        self.minop_header.run_button.setEnabled(True)
+        print(self.minop_output.output_widget.toHtml())

@@ -2,8 +2,6 @@ from typing import NamedTuple
 from enum import Enum
 import yaml
 
-from minop.actions.action import Action, get_actions
-
 
 class MArgType(Enum):
     INPUT = "input"
@@ -17,7 +15,7 @@ class MArg(NamedTuple):
 class Module(NamedTuple):
     name: str
     args: list[MArg]
-    actions: list[Action]
+    actions: list[dict[str, str]]
 
 
 def read_modules(name: str) -> list[Module]:
@@ -28,10 +26,6 @@ def read_modules(name: str) -> list[Module]:
             for arg_obj in p.get("args", []):
                 args.append(MArg(arg_obj["name"], MArgType(arg_obj["type"])))
 
-            actions: list[Action] = []
-            for action_obj in p.get("actions", []):
-                actions.append(get_actions(action_obj))
-
-            modules.append(Module(p["name"], args, actions))
+            modules.append(Module(p["name"], args, p.get("actions", [])))
 
     return modules

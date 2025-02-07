@@ -1,5 +1,7 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QTextEdit, QSizePolicy
 
+from minop.ui.components import MOutput
+
 
 class MinopOutput(QWidget):
     def __init__(self) -> None:
@@ -7,16 +9,18 @@ class MinopOutput(QWidget):
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        self.output_widget: QTextEdit = QTextEdit()
+        self.output_widget: MOutput = MOutput()
         self.output_widget.setReadOnly(True)
+        # self.output_widget.setFontFamily("Courier New")
         self.output_widget.setStyleSheet(
+            # color:  # ffffff;
+            # background - color:  # 5b5b5d;
             """
             MinopOutput QTextEdit {
-                color: #ffffff;
-                background-color: #5b5b5d;
+                border: 1px solid #d9d9d9;
                 border-radius: 5px;
                 padding: 10px;
-                font-family: Consolas;
+                font-family: "Cascadia Code", Consolas;
             }
             """
         )

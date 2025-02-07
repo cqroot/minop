@@ -4,8 +4,10 @@
       text: Command
       type: input
   actions:
-    - action: command
+    - name: command
+      type: command
       command: "{{ command }}"
+
 - name: Remote Command 2
   args:
     - name: command_1
@@ -15,7 +17,23 @@
       text: Command 2
       type: input
   actions:
-    - action: command
+    - name: Command 1
+      type: command
       command: "{{ command_1 }}"
-    - action: command
+    - name: Command 2
+      type: command
       command: "{{ command_2 }}"
+
+- name: Upload File
+  args:
+    - name: local_path
+      text: Local Path
+      type: input
+    - name: remote_path
+      text: Remote Path
+      type: input
+  actions:
+    - name: Upload file
+      type: file
+      local_path: "{{ local_path }}"
+      remote_path: "{{ remote_path }}"
