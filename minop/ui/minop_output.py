@@ -11,19 +11,6 @@ class MinopOutput(QWidget):
 
         self.output_widget: MOutput = MOutput()
         self.output_widget.setReadOnly(True)
-        # self.output_widget.setFontFamily("Courier New")
-        self.output_widget.setStyleSheet(
-            # color:  # ffffff;
-            # background - color:  # 5b5b5d;
-            """
-            MinopOutput QTextEdit {
-                border: 1px solid #d9d9d9;
-                border-radius: 5px;
-                padding: 10px;
-                font-family: "Cascadia Code", Consolas;
-            }
-            """
-        )
 
         self.main_layout: QVBoxLayout = QVBoxLayout()
         self.main_layout.addWidget(self.output_widget)

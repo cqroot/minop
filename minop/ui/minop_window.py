@@ -11,6 +11,7 @@ from minop.ui.components import MWidget, stylesheet, MSidebar, MInput
 from minop.ui.minop_container import MinopContainer
 from minop.ui.minop_output import MinopOutput
 from minop.ui.minop_header import MinopHeader
+from minop.ui.stylesheet import get_stylesheet
 
 
 class MinopWindow(MWidget):
@@ -22,11 +23,7 @@ class MinopWindow(MWidget):
 
         self.__setup_ui()
         self.__connect_all()
-        self.setStyleSheet(
-            stylesheet(
-                os.path.join(os.path.dirname(os.path.realpath(__file__)), "default.css")
-            )
-        )
+        self.setStyleSheet(get_stylesheet())
 
     def __setup_ui(self) -> None:
         self.setWindowTitle("MinOP - {}".format(self.config_path))
