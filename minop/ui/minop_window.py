@@ -1,13 +1,10 @@
-import os
-
-import yaml
 from PySide6.QtCore import QThread
-from PySide6.QtWidgets import QGridLayout
+from PySide6.QtWidgets import QSizePolicy, QVBoxLayout, QHBoxLayout
 from jinja2 import Template
 
 from minop.app.modules import Module
 from minop.app.worker import FabricWorker
-from minop.ui.components import MWidget, stylesheet, MSidebar, MInput
+from minop.ui.components import MWidget, MSidebar, MInput
 from minop.ui.minop_container import MinopContainer
 from minop.ui.minop_output import MinopOutput
 from minop.ui.minop_header import MinopHeader
@@ -35,16 +32,23 @@ class MinopWindow(MWidget):
         self.minop_sidebar.setCurrentRow(0)
 
         self.minop_header: MinopHeader = MinopHeader()
+        self.minop_header.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         self.minop_container: MinopContainer = MinopContainer(self.modules)
-        self.minop_output: MinopOutput = MinopOutput()
+        self.minop_container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
 
-        self.main_layout: QGridLayout = QGridLayout()
+        self.minop_output: MinopOutput = MinopOutput()
+        self.minop_output.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        self.content_layout: QVBoxLayout = QVBoxLayout()
+        self.content_layout.addWidget(self.minop_header)
+        self.content_layout.addWidget(self.minop_container)
+        self.content_layout.addWidget(self.minop_output)
+
+        self.main_layout: QHBoxLayout = QHBoxLayout()
         self.main_layout.setContentsMargins(0, 0, 0, 0)
-        self.main_layout.addWidget(self.minop_sidebar, 0, 0, 3, 1)
-        self.main_layout.addWidget(self.minop_header, 0, 1, 1, 1)
-        self.main_layout.addWidget(self.minop_container, 1, 1, 1, 1)
-        self.main_layout.addWidget(self.minop_output, 2, 1, 1, 1)
+        self.main_layout.addWidget(self.minop_sidebar)
+        self.main_layout.addLayout(self.content_layout)
         self.setLayout(self.main_layout)
 
     def change_current_module(self, index: int) -> None:

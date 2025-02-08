@@ -1,9 +1,7 @@
 from PySide6.QtWidgets import (
-    QLabel,
     QStackedWidget,
     QGridLayout,
     QWidget,
-    QSizePolicy,
 )
 
 from minop.app.modules import Module, MArgType
@@ -13,8 +11,6 @@ from minop.ui.components import MInput, MLabel
 class MinopContainer(QStackedWidget):
     def __init__(self, modules: list[Module]) -> None:
         super().__init__()
-
-        self.setSizePolicy(QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed))
         self.setContentsMargins(10, 0, 10, 0)
 
         for i, module in enumerate(modules):

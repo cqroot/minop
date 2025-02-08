@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QTextEdit, QSizePolicy
+from PySide6.QtWidgets import QWidget, QVBoxLayout
 
 from minop.ui.components import MOutput
 
@@ -6,8 +6,6 @@ from minop.ui.components import MOutput
 class MinopOutput(QWidget):
     def __init__(self) -> None:
         super().__init__()
-
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         self.output_widget: MOutput = MOutput()
         self.output_widget.setReadOnly(True)
