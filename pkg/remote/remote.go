@@ -1,0 +1,183 @@
+package remote
+
+import (
+	"bytes"
+	"errors"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"time"
+
+	"github.com/pkg/sftp"
+	"golang.org/x/crypto/ssh"
+)
+
+// Remote represents a SSH/SFTP client for remote server operations
+type Remote struct {
+	Hostname string
+	Port     int
+	Username string
+	Password string
+	client   *ssh.Client  // SSH client
+	sftp     *sftp.Client // SFTP client
+}
+
+// New creates a new Remote instance and establishes connections
+func New(h Host) (*Remote, error) {
+	client := &Remote{
+		Hostname: h.Hostname,
+		Port:     h.Port,
+		Username: h.Username,
+		Password: h.Password,
+	}
+
+	// Establish SSH connection
+	sshConfig := &ssh.ClientConfig{
+		User: h.Username,
+		Auth: []ssh.AuthMethod{
+			ssh.Password(h.Password),
+		},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		Timeout:         10 * time.Second,
+	}
+
+	conn, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", h.Hostname, h.Port), sshConfig)
+	if err != nil {
+		return nil, fmt.Errorf("SSH dial error: %w", err)
+	}
+	client.client = conn
+
+	// Create SFTP client
+	sftpClient, err := sftp.NewClient(conn)
+	if err != nil {
+		return nil, fmt.Errorf("SFTP client error: %w", err)
+	}
+	client.sftp = sftpClient
+
+	return client, nil
+}
+
+// ExecuteCommand executes a command on remote host and returns the output
+func (rc *Remote) ExecuteCommand(cmd string) (int, string, string, error) {
+	session, err := rc.client.NewSession()
+	if err != nil {
+		return 0, "", "", fmt.Errorf("create session error: %w", err)
+	}
+	defer session.Close()
+
+	var (
+		exitStatus int = 0
+		stdout     bytes.Buffer
+		stderr     bytes.Buffer
+	)
+	session.Stdout = &stdout
+	session.Stderr = &stderr
+
+	err = session.Run(cmd)
+	var e *ssh.ExitError
+	if err != nil && errors.As(err, &e) {
+		exitStatus = e.ExitStatus()
+		err = nil
+	}
+
+	return exitStatus, stdout.String(), stderr.String(), err
+}
+
+// UploadFile uploads a local file to remote path
+func (rc *Remote) UploadFile(localPath, remotePath string) error {
+	// Open local file
+	localFile, err := os.Open(localPath)
+	if err != nil {
+		return fmt.Errorf("open local file error: %w", err)
+	}
+	defer localFile.Close()
+
+	// Create remote file
+	remoteFile, err := rc.sftp.Create(remotePath)
+	if err != nil {
+		return fmt.Errorf("create remote file error: %w", err)
+	}
+	defer remoteFile.Close()
+
+	// Copy file content
+	_, err = io.Copy(remoteFile, localFile)
+	return err
+}
+
+// DownloadFile downloads a remote file to local path
+func (rc *Remote) DownloadFile(remotePath, localPath string) error {
+	// Open remote file
+	remoteFile, err := rc.sftp.Open(remotePath)
+	if err != nil {
+		return fmt.Errorf("open remote file error: %w", err)
+	}
+	defer remoteFile.Close()
+
+	// Create local file
+	localFile, err := os.Create(localPath)
+	if err != nil {
+		return fmt.Errorf("create local file error: %w", err)
+	}
+	defer localFile.Close()
+
+	// Copy file content
+	_, err = io.Copy(localFile, remoteFile)
+	return err
+}
+
+// UploadDirectory uploads a local directory recursively to remote path
+func (rc *Remote) UploadDirectory(localDir, remoteDir string) error {
+	return filepath.Walk(localDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		relPath, _ := filepath.Rel(localDir, path)
+		remotePath := filepath.Join(remoteDir, relPath)
+
+		if info.IsDir() {
+			return rc.sftp.Mkdir(remotePath)
+		}
+
+		return rc.UploadFile(path, remotePath)
+	})
+}
+
+// DownloadDirectory downloads a remote directory recursively to local path
+func (rc *Remote) DownloadDirectory(remoteDir, localDir string) error {
+	walker := rc.sftp.Walk(remoteDir)
+	for walker.Step() {
+		if err := walker.Err(); err != nil {
+			return err
+		}
+
+		remotePath := walker.Path()
+		relPath, _ := filepath.Rel(remoteDir, remotePath)
+		localPath := filepath.Join(localDir, relPath)
+
+		if walker.Stat().IsDir() {
+			os.MkdirAll(localPath, os.ModePerm)
+			continue
+		}
+
+		if err := rc.DownloadFile(remotePath, localPath); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Close closes all connections
+func (rc *Remote) Close() error {
+	if rc.sftp != nil {
+		rc.sftp.Close()
+	}
+	if rc.client != nil {
+		return rc.client.Close()
+	}
+	return nil
+}
+
+func main() {
+}
