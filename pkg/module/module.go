@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package module
 
 type Module interface {
-	Run() (string, error)
+	Run(resultsCh chan string) error
 }
 
 type Doc interface {

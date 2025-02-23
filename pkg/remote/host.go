@@ -18,8 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package remote
 
 import (
-	"gopkg.in/yaml.v3"
 	"os"
+
+	"gopkg.in/yaml.v3"
 )
 
 type Host struct {
@@ -41,7 +42,7 @@ func HostsFromYaml(filename string) ([]Host, error) {
 		return nil, err
 	}
 
-	for i, _ := range hosts {
+	for i := range hosts {
 		if hosts[i].Port == 0 {
 			hosts[i].Port = 22
 		}

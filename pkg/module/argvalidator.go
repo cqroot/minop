@@ -67,8 +67,10 @@ func StrToFloat(s string) float64 {
 	return f
 }
 
-var trueStrings = []string{"true", "yes", "y"}
-var falseStrings = []string{"false", "no", "n"}
+var (
+	trueStrings  = []string{"true", "yes", "y"}
+	falseStrings = []string{"false", "no", "n"}
+)
 
 func StrIsBoolean(s string) bool {
 	if slices.Contains(trueStrings, strings.ToLower(s)) || slices.Contains(falseStrings, strings.ToLower(s)) {
@@ -78,10 +80,7 @@ func StrIsBoolean(s string) bool {
 }
 
 func StrToBoolean(s string) bool {
-	if slices.Contains(trueStrings, strings.ToLower(s)) {
-		return true
-	}
-	return false
+	return slices.Contains(trueStrings, strings.ToLower(s))
 }
 
 func ValidateArgs(argMap map[string]string, argTypes []Arg) error {

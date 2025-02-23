@@ -18,9 +18,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package cmd
 
 import (
-	"fmt"
+	"os"
+
 	"github.com/cqroot/minop/pkg/manager"
 	"github.com/cqroot/minop/pkg/remote"
+	"github.com/cqroot/minop/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -32,21 +34,27 @@ func NewRootCmd() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			hosts, err := remote.HostsFromYaml("./hosts.yaml")
 			if err != nil {
-				panic(err)
+				utils.LogError(err.Error())
+				os.Exit(1)
 			}
 
 			moduleConfig, err := manager.ModulesFromYaml("./minop.yaml")
+			if err != nil {
+				utils.LogError(err.Error())
+				os.Exit(1)
+			}
 
 			for _, host := range hosts {
 				mgr, err := manager.New(host, moduleConfig)
 				if err != nil {
+					utils.LogError(err.Error())
 					continue
 				}
 				defer mgr.Close()
 
 				err = mgr.Run()
 				if err != nil {
-					fmt.Printf("Error: %s\n", err.Error())
+					utils.LogError(err.Error())
 				}
 			}
 		},

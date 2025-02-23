@@ -19,6 +19,7 @@ package manager
 
 import (
 	"fmt"
+
 	"github.com/cqroot/minop/pkg/module"
 	"github.com/cqroot/minop/pkg/module/command"
 	"github.com/fatih/color"

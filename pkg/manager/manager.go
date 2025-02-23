@@ -20,14 +20,14 @@ package manager
 import (
 	"errors"
 	"fmt"
+	"sync"
+
 	"github.com/cqroot/minop/pkg/module"
 	"github.com/cqroot/minop/pkg/module/command"
 	"github.com/cqroot/minop/pkg/remote"
 )
 
-var (
-	ErrModuleParse = errors.New("module parse error")
-)
+var ErrModuleParse = errors.New("module parse error")
 
 type Manager struct {
 	moduleConfig *ModuleConfig
@@ -70,11 +70,29 @@ func (mgr *Manager) Close() {
 }
 
 func (mgr *Manager) Run() error {
-	for _, m := range mgr.modules {
-		_, err := m.Run()
-		if err != nil {
-			return err
+	resultsCh := make(chan string)
+	var wgProcess sync.WaitGroup
+	var wgPrint sync.WaitGroup
+
+	wgPrint.Add(1)
+	go func() {
+		defer wgPrint.Done()
+		for result := range resultsCh {
+			fmt.Println(result)
 		}
+	}()
+
+	for _, m := range mgr.modules {
+		wgProcess.Add(1)
+		go func() {
+			defer wgProcess.Done()
+
+			_ = m.Run(resultsCh)
+		}()
+		wgProcess.Wait()
 	}
+	close(resultsCh)
+
+	wgProcess.Wait()
 	return nil
 }

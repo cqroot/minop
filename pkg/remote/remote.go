@@ -174,7 +174,10 @@ func (rc *Remote) DownloadDirectory(remoteDir, localDir string) error {
 		localPath := filepath.Join(localDir, relPath)
 
 		if walker.Stat().IsDir() {
-			os.MkdirAll(localPath, os.ModePerm)
+			err := os.MkdirAll(localPath, os.ModePerm)
+			if err != nil {
+				return err
+			}
 			continue
 		}
 
@@ -194,7 +197,4 @@ func (rc *Remote) Close() error {
 		return rc.client.Close()
 	}
 	return nil
-}
-
-func main() {
 }

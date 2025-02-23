@@ -20,11 +20,11 @@ package command
 import (
 	"errors"
 	"fmt"
+
 	"github.com/cqroot/minop/pkg/module"
 	"github.com/cqroot/minop/pkg/remote"
 	"github.com/cqroot/minop/pkg/utils"
 	"github.com/fatih/color"
-	"strings"
 )
 
 var ErrExitStatus = errors.New("exit status not zero")
@@ -48,38 +48,33 @@ func New(r *remote.Remote, argMap map[string]string) (*Command, error) {
 	return &c, nil
 }
 
-func (c *Command) writeOutput(builder *strings.Builder, s string) {
-	builder.WriteString(s)
-	fmt.Println(s)
+func formattedString(fg color.Attribute, emoji string, r *remote.Remote, msg string) string {
+	return color.New(fg).Sprintf("[%s] %s [%s@%s] %s", utils.TimeString(), emoji, r.Username, r.Hostname, msg)
 }
 
-func (c *Command) Run() (string, error) {
-	builder := strings.Builder{}
-
+func (c *Command) Run(resultsCh chan string) error {
 	exitStatus, stdout, stderr, err := c.r.ExecuteCommand(c.cmd)
 	if err != nil {
-		c.writeOutput(&builder, fmt.Sprintf("%s %s\n",
-			utils.FormattedString(color.FgRed, "❗", c.r, "Error:"), err.Error()))
-		return builder.String(), err
+		resultsCh <- fmt.Sprintf("%s %s",
+			formattedString(color.FgRed, "❗", c.r, "Error:"), err.Error())
+		return err
 	}
 
 	err = nil
 	if exitStatus == 0 {
-		c.writeOutput(&builder, fmt.Sprintf("%s %d\n", utils.FormattedString(color.FgGreen, "✅", c.r, "Exit Status:"), exitStatus))
+		resultsCh <- fmt.Sprintf("%s %d", formattedString(color.FgGreen, "✅", c.r, "Exit Status:"), exitStatus)
 	} else {
-		c.writeOutput(&builder, fmt.Sprintf("%s %d\n", utils.FormattedString(color.FgRed, "❎", c.r, "Exit Status:"), exitStatus))
+		resultsCh <- fmt.Sprintf("%s %d", formattedString(color.FgRed, "❎", c.r, "Exit Status:"), exitStatus)
 		err = fmt.Errorf("%w: %d", ErrExitStatus, exitStatus)
 	}
 
 	if stdout != "" {
-		c.writeOutput(&builder, utils.FormattedString(color.FgCyan, "📄", c.r, "Stdout:"))
-		c.writeOutput(&builder, fmt.Sprintf("\n%s\n", stdout))
+		resultsCh <- fmt.Sprintf("%s\n%s\n", formattedString(color.FgCyan, "📄", c.r, "Stdout:"), stdout)
 	}
 
 	if stderr != "" {
-		c.writeOutput(&builder, utils.FormattedString(color.FgRed, "🚨 ", c.r, "Stderr:"))
-		c.writeOutput(&builder, fmt.Sprintf("\n%s\n", stderr))
+		resultsCh <- fmt.Sprintf("%s\n%s\n", formattedString(color.FgRed, "🚨 ", c.r, "Stderr:"), stderr)
 	}
 
-	return builder.String(), err
+	return err
 }

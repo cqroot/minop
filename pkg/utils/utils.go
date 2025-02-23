@@ -18,9 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package utils
 
 import (
-	"github.com/cqroot/minop/pkg/remote"
-	"github.com/fatih/color"
 	"time"
+
+	"github.com/fatih/color"
 )
 
 func TimeString() string {
@@ -28,6 +28,6 @@ func TimeString() string {
 	return now.Format("2006-01-02 15:04:05")
 }
 
-func FormattedString(fg color.Attribute, emoji string, r *remote.Remote, msg string) string {
-	return color.New(fg).Sprintf("[%s] %s [%s@%s] %s", TimeString(), emoji, r.Username, r.Hostname, msg)
+func LogError(msg string) {
+	color.Red("[%s] ⚠️ %s", TimeString(), msg)
 }
