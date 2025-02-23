@@ -18,17 +18,44 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package cmd
 
 import (
+	"fmt"
 	"github.com/cqroot/minop/pkg/manager"
+	"github.com/cqroot/minop/pkg/remote"
 	"github.com/spf13/cobra"
 )
 
-func NewDocCmd() *cobra.Command {
+func NewRootCmd() *cobra.Command {
 	cmd := cobra.Command{
-		Use:   "doc",
-		Short: "Show module documentation",
+		Use:   "minop",
+		Short: "MinOP is a simple remote execution and deployment tool",
+		Long:  "MinOP is a simple remote execution and deployment tool",
 		Run: func(cmd *cobra.Command, args []string) {
-			manager.ShowModuleDocs()
+			hosts, err := remote.HostsFromYaml("./hosts.yaml")
+			if err != nil {
+				panic(err)
+			}
+
+			moduleConfig, err := manager.ModulesFromYaml("./minop.yaml")
+
+			for _, host := range hosts {
+				mgr, err := manager.New(host, moduleConfig)
+				if err != nil {
+					continue
+				}
+				defer mgr.Close()
+
+				err = mgr.Run()
+				if err != nil {
+					fmt.Printf("Error: %s\n", err.Error())
+				}
+			}
 		},
 	}
+
+	cmd.AddCommand(NewDocCmd())
 	return &cmd
+}
+
+func Execute() {
+	cobra.CheckErr(NewRootCmd().Execute())
 }
