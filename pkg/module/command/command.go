@@ -29,13 +29,13 @@ import (
 
 var ErrExitStatus = errors.New("exit status not zero")
 
-type Command struct {
+type Module struct {
 	r   *remote.Remote
 	cmd string
 }
 
-func New(r *remote.Remote, argMap map[string]string) (*Command, error) {
-	c := Command{
+func New(r *remote.Remote, argMap map[string]string) (*Module, error) {
+	c := Module{
 		r: r,
 	}
 
@@ -52,28 +52,30 @@ func formattedString(fg color.Attribute, emoji string, r *remote.Remote, msg str
 	return color.New(fg).Sprintf("[%s] %s [%s@%s] %s", utils.TimeString(), emoji, r.Username, r.Hostname, msg)
 }
 
-func (c *Command) Run(resultsCh chan string) error {
-	exitStatus, stdout, stderr, err := c.r.ExecuteCommand(c.cmd)
+func (m *Module) Run(resultsCh chan string) error {
+	resultsCh <- formattedString(color.FgYellow, "🟢", m.r, fmt.Sprintf("Command: %s", m.cmd))
+
+	exitStatus, stdout, stderr, err := m.r.ExecuteCommand(m.cmd)
 	if err != nil {
 		resultsCh <- fmt.Sprintf("%s %s",
-			formattedString(color.FgRed, "❗", c.r, "Error:"), err.Error())
+			formattedString(color.FgRed, "❗", m.r, "Error:"), err.Error())
 		return err
 	}
 
 	err = nil
 	if exitStatus == 0 {
-		resultsCh <- fmt.Sprintf("%s %d", formattedString(color.FgGreen, "✅", c.r, "Exit Status:"), exitStatus)
+		resultsCh <- fmt.Sprintf("%s %d", formattedString(color.FgGreen, "✅", m.r, "Exit Status:"), exitStatus)
 	} else {
-		resultsCh <- fmt.Sprintf("%s %d", formattedString(color.FgRed, "❎", c.r, "Exit Status:"), exitStatus)
+		resultsCh <- fmt.Sprintf("%s %d", formattedString(color.FgRed, "❎", m.r, "Exit Status:"), exitStatus)
 		err = fmt.Errorf("%w: %d", ErrExitStatus, exitStatus)
 	}
 
 	if stdout != "" {
-		resultsCh <- fmt.Sprintf("%s\n%s\n", formattedString(color.FgCyan, "📄", c.r, "Stdout:"), stdout)
+		resultsCh <- fmt.Sprintf("%s\n%s", formattedString(color.FgCyan, "📄", m.r, "Stdout:"), stdout)
 	}
 
 	if stderr != "" {
-		resultsCh <- fmt.Sprintf("%s\n%s\n", formattedString(color.FgRed, "🚨 ", c.r, "Stderr:"), stderr)
+		resultsCh <- fmt.Sprintf("%s\n%s", formattedString(color.FgRed, "🚨 ", m.r, "Stderr:"), stderr)
 	}
 
 	return err

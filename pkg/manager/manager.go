@@ -22,6 +22,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/cqroot/minop/pkg/module/file"
+
 	"github.com/cqroot/minop/pkg/module"
 	"github.com/cqroot/minop/pkg/module/command"
 	"github.com/cqroot/minop/pkg/remote"
@@ -52,14 +54,21 @@ func New(host remote.Host, moduleArgs *ModuleConfig) (*Manager, error) {
 			return nil, fmt.Errorf("%w: %+v", ErrModuleParse, moduleArg)
 		}
 
+		var m module.Module
+
 		switch name {
 		case "command":
-			m, err := command.New(mgr.rem, moduleArg)
+			m, err = command.New(mgr.rem, moduleArg)
 			if err != nil {
 				return nil, err
 			}
-			mgr.modules = append(mgr.modules, m)
+		case "file":
+			m, err = file.New(mgr.rem, moduleArg)
+			if err != nil {
+				return nil, err
+			}
 		}
+		mgr.modules = append(mgr.modules, m)
 	}
 
 	return &mgr, nil
