@@ -25,7 +25,7 @@ type ModuleDoc struct {
 }
 
 var Doc = ModuleDoc{
-	desc: "Copy file to remote locations",
+	desc: "Copy file to remote locations.",
 	args: []module.Arg{
 		{Name: "src", Desc: "Local path to a file to copy to the remote server.", Type: module.ArgTypeString, Optional: false, Default: ""},
 		{Name: "dst", Desc: "Remote absolute path where the file should be copied to.", Type: module.ArgTypeString, Optional: false, Default: ""},

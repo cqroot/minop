@@ -20,7 +20,11 @@ package manager
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
+
+	"github.com/cqroot/minop/pkg/module/script"
+	"github.com/cqroot/minop/pkg/utils"
 
 	"github.com/cqroot/minop/pkg/module/file"
 
@@ -67,6 +71,11 @@ func New(host remote.Host, moduleArgs *ModuleConfig) (*Manager, error) {
 			if err != nil {
 				return nil, err
 			}
+		case "script":
+			m, err = script.New(mgr.rem, moduleArg)
+			if err != nil {
+				return nil, err
+			}
 		}
 		mgr.modules = append(mgr.modules, m)
 	}
@@ -97,6 +106,9 @@ func (mgr *Manager) Run() error {
 			defer wgProcess.Done()
 
 			_ = m.Run(resultsCh)
+			resultsCh <- fmt.Sprintf("[%s] 💠 [%s@%s] %s", utils.TimeString(),
+				mgr.rem.Username, mgr.rem.Hostname,
+				strings.Repeat("-", 80-len(mgr.rem.Username)-len(mgr.rem.Hostname)))
 		}()
 		wgProcess.Wait()
 	}

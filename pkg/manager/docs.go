@@ -19,6 +19,7 @@ package manager
 
 import (
 	"fmt"
+	"github.com/cqroot/minop/pkg/module/script"
 
 	"github.com/cqroot/minop/pkg/module/file"
 
@@ -30,11 +31,13 @@ import (
 var modules = []string{
 	"command",
 	"file",
+	"script",
 }
 
 var ModuleDocMap = map[string]module.Doc{
 	"command": command.Doc,
 	"file":    file.Doc,
+	"script":  script.Doc,
 }
 
 func ShowModuleDocs() {
@@ -42,7 +45,7 @@ func ShowModuleDocs() {
 		fmt.Printf("%s %s\n", color.GreenString("%-12s", name), ModuleDocMap[name].Desc())
 		for _, arg := range ModuleDocMap[name].Args() {
 			fmt.Printf("        %s %s %s",
-				color.CyanString("%-12s", arg.Name), color.MagentaString("%-8s", string(arg.Type)), arg.Desc)
+				color.CyanString("%-20s", arg.Name), color.MagentaString("%-8s", string(arg.Type)), arg.Desc)
 			if arg.Optional {
 				fmt.Printf("  %s\n", color.YellowString("(Optional, default: %s)", arg.Default))
 			} else {

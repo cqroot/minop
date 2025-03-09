@@ -15,9 +15,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-package command
+package script
 
-import "github.com/cqroot/minop/pkg/module"
+import (
+	"github.com/cqroot/minop/pkg/module"
+)
 
 type ModuleDoc struct {
 	desc string
@@ -25,18 +27,22 @@ type ModuleDoc struct {
 }
 
 var Doc = ModuleDoc{
-	desc: "Execute commands on targets.",
+	desc: "Runs a local script on a remote node after transferring it.",
 	args: []module.Arg{
-		{Name: "command", Desc: "The command to run.", Type: module.ArgTypeString, Optional: false, Default: ""},
-		{Name: "print_intro", Desc: "Print introduction.", Type: module.ArgTypeBoolean, Optional: true, Default: "true"},
-		{Name: "print_exit_status", Desc: "Print exit status.", Type: module.ArgTypeBoolean, Optional: true, Default: "true"},
-		{Name: "print_stdout", Desc: "Print stdout.", Type: module.ArgTypeBoolean, Optional: true, Default: "true"},
-		{Name: "print_stderr", Desc: "Print stderr.", Type: module.ArgTypeBoolean, Optional: true, Default: "true"},
+		{Name: "script", Desc: "Path to the local script to run followed by optional arguments.", Type: module.ArgTypeString, Optional: false, Default: ""},
 	},
 }
 
 func (md ModuleDoc) Desc() string {
 	return md.desc
+}
+
+func RandomString(length int) string {
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[seededRand.Intn(len(charset))]
+	}
+	return string(b)
 }
 
 func (md ModuleDoc) Args() []module.Arg {

@@ -30,12 +30,16 @@ import (
 var ErrExitStatus = errors.New("exit status not zero")
 
 type Module struct {
-	r   *remote.Remote
-	cmd string
+	r               *remote.Remote
+	cmd             string
+	printIntro      bool
+	printExitStatus bool
+	printStdout     bool
+	printStderr     bool
 }
 
 func New(r *remote.Remote, argMap map[string]string) (*Module, error) {
-	c := Module{
+	m := Module{
 		r: r,
 	}
 
@@ -44,38 +48,48 @@ func New(r *remote.Remote, argMap map[string]string) (*Module, error) {
 		return nil, err
 	}
 
-	c.cmd = argMap["command"]
-	return &c, nil
+	m.cmd = argMap["command"]
+	m.printIntro = utils.StrToBoolean(argMap["print_intro"])
+	m.printExitStatus = utils.StrToBoolean(argMap["print_exit_status"])
+	m.printStdout = utils.StrToBoolean(argMap["print_stdout"])
+	m.printStderr = utils.StrToBoolean(argMap["print_stderr"])
+	return &m, nil
 }
 
-func formattedString(fg color.Attribute, emoji string, r *remote.Remote, msg string) string {
+func FormattedString(fg color.Attribute, emoji string, r *remote.Remote, msg string) string {
 	return color.New(fg).Sprintf("[%s] %s [%s@%s] %s", utils.TimeString(), emoji, r.Username, r.Hostname, msg)
 }
 
 func (m *Module) Run(resultsCh chan string) error {
-	resultsCh <- formattedString(color.FgYellow, "🟢", m.r, fmt.Sprintf("Command: %s", m.cmd))
+	if m.printIntro {
+		resultsCh <- FormattedString(color.FgYellow, "🟢", m.r, fmt.Sprintf("Command: %s", m.cmd))
+	}
 
 	exitStatus, stdout, stderr, err := m.r.ExecuteCommand(m.cmd)
 	if err != nil {
 		resultsCh <- fmt.Sprintf("%s %s",
-			formattedString(color.FgRed, "❗", m.r, "Error:"), err.Error())
+			FormattedString(color.FgRed, "❗", m.r, "Error:"), err.Error())
 		return err
 	}
 
 	err = nil
 	if exitStatus == 0 {
-		resultsCh <- fmt.Sprintf("%s %d", formattedString(color.FgGreen, "✅", m.r, "Exit Status:"), exitStatus)
+		if m.printExitStatus {
+			resultsCh <- fmt.Sprintf("%s %d", FormattedString(color.FgGreen, "✅", m.r, "Exit Status:"), exitStatus)
+		}
 	} else {
-		resultsCh <- fmt.Sprintf("%s %d", formattedString(color.FgRed, "❎", m.r, "Exit Status:"), exitStatus)
+		if m.printExitStatus {
+			resultsCh <- fmt.Sprintf("%s %d", FormattedString(color.FgRed, "❎", m.r, "Exit Status:"), exitStatus)
+		}
 		err = fmt.Errorf("%w: %d", ErrExitStatus, exitStatus)
 	}
 
-	if stdout != "" {
-		resultsCh <- fmt.Sprintf("%s\n%s", formattedString(color.FgCyan, "📄", m.r, "Stdout:"), stdout)
+	if stdout != "" && m.printStdout {
+		resultsCh <- fmt.Sprintf("%s\n%s", FormattedString(color.FgCyan, "📄", m.r, "Stdout:"), stdout)
 	}
 
-	if stderr != "" {
-		resultsCh <- fmt.Sprintf("%s\n%s", formattedString(color.FgRed, "🚨 ", m.r, "Stderr:"), stderr)
+	if stderr != "" && m.printStderr {
+		resultsCh <- fmt.Sprintf("%s\n%s", FormattedString(color.FgRed, "🚨", m.r, "Stderr:"), stderr)
 	}
 
 	return err

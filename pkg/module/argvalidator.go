@@ -50,6 +50,9 @@ func ValidateArgs(argMap map[string]string, argTypes []Arg) error {
 	for _, arg := range argTypes {
 		// Only mandatory args require validation
 		if arg.Optional {
+			if argMap[arg.Name] == "" {
+				argMap[arg.Name] = arg.Default
+			}
 			continue
 		}
 

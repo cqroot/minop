@@ -51,7 +51,7 @@ func New(r *remote.Remote, argMap map[string]string) (*Module, error) {
 }
 
 func (m *Module) Run(resultsCh chan string) error {
-	resultsCh <- color.New(color.FgYellow).Sprintf("[%s] 🟢 [%s@%s] Transfer file from %s to %s", utils.TimeString(), m.r.Username, m.r.Hostname, m.src, m.dst)
+	resultsCh <- color.New(color.FgYellow).Sprintf("[%s] 🟢 [%s@%s] Transfer file from %s to %s.", utils.TimeString(), m.r.Username, m.r.Hostname, m.src, m.dst)
 
 	err := m.r.UploadFile(m.src, m.dst)
 	if err == nil {
