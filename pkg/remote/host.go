@@ -18,7 +18,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package remote
 
 import (
+	"bufio"
+	"errors"
+	"fmt"
 	"os"
+	"strings"
+
+	"github.com/cqroot/minop/pkg/utils"
 
 	"gopkg.in/yaml.v3"
 )
@@ -28,6 +34,84 @@ type Host struct {
 	Port     int    `json:"port"`
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+
+var (
+	ErrEmptyLine     = errors.New("empty line")
+	ErrEmptyUsername = errors.New("empty username")
+	ErrEmptyPassword = errors.New("empty password")
+	ErrEmptyHostname = errors.New("empty hostname")
+)
+
+func HostFromLine(line string) (Host, error) {
+	h := Host{}
+	if len(line) == 0 {
+		return h, ErrEmptyLine
+	}
+
+	s := line
+
+	userDelimiter := strings.IndexByte(s, ':')
+	if userDelimiter == -1 {
+		return h, fmt.Errorf("%w: %s", ErrEmptyUsername, line)
+	} else {
+		h.Username = s[:userDelimiter]
+		s = s[userDelimiter+1:]
+	}
+
+	passwordDelimiter := strings.LastIndexByte(s, '@')
+	if passwordDelimiter == -1 {
+		return h, fmt.Errorf("%w: %s", ErrEmptyPassword, line)
+	} else {
+		h.Password = s[:passwordDelimiter]
+		s = s[passwordDelimiter+1:]
+	}
+
+	hostnameDelimiter := strings.IndexByte(s, ':')
+	if hostnameDelimiter == -1 {
+		if len(s) != 0 {
+			h.Hostname = s
+			s = ""
+		} else {
+			return h, fmt.Errorf("%w: %s", ErrEmptyHostname, line)
+		}
+	} else {
+		h.Hostname = s[:hostnameDelimiter]
+		s = s[hostnameDelimiter+1:]
+	}
+
+	if !utils.StrIsInteger(s) {
+		h.Port = 22
+	} else {
+		h.Port = int(utils.StrToInteger(s))
+	}
+
+	return h, nil
+}
+
+func HostsFromHostList(filename string) ([]Host, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	fileScanner := bufio.NewScanner(file)
+	fileScanner.Split(bufio.ScanLines)
+
+	hosts := make([]Host, 0)
+	for fileScanner.Scan() {
+		h, err := HostFromLine(fileScanner.Text())
+		if errors.Is(err, ErrEmptyLine) {
+			continue
+		}
+
+		if err != nil {
+			return nil, err
+		}
+		hosts = append(hosts, h)
+	}
+	return hosts, nil
 }
 
 func HostsFromYaml(filename string) ([]Host, error) {

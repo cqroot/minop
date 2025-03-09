@@ -20,9 +20,8 @@ package module
 import (
 	"errors"
 	"fmt"
-	"slices"
-	"strconv"
-	"strings"
+
+	"github.com/cqroot/minop/pkg/utils"
 )
 
 type ArgType string
@@ -47,42 +46,6 @@ var (
 	ErrArgTypeMismatch = errors.New("arg type mismatch")
 )
 
-func StrIsInteger(s string) bool {
-	_, err := strconv.ParseInt(s, 10, 64)
-	return err == nil
-}
-
-func StrToInteger(s string) int64 {
-	i, _ := strconv.ParseInt(s, 10, 64)
-	return i
-}
-
-func StrIsFloat(s string) bool {
-	_, err := strconv.ParseFloat(s, 64)
-	return err == nil
-}
-
-func StrToFloat(s string) float64 {
-	f, _ := strconv.ParseFloat(s, 64)
-	return f
-}
-
-var (
-	trueStrings  = []string{"true", "yes", "y"}
-	falseStrings = []string{"false", "no", "n"}
-)
-
-func StrIsBoolean(s string) bool {
-	if slices.Contains(trueStrings, strings.ToLower(s)) || slices.Contains(falseStrings, strings.ToLower(s)) {
-		return true
-	}
-	return false
-}
-
-func StrToBoolean(s string) bool {
-	return slices.Contains(trueStrings, strings.ToLower(s))
-}
-
 func ValidateArgs(argMap map[string]string, argTypes []Arg) error {
 	for _, arg := range argTypes {
 		// Only mandatory args require validation
@@ -100,17 +63,17 @@ func ValidateArgs(argMap map[string]string, argTypes []Arg) error {
 			continue
 
 		case ArgTypeInteger:
-			if !StrIsInteger(val) {
+			if !utils.StrIsInteger(val) {
 				return fmt.Errorf("%w: %s %s -> %s", ErrArgTypeMismatch, arg.Name, arg.Type, val)
 			}
 
 		case ArgTypeFloat:
-			if !StrIsFloat(val) {
+			if !utils.StrIsFloat(val) {
 				return fmt.Errorf("%w: %s %s -> %s", ErrArgTypeMismatch, arg.Name, arg.Type, val)
 			}
 
 		case ArgTypeBoolean:
-			if !StrIsBoolean(val) {
+			if !utils.StrIsBoolean(val) {
 				return fmt.Errorf("%w: %s %s -> %s", ErrArgTypeMismatch, arg.Name, arg.Type, val)
 			}
 		}

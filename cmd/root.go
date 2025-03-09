@@ -26,16 +26,27 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func CheckErr(err error) {
+	if err != nil {
+		utils.LogError(err.Error())
+		os.Exit(1)
+	}
+}
+
 func NewRootCmd() *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "minop",
 		Short: "MinOP is a simple remote execution and deployment tool",
 		Long:  "MinOP is a simple remote execution and deployment tool",
 		Run: func(cmd *cobra.Command, args []string) {
-			hosts, err := remote.HostsFromYaml("./hosts.yaml")
-			if err != nil {
-				utils.LogError(err.Error())
-				os.Exit(1)
+			var hosts []remote.Host
+			var err error
+			if utils.IsFileExists("./host.list") {
+				hosts, err = remote.HostsFromHostList("./host.list")
+				CheckErr(err)
+			} else if utils.IsFileExists("./hosts.yaml") {
+				hosts, err = remote.HostsFromYaml("./hosts.yaml")
+				CheckErr(err)
 			}
 
 			moduleConfig, err := manager.ModulesFromYaml("./minop.yaml")
