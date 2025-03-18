@@ -4,7 +4,7 @@ go 1.23.3
 
 require (
 	github.com/fatih/color v1.18.0
-	github.com/pkg/sftp v1.13.7
+	github.com/pkg/sftp v1.13.8
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.8.0
 	golang.org/x/crypto v0.33.0
