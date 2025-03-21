@@ -24,3 +24,18 @@ Create a file named `host.list` to configure the hosts that need to be operated.
 root:password@host1:22
 user:password@host2
 ```
+
+Create a file named `minop.yaml` to configure the tasks to be executed.
+
+```yaml
+modules:
+  - name: command
+    command: "ip addr; lscpu"
+
+  - name: file
+    src: ./LICENSE
+    dst: /root/LICENSE
+
+  - name: script
+    script: ./test.sh
+```
