@@ -1,6 +1,7 @@
 #include "main_window.h"
 
 #include <QMenuBar>
+#include <QMessageBox>
 #include <QVBoxLayout>
 
 MainWindow::MainWindow(QMainWindow *parent) : QMainWindow(parent)
@@ -27,6 +28,9 @@ void MainWindow::CreateMenus()
 
     QMenu *viewMenu = menuBar->addMenu(tr("&View"));
     InitViewMenus(viewMenu);
+
+    QMenu *helpMenu = menuBar->addMenu(tr("&Help"));
+    InitHelpMenus(helpMenu);
 }
 
 void MainWindow::InitViewMenus(QMenu *menu)
@@ -48,4 +52,30 @@ void MainWindow::InitViewMenus(QMenu *menu)
     connect(tasksDock, &QDockWidget::visibilityChanged, showTasksAction,
             &QAction::setChecked);
     menu->addAction(showTasksAction);
+}
+
+void MainWindow::InitHelpMenus(QMenu *menu)
+{
+    QAction *aboutAction = new QAction(tr("&About Minop"), this);
+    menu->addAction(aboutAction);
+    connect(aboutAction, &QAction::triggered, this,
+            &MainWindow::ShowAboutDialog);
+
+    QAction *aboutQtAction = new QAction(tr("About &Qt"), this);
+    menu->addAction(aboutQtAction);
+    connect(aboutQtAction, &QAction::triggered, this,
+            &MainWindow::ShowAboutQtDialog);
+}
+
+void MainWindow::ShowAboutDialog()
+{
+    QMessageBox::about(this, tr("About Minop"),
+                       tr("<b>Minop</b><br>"
+                          "Version 0.1<br><br>"
+                          "Copyright © 2025 The Minop Authors"));
+}
+
+void MainWindow::ShowAboutQtDialog()
+{
+    QMessageBox::aboutQt(this, tr("About Qt"));
 }

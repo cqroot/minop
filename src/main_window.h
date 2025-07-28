@@ -19,6 +19,9 @@ private:
 
     void CreateMenus();
     void InitViewMenus(QMenu *menu);
+    void InitHelpMenus(QMenu *menu);
+    void ShowAboutDialog();
+    void ShowAboutQtDialog();
 };
 
 #endif // !MAIN_WINDOW_H
