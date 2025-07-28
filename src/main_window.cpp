@@ -1,5 +1,6 @@
 #include "main_window.h"
 
+#include <QApplication>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QVBoxLayout>
@@ -26,12 +27,26 @@ void MainWindow::CreateMenus()
 {
     QMenuBar *menuBar = this->menuBar();
 
+    QMenu *fileMenu = menuBar->addMenu(tr("&File"));
+    InitFileMenus(fileMenu);
+
     QMenu *viewMenu = menuBar->addMenu(tr("&View"));
     InitViewMenus(viewMenu);
 
     QMenu *helpMenu = menuBar->addMenu(tr("&Help"));
     InitHelpMenus(helpMenu);
 }
+
+void MainWindow::InitFileMenus(QMenu *menu)
+{
+    QAction *quitAction = new QAction(tr("&Quit"), this);
+    quitAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q));
+    menu->addAction(quitAction);
+    connect(quitAction, &QAction::triggered, this,
+            &MainWindow::QuitApplication);
+}
+
+void MainWindow::QuitApplication() { QApplication::quit(); }
 
 void MainWindow::InitViewMenus(QMenu *menu)
 {

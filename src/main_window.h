@@ -18,6 +18,8 @@ private:
     TasksDock *tasksDock;
 
     void CreateMenus();
+    void InitFileMenus(QMenu *menu);
+    void QuitApplication();
     void InitViewMenus(QMenu *menu);
     void InitHelpMenus(QMenu *menu);
     void ShowAboutDialog();
