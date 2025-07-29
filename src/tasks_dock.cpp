@@ -4,11 +4,11 @@
 
 TasksDock::TasksDock(QWidget *parent) : QDockWidget(parent)
 {
-    this->setWindowTitle("Tasks");
-    this->setFeatures(QDockWidget::DockWidgetMovable |
+    setWindowTitle("Tasks");
+    setFeatures(QDockWidget::DockWidgetMovable |
                       QDockWidget::DockWidgetFloatable |
                       QDockWidget::DockWidgetClosable);
-    this->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea |
+    setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea |
                           Qt::BottomDockWidgetArea);
 
     QWidget *sidebarContent = new QWidget();
@@ -19,7 +19,7 @@ TasksDock::TasksDock(QWidget *parent) : QDockWidget(parent)
     layout->addWidget(tasksWidget);
     sidebarContent->setLayout(layout);
 
-    this->setWidget(sidebarContent);
+    setWidget(sidebarContent);
 }
 
 TasksDock::~TasksDock() {}

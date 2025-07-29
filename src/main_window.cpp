@@ -7,7 +7,7 @@
 
 MainWindow::MainWindow(QMainWindow *parent) : QMainWindow(parent)
 {
-    this->resize(800, 500);
+    resize(800, 500);
 
     QWidget *centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
@@ -32,6 +32,9 @@ void MainWindow::CreateMenus()
 
     QMenu *viewMenu = menuBar->addMenu(tr("&View"));
     InitViewMenus(viewMenu);
+
+    QMenu *hostsMenu = menuBar->addMenu(tr("Hosts"));
+    InitHostsMenus(hostsMenu);
 
     QMenu *helpMenu = menuBar->addMenu(tr("&Help"));
     InitHelpMenus(helpMenu);
@@ -67,6 +70,19 @@ void MainWindow::InitViewMenus(QMenu *menu)
     connect(tasksDock, &QDockWidget::visibilityChanged, showTasksAction,
             &QAction::setChecked);
     menu->addAction(showTasksAction);
+}
+
+void MainWindow::InitHostsMenus(QMenu *menu)
+{
+    QAction *newHostGroupAction = new QAction(tr("New Host Group"), this);
+    connect(newHostGroupAction, &QAction::triggered, hostsDock,
+            &HostsDock::CreateHostGroup);
+    menu->addAction(newHostGroupAction);
+
+    QAction *newHostAction = new QAction(tr("New Host"), this);
+    connect(newHostAction, &QAction::triggered, hostsDock,
+            &HostsDock::CreateHost);
+    menu->addAction(newHostAction);
 }
 
 void MainWindow::InitHelpMenus(QMenu *menu)

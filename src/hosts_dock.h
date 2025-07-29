@@ -2,7 +2,22 @@
 #define HOSTS_WIDGET_H
 
 #include <QDockWidget>
-#include <QListWidget>
+#include <QTreeWidget>
+
+class HostsTree : public QTreeWidget
+{
+    Q_OBJECT
+public:
+    HostsTree(QWidget *parent = nullptr);
+    ~HostsTree();
+
+public slots:
+    void CreateHostGroup();
+    void CreateHost();
+
+protected:
+    void contextMenuEvent(QContextMenuEvent *event) override;
+};
 
 class HostsDock : public QDockWidget
 {
@@ -11,8 +26,12 @@ public:
     HostsDock(QWidget *parent = nullptr);
     ~HostsDock();
 
+public slots:
+    void CreateHostGroup();
+    void CreateHost();
+
 private:
-    QListWidget *hostsWidget;
+    HostsTree *hostsWidget;
 };
 
 #endif // !HOSTS_WIDGET_H
