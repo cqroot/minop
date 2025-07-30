@@ -1,5 +1,5 @@
-#ifndef TASKS_WIDGET_H
-#define TASKS_WIDGET_H
+#ifndef TASKS_DOCK_H
+#define TASKS_DOCK_H
 
 #include <QDockWidget>
 #include <QListWidget>
@@ -15,4 +15,4 @@ private:
     QListWidget *tasksWidget;
 };
 
-#endif // !TASKS_WIDGET_H
+#endif // !TASKS_DOCK_H

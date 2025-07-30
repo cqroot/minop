@@ -1,5 +1,5 @@
-#ifndef HOSTS_WIDGET_H
-#define HOSTS_WIDGET_H
+#ifndef HOSTS_DOCK_H
+#define HOSTS_DOCK_H
 
 #include <QDockWidget>
 #include <QTreeWidget>
@@ -17,6 +17,9 @@ public slots:
 
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
+
+private:
+    void LoadData();
 };
 
 class HostsDock : public QDockWidget
@@ -34,4 +37,4 @@ private:
     HostsTree *hostsWidget;
 };
 
-#endif // !HOSTS_WIDGET_H
+#endif // !HOSTS_DOCK_H
