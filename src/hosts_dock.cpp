@@ -1,5 +1,7 @@
 #include "hosts_dock.h"
 
+#include "dbmanager.h"
+#include "exception.h"
 #include <QContextMenuEvent>
 #include <QDebug>
 #include <QFormLayout>
@@ -7,8 +9,6 @@
 #include <QInputDialog>
 #include <QMenu>
 #include <QMessageBox>
-#include <QSqlError>
-#include <QSqlQuery>
 #include <QVBoxLayout>
 
 HostsTree::HostsTree(QWidget *parent) : QTreeWidget(parent) { LoadData(); }
@@ -37,16 +37,14 @@ void HostsTree::CreateHostGroup()
         return;
     }
 
-    QSqlQuery query;
-    query.prepare("INSERT INTO host_groups (name) VALUES (?)");
-    query.addBindValue(name);
-
-    if (!query.exec()) {
-        QMessageBox::critical(this, "Error",
-                              "Failed to create host group: " +
-                                  query.lastError().text());
+    DbManager &dbmgr = DbManager::Instance();
+    int id = 0;
+    try {
+        id = dbmgr.CreateHostGroup(DbManager::HostGroup(0, name));
+    } catch (MinopException &e) {
+        QMessageBox::critical(this, "Error", e.Message());
+        return;
     }
-    int id = query.lastInsertId().toInt();
 
     QTreeWidgetItem *item = new QTreeWidgetItem();
     item->setText(0, name);
@@ -60,7 +58,8 @@ void HostsTree::CreateHost()
 {
     QTreeWidgetItem *parentItem = currentItem();
     if (!parentItem) {
-        QMessageBox::warning(this, "Warning", "Please select a host group first");
+        QMessageBox::warning(this, "Warning",
+                             "Please select a host group first");
         return;
     }
 
@@ -96,23 +95,20 @@ void HostsTree::CreateHost()
         return;
 
     int groupId = parentItem->data(0, Qt::UserRole).toInt();
-    QSqlQuery query;
-    query.prepare("INSERT INTO hosts (name, group_id, ip, username, password) "
-                  "VALUES (?, ?, ?, ?, ?)");
-    query.addBindValue(nameEdit.text());
-    query.addBindValue(groupId);
-    query.addBindValue(ipEdit.text());
-    query.addBindValue(userEdit.text());
-    query.addBindValue(passEdit.text());
-    if (!query.exec()) {
-        QMessageBox::critical(this, "Error",
-                              "Failed to create host: " +
-                                  query.lastError().text());
+    DbManager &dbmgr = DbManager::Instance();
+    int id = 0;
+    try {
+        id = dbmgr.CreateHost(DbManager::Host(0, nameEdit.text(), groupId,
+                                              ipEdit.text(), userEdit.text(),
+                                              passEdit.text()));
+    } catch (MinopException &e) {
+        QMessageBox::critical(this, "Error", e.Message());
         return;
     }
 
     QTreeWidgetItem *item = new QTreeWidgetItem();
     item->setText(0, nameEdit.text());
+    item->setData(0, Qt::UserRole, id);
     item->setToolTip(
         0, QString("IP: %1\nUser: %2").arg(ipEdit.text(), userEdit.text()));
 
@@ -121,38 +117,30 @@ void HostsTree::CreateHost()
 
 void HostsTree::LoadData()
 {
-    QSqlQuery groupQuery("SELECT id, name FROM host_groups ORDER BY name");
+    DbManager &dbmgr = DbManager::Instance();
     QMap<int, QTreeWidgetItem *> groupItems;
 
-    while (groupQuery.next()) {
-        int id = groupQuery.value(0).toInt();
-        QString name = groupQuery.value(1).toString();
-
+    QList<DbManager::HostGroup> hostGroups = dbmgr.GetHostGroups();
+    for (const DbManager::HostGroup &hostGroup : hostGroups) {
         QTreeWidgetItem *item = new QTreeWidgetItem();
-        item->setText(0, name);
-        item->setData(0, Qt::UserRole, id);
+        item->setText(0, hostGroup.name);
+        item->setData(0, Qt::UserRole, hostGroup.id);
         addTopLevelItem(item);
-        groupItems[id] = item;
+        groupItems[hostGroup.id] = item;
     }
 
-    QSqlQuery hostQuery("SELECT id, group_id, name, ip, username FROM hosts");
-    while (hostQuery.next()) {
-        int id = hostQuery.value(0).toInt();
-        int groupId = hostQuery.value(1).toInt();
-        QString name = hostQuery.value(2).toString();
-        QString ip = hostQuery.value(3).toString();
-        QString user = hostQuery.value(4).toString();
-
-        if (!groupItems.contains(groupId))
+    QList<DbManager::Host> hosts = dbmgr.GetHosts();
+    for (const DbManager::Host &host : hosts) {
+        if (!groupItems.contains(host.groupId))
             continue;
 
         QTreeWidgetItem *item = new QTreeWidgetItem();
-        item->setText(0, name);
-        item->setData(0, Qt::UserRole, id);
-        item->setData(0, Qt::UserRole + 1, true);
-        item->setToolTip(0, QString("IP: %1\nUser: %2").arg(ip, user));
+        item->setText(0, host.name);
+        item->setData(0, Qt::UserRole, host.id);
+        item->setToolTip(
+            0, QString("IP: %1\nUser: %2").arg(host.ip, host.username));
 
-        groupItems[groupId]->addChild(item);
+        groupItems[host.groupId]->addChild(item);
     }
 
     expandAll();
