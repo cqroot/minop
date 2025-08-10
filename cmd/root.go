@@ -18,32 +18,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package cmd
 
 import (
-	"fmt"
-
-	"github.com/cqroot/minop/pkg/hosts"
 	"github.com/spf13/cobra"
 )
 
-func RunRootCmd(cmd *cobra.Command, args []string) {
-	hostmgr, err := hosts.New("./hosts")
-	cobra.CheckErr(err)
-	for name, hosts := range hostmgr.Hosts {
-		fmt.Println(name)
-		for _, host := range hosts {
-			fmt.Printf("  %+v\n", host)
-		}
-	}
-}
-
 func NewRootCmd() *cobra.Command {
-	cmd := cobra.Command{
+	rootCmd := cobra.Command{
 		Use:   "minop",
 		Short: "Minop is a simple remote execution and deployment tool",
 		Long:  "Minop is a simple remote execution and deployment tool",
-		Run:   RunRootCmd,
 	}
 
-	return &cmd
+	rootCmd.AddCommand(NewHostCmd())
+	return &rootCmd
 }
 
 func Execute() {
