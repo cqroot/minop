@@ -20,13 +20,13 @@ package cmd
 import (
 	"os"
 
-	"github.com/cqroot/minop/pkg/hosts"
+	"github.com/cqroot/minop/pkg/host"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
 func RunHostCmd(cmd *cobra.Command, args []string) {
-	hostmgr, err := hosts.New("./host.list")
+	hostmgr, err := host.New("./host.list")
 	cobra.CheckErr(err)
 
 	t := table.NewWriter()
