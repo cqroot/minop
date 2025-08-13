@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/cqroot/minop/pkg/host"
+	"github.com/cqroot/minop/pkg/log"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 )
@@ -37,17 +38,19 @@ type Remote struct {
 	Port     int
 	Username string
 	Password string
+	Logger   *log.Logger
 	client   *ssh.Client  // SSH client
 	sftp     *sftp.Client // SFTP client
 }
 
 // New creates a new Remote instance and establishes connections
-func New(h host.Host) (*Remote, error) {
+func New(h host.Host, logger *log.Logger) (*Remote, error) {
 	client := &Remote{
 		Hostname: h.Address,
 		Port:     h.Port,
 		Username: h.User,
 		Password: h.Password,
+		Logger:   logger,
 	}
 
 	// Establish SSH connection
@@ -62,6 +65,7 @@ func New(h host.Host) (*Remote, error) {
 
 	conn, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", h.Address, h.Port), sshConfig)
 	if err != nil {
+		logger.Error().Err(err).Msg("SSH dial error")
 		return nil, fmt.Errorf("SSH dial error: %w", err)
 	}
 	client.client = conn
@@ -69,6 +73,7 @@ func New(h host.Host) (*Remote, error) {
 	// Create SFTP client
 	sftpClient, err := sftp.NewClient(conn)
 	if err != nil {
+		logger.Error().Err(err).Msg("SFTP client error")
 		return nil, fmt.Errorf("SFTP client error: %w", err)
 	}
 	client.sftp = sftpClient
@@ -80,6 +85,7 @@ func New(h host.Host) (*Remote, error) {
 func (r *Remote) ExecuteCommand(cmd string) (int, string, string, error) {
 	session, err := r.client.NewSession()
 	if err != nil {
+		r.Logger.Error().Err(err).Msg("create session error")
 		return 0, "", "", fmt.Errorf("create session error: %w", err)
 	}
 	defer session.Close()
@@ -107,6 +113,7 @@ func (r *Remote) UploadFile(localPath, remotePath string) error {
 	// Open local file
 	localFile, err := os.Open(localPath)
 	if err != nil {
+		r.Logger.Error().Err(err).Msg("open local file error")
 		return fmt.Errorf("open local file error: %w", err)
 	}
 	defer localFile.Close()
@@ -114,12 +121,16 @@ func (r *Remote) UploadFile(localPath, remotePath string) error {
 	// Create remote file
 	remoteFile, err := r.sftp.Create(remotePath)
 	if err != nil {
+		r.Logger.Error().Err(err).Msg("create remote file error")
 		return fmt.Errorf("create remote file error: %w", err)
 	}
 	defer remoteFile.Close()
 
 	// Copy file content
 	_, err = io.Copy(remoteFile, localFile)
+	if err != nil {
+		r.Logger.Err(err).Msg("copy file content error")
+	}
 	return err
 }
 
@@ -128,6 +139,7 @@ func (r *Remote) DownloadFile(remotePath, localPath string) error {
 	// Open remote file
 	remoteFile, err := r.sftp.Open(remotePath)
 	if err != nil {
+		r.Logger.Error().Err(err).Msg("open remote file error")
 		return fmt.Errorf("open remote file error: %w", err)
 	}
 	defer remoteFile.Close()
@@ -135,12 +147,16 @@ func (r *Remote) DownloadFile(remotePath, localPath string) error {
 	// Create local file
 	localFile, err := os.Create(localPath)
 	if err != nil {
+		r.Logger.Error().Err(err).Msg("create local file error")
 		return fmt.Errorf("create local file error: %w", err)
 	}
 	defer localFile.Close()
 
 	// Copy file content
 	_, err = io.Copy(localFile, remoteFile)
+	if err != nil {
+		r.Logger.Error().Err(err).Msg("copy file content error")
+	}
 	return err
 }
 
@@ -177,12 +193,14 @@ func (r *Remote) DownloadDirectory(remoteDir, localDir string) error {
 		if walker.Stat().IsDir() {
 			err := os.MkdirAll(localPath, os.ModePerm)
 			if err != nil {
+				r.Logger.Error().Err(err).Msg("make directory error")
 				return err
 			}
 			continue
 		}
 
 		if err := r.DownloadFile(remotePath, localPath); err != nil {
+			r.Logger.Error().Err(err).Msg("download file error")
 			return err
 		}
 	}

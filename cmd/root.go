@@ -28,6 +28,7 @@ func NewRootCmd() *cobra.Command {
 		Long:  "Minop is a simple remote execution and deployment tool",
 	}
 
+	rootCmd.AddCommand(NewActionCmd())
 	rootCmd.AddCommand(NewHostCmd())
 	return &rootCmd
 }
