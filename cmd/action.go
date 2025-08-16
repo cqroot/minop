@@ -97,7 +97,6 @@ func RunActionFileCmd(cmd *cobra.Command, args []string) {
 			Str("Src", args[0]).
 			Str("Dst", args[1]).
 			Msg("Transfer file")
-		logger.Info().Str("Src", args[0]).Str("Dst", args[1]).Msg("Transfer file")
 		err = r.UploadFile(args[0], args[1])
 		if err != nil {
 			logger.Error().
@@ -130,6 +129,54 @@ func NewActionFileCmd() *cobra.Command {
 	return &actionFileCmd
 }
 
+func RunActionDirCmd(cmd *cobra.Command, args []string) {
+	hostmgr, err := host.New("./host.list")
+	cobra.CheckErr(err)
+	logger := NewLogger()
+
+	for _, h := range hostmgr.Hosts["default"] {
+		r, err := remote.New(h, logger)
+		cobra.CheckErr(err)
+
+		logger.Info().
+			Str("User", h.User).
+			Str("Addr", h.Address).
+			Int("Port", h.Port).
+			Str("Src", args[0]).
+			Str("Dst", args[1]).
+			Msg("Transfer dir")
+		err = r.UploadDirectory(args[0], args[1])
+		if err != nil {
+			logger.Error().
+				Str("User", h.User).
+				Str("Addr", h.Address).
+				Int("Port", h.Port).
+				Str("Src", args[0]).
+				Str("Dst", args[1]).
+				Err(err)
+		} else {
+			logger.Info().
+				Str("User", h.User).
+				Str("Addr", h.Address).
+				Int("Port", h.Port).
+				Str("Src", args[0]).
+				Str("Dst", args[1]).
+				Msg("Successfully transferred dir")
+		}
+	}
+}
+
+func NewActionDirCmd() *cobra.Command {
+	actionDirCmd := cobra.Command{
+		Use:   "dir",
+		Short: "Copy dir to remote locations.",
+		Long:  "Copy dir to remote locations.",
+		Args:  cobra.MatchAll(cobra.ExactArgs(2), cobra.OnlyValidArgs),
+		Run:   RunActionDirCmd,
+	}
+	return &actionDirCmd
+}
+
 func NewActionCmd() *cobra.Command {
 	actionCmd := cobra.Command{
 		Use:   "action",
@@ -139,5 +186,6 @@ func NewActionCmd() *cobra.Command {
 
 	actionCmd.AddCommand(NewActionCommandCmd())
 	actionCmd.AddCommand(NewActionFileCmd())
+	actionCmd.AddCommand(NewActionDirCmd())
 	return &actionCmd
 }
