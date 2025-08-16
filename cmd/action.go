@@ -28,11 +28,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func NewLogger() *log.Logger {
+	return log.New(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "2006-01-02 15:04:05 Mon"}).
+		Level(zerolog.DebugLevel)
+}
+
 func RunActionCommandCmd(cmd *cobra.Command, args []string) {
 	hostmgr, err := host.New("./host.list")
 	cobra.CheckErr(err)
-	logger := log.New(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "2006-01-02 15:04:05 Mon"}).
-		Level(zerolog.DebugLevel)
+	logger := NewLogger()
 
 	for _, h := range hostmgr.Hosts["default"] {
 		r, err := remote.New(h, logger)
@@ -71,9 +75,59 @@ func NewActionCommandCmd() *cobra.Command {
 		Use:   "command",
 		Short: "Execute the remote command.",
 		Long:  "Execute the remote command.",
+		Args:  cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 		Run:   RunActionCommandCmd,
 	}
 	return &actionCommandCmd
+}
+
+func RunActionFileCmd(cmd *cobra.Command, args []string) {
+	hostmgr, err := host.New("./host.list")
+	cobra.CheckErr(err)
+	logger := NewLogger()
+
+	for _, h := range hostmgr.Hosts["default"] {
+		r, err := remote.New(h, logger)
+		cobra.CheckErr(err)
+
+		logger.Info().
+			Str("User", h.User).
+			Str("Addr", h.Address).
+			Int("Port", h.Port).
+			Str("Src", args[0]).
+			Str("Dst", args[1]).
+			Msg("Transfer file")
+		logger.Info().Str("Src", args[0]).Str("Dst", args[1]).Msg("Transfer file")
+		err = r.UploadFile(args[0], args[1])
+		if err != nil {
+			logger.Error().
+				Str("User", h.User).
+				Str("Addr", h.Address).
+				Int("Port", h.Port).
+				Str("Src", args[0]).
+				Str("Dst", args[1]).
+				Err(err)
+		} else {
+			logger.Info().
+				Str("User", h.User).
+				Str("Addr", h.Address).
+				Int("Port", h.Port).
+				Str("Src", args[0]).
+				Str("Dst", args[1]).
+				Msg("Successfully transferred file")
+		}
+	}
+}
+
+func NewActionFileCmd() *cobra.Command {
+	actionFileCmd := cobra.Command{
+		Use:   "file",
+		Short: "Copy file to remote locations.",
+		Long:  "Copy file to remote locations.",
+		Args:  cobra.MatchAll(cobra.ExactArgs(2), cobra.OnlyValidArgs),
+		Run:   RunActionFileCmd,
+	}
+	return &actionFileCmd
 }
 
 func NewActionCmd() *cobra.Command {
@@ -84,5 +138,6 @@ func NewActionCmd() *cobra.Command {
 	}
 
 	actionCmd.AddCommand(NewActionCommandCmd())
+	actionCmd.AddCommand(NewActionFileCmd())
 	return &actionCmd
 }

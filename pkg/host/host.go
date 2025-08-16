@@ -39,7 +39,6 @@ type HostManager struct {
 }
 
 var (
-	ErrEmptyLine     = errors.New("empty line")
 	ErrEmptyUsername = errors.New("empty username")
 	ErrEmptyPassword = errors.New("empty password")
 	ErrEmptyAddress  = errors.New("empty hostname")
@@ -48,10 +47,6 @@ var (
 
 func HostFromLine(line string) (Host, error) {
 	h := Host{}
-	if len(line) == 0 {
-		return h, ErrEmptyLine
-	}
-
 	s := line
 
 	userDelimiter := strings.IndexByte(s, ':')
@@ -120,10 +115,14 @@ func New(filename string) (*HostManager, error) {
 			continue
 		}
 
-		if len(trimmed) >= 3 && strings.HasPrefix(trimmed, "[") && strings.HasSuffix(line, "]") {
+		if strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+
+		if len(trimmed) >= 3 && strings.HasPrefix(trimmed, "[") && strings.HasSuffix(trimmed, "]") {
 			currGroup = trimmed[1 : len(trimmed)-1]
 		} else {
-			h, err := HostFromLine(line)
+			h, err := HostFromLine(trimmed)
 			if err != nil {
 				return nil, err
 			}
