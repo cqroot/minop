@@ -20,7 +20,9 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strconv"
 
+	"github.com/cqroot/minop/pkg/action/command"
 	"github.com/cqroot/minop/pkg/host"
 	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/remote"
@@ -39,11 +41,18 @@ func RunActionCommandCmd(cmd *cobra.Command, args []string) {
 	logger := NewLogger()
 
 	for _, h := range hostmgr.Hosts["default"] {
-		r, err := remote.New(h, logger)
+		cmd, err := command.New(map[string]string{
+			"command": args[0],
+		})
 		cobra.CheckErr(err)
 
-		exitStatus, stdout, stderr, err := r.ExecuteCommand(args[0])
+		res, err := cmd.Execute(h, logger)
 		cobra.CheckErr(err)
+
+		exitStatus, err := strconv.Atoi(res["ExitStatus"])
+		cobra.CheckErr(err)
+		stdout := res["Stdout"]
+		stderr := res["Stderr"]
 
 		logger.Info().
 			Str("User", h.User).
