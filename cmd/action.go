@@ -23,6 +23,7 @@ import (
 	"strconv"
 
 	"github.com/cqroot/minop/pkg/action/command"
+	"github.com/cqroot/minop/pkg/action/file"
 	"github.com/cqroot/minop/pkg/host"
 	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/remote"
@@ -96,9 +97,6 @@ func RunActionFileCmd(cmd *cobra.Command, args []string) {
 	logger := NewLogger()
 
 	for _, h := range hostmgr.Hosts["default"] {
-		r, err := remote.New(h, logger)
-		cobra.CheckErr(err)
-
 		logger.Info().
 			Str("User", h.User).
 			Str("Addr", h.Address).
@@ -106,7 +104,14 @@ func RunActionFileCmd(cmd *cobra.Command, args []string) {
 			Str("Src", args[0]).
 			Str("Dst", args[1]).
 			Msg("Transfer file")
-		err = r.UploadFile(args[0], args[1])
+
+		act, err := file.New(map[string]string{
+			"local_path":  args[0],
+			"remote_path": args[1],
+		})
+		cobra.CheckErr(err)
+
+		_, err = act.Execute(h, logger)
 		if err != nil {
 			logger.Error().
 				Str("User", h.User).

@@ -15,52 +15,49 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-package command
+package file
 
 import (
-	"strconv"
-
 	"github.com/cqroot/minop/pkg/action"
 	"github.com/cqroot/minop/pkg/host"
 	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/remote"
 )
 
-type Command struct {
-	Command string
+type File struct {
+	LocalPath  string
+	RemotePath string
 }
 
-func New(actCtx map[string]string) (*Command, error) {
-	act := Command{}
+func New(actCtx map[string]string) (*File, error) {
+	act := File{}
 	if err := act.Validate(actCtx); err != nil {
 		return nil, err
 	}
 	return &act, nil
 }
 
-func (act *Command) Validate(actCtx map[string]string) error {
-	cmd, err := action.GetActionParam(actCtx, "command")
+func (act *File) Validate(actCtx map[string]string) error {
+	localPath, err := action.GetActionParam(actCtx, "local_path")
 	if err != nil {
 		return err
 	}
-	act.Command = cmd
+	act.LocalPath = localPath
+
+	remotePath, err := action.GetActionParam(actCtx, "remote_path")
+	if err != nil {
+		return err
+	}
+	act.RemotePath = remotePath
 	return nil
 }
 
-func (act *Command) Execute(h host.Host, logger *log.Logger) (map[string]string, error) {
+func (act *File) Execute(h host.Host, logger *log.Logger) (map[string]string, error) {
 	r, err := remote.New(h, logger)
 	if err != nil {
 		return nil, err
 	}
 
-	exitStatus, stdout, stderr, err := r.ExecuteCommand(act.Command)
-	if err != nil {
-		return nil, err
-	}
-
-	return map[string]string{
-		"ExitStatus": strconv.Itoa(exitStatus),
-		"Stdout":     stdout,
-		"Stderr":     stderr,
-	}, nil
+	err = r.UploadFile(act.LocalPath, act.RemotePath)
+	return nil, err
 }

@@ -17,11 +17,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package action
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 var ErrParameterMissing = errors.New("required parameter is missing")
 
 type Action interface {
 	Validate(actCtx map[string]string) error
 	Execute() (map[string]string, error)
+}
+
+func GetActionParam(actCtx map[string]string, key string) (string, error) {
+	value, ok := actCtx[key]
+	if !ok {
+		return "", fmt.Errorf("%w: %s", ErrParameterMissing, key)
+	}
+	return value, nil
 }
