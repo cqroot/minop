@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package command
 
 import (
+	"errors"
 	"strconv"
 
 	"github.com/cqroot/minop/pkg/action"
@@ -25,6 +26,8 @@ import (
 	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/remote"
 )
+
+var ErrEmptyCommand = errors.New("empty command")
 
 type Command struct {
 	Command string
@@ -42,6 +45,9 @@ func (act *Command) Validate(actCtx map[string]string) error {
 	cmd, err := action.GetActionParam(actCtx, "command")
 	if err != nil {
 		return err
+	}
+	if cmd == "" {
+		return ErrEmptyCommand
 	}
 	act.Command = cmd
 	return nil

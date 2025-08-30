@@ -38,17 +38,17 @@ func New(actCtx map[string]string) (*File, error) {
 }
 
 func (act *File) Validate(actCtx map[string]string) error {
-	localPath, err := action.GetActionParam(actCtx, "local_path")
+	src, err := action.GetActionParam(actCtx, "src")
 	if err != nil {
 		return err
 	}
-	act.LocalPath = localPath
+	act.LocalPath = src
 
-	remotePath, err := action.GetActionParam(actCtx, "remote_path")
+	dst, err := action.GetActionParam(actCtx, "dst")
 	if err != nil {
 		return err
 	}
-	act.RemotePath = remotePath
+	act.RemotePath = dst
 	return nil
 }
 

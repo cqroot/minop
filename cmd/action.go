@@ -36,6 +36,12 @@ func NewLogger() *log.Logger {
 		Level(zerolog.DebugLevel)
 }
 
+var (
+	actCtxCommandCmd string
+	actCtxFileSrc    string
+	actCtxFileDst    string
+)
+
 func RunActionCommandCmd(cmd *cobra.Command, args []string) {
 	hostmgr, err := host.New("./host.list")
 	cobra.CheckErr(err)
@@ -43,7 +49,7 @@ func RunActionCommandCmd(cmd *cobra.Command, args []string) {
 
 	for _, h := range hostmgr.Hosts["default"] {
 		cmd, err := command.New(map[string]string{
-			"command": args[0],
+			"command": actCtxCommandCmd,
 		})
 		cobra.CheckErr(err)
 
@@ -60,7 +66,7 @@ func RunActionCommandCmd(cmd *cobra.Command, args []string) {
 			Str("Addr", h.Address).
 			Int("Port", h.Port).
 			Int("ExitStatus", exitStatus).
-			Msg(args[0])
+			Msg(actCtxCommandCmd)
 		if stdout != "" {
 			logger.Info().
 				Str("User", h.User).
@@ -85,9 +91,9 @@ func NewActionCommandCmd() *cobra.Command {
 		Use:   "command",
 		Short: "Execute the remote command.",
 		Long:  "Execute the remote command.",
-		Args:  cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 		Run:   RunActionCommandCmd,
 	}
+	actionCommandCmd.PersistentFlags().StringVar(&actCtxCommandCmd, "command", "", "command")
 	return &actionCommandCmd
 }
 
@@ -101,13 +107,13 @@ func RunActionFileCmd(cmd *cobra.Command, args []string) {
 			Str("User", h.User).
 			Str("Addr", h.Address).
 			Int("Port", h.Port).
-			Str("Src", args[0]).
-			Str("Dst", args[1]).
+			Str("Src", actCtxFileSrc).
+			Str("Dst", actCtxFileDst).
 			Msg("Transfer file")
 
 		act, err := file.New(map[string]string{
-			"local_path":  args[0],
-			"remote_path": args[1],
+			"src": actCtxFileSrc,
+			"dst": actCtxFileDst,
 		})
 		cobra.CheckErr(err)
 
@@ -117,16 +123,16 @@ func RunActionFileCmd(cmd *cobra.Command, args []string) {
 				Str("User", h.User).
 				Str("Addr", h.Address).
 				Int("Port", h.Port).
-				Str("Src", args[0]).
-				Str("Dst", args[1]).
+				Str("Src", actCtxFileSrc).
+				Str("Dst", actCtxFileDst).
 				Err(err)
 		} else {
 			logger.Info().
 				Str("User", h.User).
 				Str("Addr", h.Address).
 				Int("Port", h.Port).
-				Str("Src", args[0]).
-				Str("Dst", args[1]).
+				Str("Src", actCtxFileSrc).
+				Str("Dst", actCtxFileDst).
 				Msg("Successfully transferred file")
 		}
 	}
@@ -137,9 +143,10 @@ func NewActionFileCmd() *cobra.Command {
 		Use:   "file",
 		Short: "Copy file to remote locations.",
 		Long:  "Copy file to remote locations.",
-		Args:  cobra.MatchAll(cobra.ExactArgs(2), cobra.OnlyValidArgs),
 		Run:   RunActionFileCmd,
 	}
+	actionFileCmd.PersistentFlags().StringVar(&actCtxFileSrc, "src", "", "src")
+	actionFileCmd.PersistentFlags().StringVar(&actCtxFileDst, "dst", "", "dst")
 	return &actionFileCmd
 }
 
