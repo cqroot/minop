@@ -18,10 +18,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package file
 
 import (
-	"github.com/cqroot/minop/pkg/action"
 	"github.com/cqroot/minop/pkg/host"
 	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/remote"
+	"github.com/cqroot/minop/pkg/utils/maputils"
 )
 
 type File struct {
@@ -38,13 +38,13 @@ func New(actCtx map[string]string) (*File, error) {
 }
 
 func (act *File) Validate(actCtx map[string]string) error {
-	src, err := action.GetActionParam(actCtx, "src")
+	src, err := maputils.GetString(actCtx, "src")
 	if err != nil {
 		return err
 	}
 	act.LocalPath = src
 
-	dst, err := action.GetActionParam(actCtx, "dst")
+	dst, err := maputils.GetString(actCtx, "dst")
 	if err != nil {
 		return err
 	}

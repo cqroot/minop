@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-package utils
+package strutils
 
 import (
 	"slices"
@@ -23,22 +23,22 @@ import (
 	"strings"
 )
 
-func StrIsInteger(s string) bool {
+func IsInteger(s string) bool {
 	_, err := strconv.ParseInt(s, 10, 64)
 	return err == nil
 }
 
-func StrToInteger(s string) int64 {
+func ToInteger(s string) int64 {
 	i, _ := strconv.ParseInt(s, 10, 64)
 	return i
 }
 
-func StrIsFloat(s string) bool {
+func IsFloat(s string) bool {
 	_, err := strconv.ParseFloat(s, 64)
 	return err == nil
 }
 
-func StrToFloat(s string) float64 {
+func ToFloat(s string) float64 {
 	f, _ := strconv.ParseFloat(s, 64)
 	return f
 }
@@ -48,7 +48,7 @@ var (
 	falseStrings = []string{"false", "no", "n"}
 )
 
-func StrIsBoolean(s string) bool {
+func IsBool(s string) bool {
 	if slices.Contains(trueStrings, strings.ToLower(s)) ||
 		slices.Contains(falseStrings, strings.ToLower(s)) {
 		return true
@@ -56,6 +56,6 @@ func StrIsBoolean(s string) bool {
 	return false
 }
 
-func StrToBoolean(s string) bool {
+func ToBool(s string) bool {
 	return slices.Contains(trueStrings, strings.ToLower(s))
 }

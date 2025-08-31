@@ -21,10 +21,10 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/cqroot/minop/pkg/action"
 	"github.com/cqroot/minop/pkg/host"
 	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/remote"
+	"github.com/cqroot/minop/pkg/utils/maputils"
 )
 
 var ErrEmptyCommand = errors.New("empty command")
@@ -42,7 +42,7 @@ func New(actCtx map[string]string) (*Command, error) {
 }
 
 func (act *Command) Validate(actCtx map[string]string) error {
-	cmd, err := action.GetActionParam(actCtx, "command")
+	cmd, err := maputils.GetString(actCtx, "command")
 	if err != nil {
 		return err
 	}

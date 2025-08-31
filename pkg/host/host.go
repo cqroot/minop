@@ -24,7 +24,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/cqroot/minop/pkg/utils"
+	"github.com/cqroot/minop/pkg/utils/strutils"
 )
 
 type Host struct {
@@ -80,10 +80,10 @@ func HostFromLine(line string) (Host, error) {
 
 	if s == "" {
 		h.Port = 22
-	} else if !utils.StrIsInteger(s) {
+	} else if !strutils.IsInteger(s) {
 		return h, fmt.Errorf("%w: %s", ErrInvalidPort, s)
 	} else {
-		h.Port = int(utils.StrToInteger(s))
+		h.Port = int(strutils.ToInteger(s))
 	}
 	if h.Port < 1 || h.Port > 65535 {
 		return h, fmt.Errorf("%w: %d not in 1-65535 range", ErrInvalidPort, h.Port)
