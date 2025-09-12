@@ -23,6 +23,7 @@ import (
 
 	"github.com/cqroot/minop/pkg/action"
 	"github.com/cqroot/minop/pkg/action/command"
+	"github.com/cqroot/minop/pkg/action/file"
 	"github.com/cqroot/minop/pkg/host"
 	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/utils/maputils"
@@ -31,7 +32,7 @@ import (
 )
 
 type Task struct {
-	Actions []action.Action
+	Actions []action.ActionWrapper
 }
 
 func New(name string) (*Task, error) {
@@ -46,7 +47,7 @@ func New(name string) (*Task, error) {
 		return nil, err
 	}
 
-	acts := make([]action.Action, len(actCtxs))
+	acts := make([]action.ActionWrapper, len(actCtxs))
 
 	for i, actCtx := range actCtxs {
 		name, err := maputils.GetString(actCtx, "name")
@@ -54,13 +55,21 @@ func New(name string) (*Task, error) {
 			return nil, err
 		}
 
+		role := maputils.GetStringOrDefault(actCtx, "role", "all")
+
 		switch name {
 		case "command":
 			act, err := command.New(actCtx)
 			if err != nil {
 				return nil, err
 			}
-			acts[i] = act
+			acts[i] = *action.New(role, act)
+		case "file":
+			act, err := file.New(actCtx)
+			if err != nil {
+				return nil, err
+			}
+			acts[i] = *action.New(role, act)
 		}
 	}
 
@@ -78,12 +87,18 @@ func (t Task) Execute() error {
 		Level(zerolog.DebugLevel)
 
 	for _, act := range t.Actions {
-		for _, h := range hostGroup["default"] {
-			ret, err := act.Execute(h, logger)
-			if err != nil {
-				return err
+		for role, hosts := range hostGroup {
+			if act.Role() != "all" && act.Role() != role {
+				continue
 			}
-			fmt.Printf("%+v\n", ret)
+			for _, h := range hosts {
+				ret, err := act.Execute(h, logger)
+				if err != nil {
+					return err
+				}
+				fmt.Printf("%s@%s:%d\n", h.User, h.Address, h.Port)
+				fmt.Printf("%+v\n", ret)
+			}
 		}
 	}
 	return nil

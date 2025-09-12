@@ -37,6 +37,14 @@ func GetString(strMap map[string]string, key string) (string, error) {
 	return value, nil
 }
 
+func GetStringOrDefault(strMap map[string]string, key string, def string) string {
+	value, err := GetString(strMap, key)
+	if err != nil {
+		return def
+	}
+	return value
+}
+
 func GetBool(strMap map[string]string, key string) (bool, error) {
 	value, ok := strMap[key]
 	if !ok {

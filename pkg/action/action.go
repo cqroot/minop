@@ -26,3 +26,23 @@ type Action interface {
 	Validate(actCtx map[string]string) error
 	Execute(h host.Host, logger *log.Logger) (map[string]string, error)
 }
+
+type ActionWrapper struct {
+	Action
+	role string
+}
+
+func New(role string, act Action) *ActionWrapper {
+	return &ActionWrapper{
+		role:   role,
+		Action: act,
+	}
+}
+
+func (aw *ActionWrapper) SetRole(role string) {
+	aw.role = role
+}
+
+func (aw ActionWrapper) Role() string {
+	return aw.role
+}
