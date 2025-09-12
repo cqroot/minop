@@ -18,8 +18,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package task
 
 import (
+	"bufio"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/cqroot/minop/pkg/action"
 	"github.com/cqroot/minop/pkg/action/command"
@@ -27,6 +29,7 @@ import (
 	"github.com/cqroot/minop/pkg/host"
 	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/utils/maputils"
+	"github.com/fatih/color"
 	"github.com/rs/zerolog"
 	"gopkg.in/yaml.v3"
 )
@@ -96,10 +99,20 @@ func (t Task) Execute() error {
 				if err != nil {
 					return err
 				}
-				fmt.Printf("%s@%s:%d\n", h.User, h.Address, h.Port)
-				fmt.Printf("%+v\n", ret)
+				fmt.Printf("%s %s@%s:%d\n", color.New(color.FgBlack).Add(color.BgBlue).Add(color.Bold).Sprint(" Host "),
+					h.User, h.Address, h.Port)
+				if ret != nil {
+					ret.ForEach(func(key, val string) {
+						color.HiCyan("    %s:\n", key)
+						scanner := bufio.NewScanner(strings.NewReader(val))
+						for scanner.Scan() {
+							fmt.Printf("        %s\n", scanner.Text())
+						}
+					})
+				}
 			}
 		}
+		fmt.Println()
 	}
 	return nil
 }

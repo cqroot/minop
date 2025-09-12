@@ -18,13 +18,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package action
 
 import (
+	"github.com/cqroot/gtypes/orderedmap"
 	"github.com/cqroot/minop/pkg/host"
 	"github.com/cqroot/minop/pkg/log"
 )
 
 type Action interface {
 	Validate(actCtx map[string]string) error
-	Execute(h host.Host, logger *log.Logger) (map[string]string, error)
+	Execute(h host.Host, logger *log.Logger) (*orderedmap.OrderedMap[string, string], error)
 }
 
 type ActionWrapper struct {

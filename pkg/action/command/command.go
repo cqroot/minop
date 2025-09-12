@@ -21,6 +21,7 @@ import (
 	"errors"
 	"strconv"
 
+	"github.com/cqroot/gtypes/orderedmap"
 	"github.com/cqroot/minop/pkg/host"
 	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/remote"
@@ -53,7 +54,7 @@ func (act *Command) Validate(actCtx map[string]string) error {
 	return nil
 }
 
-func (act *Command) Execute(h host.Host, logger *log.Logger) (map[string]string, error) {
+func (act *Command) Execute(h host.Host, logger *log.Logger) (*orderedmap.OrderedMap[string, string], error) {
 	r, err := remote.New(h, logger)
 	if err != nil {
 		return nil, err
@@ -64,9 +65,9 @@ func (act *Command) Execute(h host.Host, logger *log.Logger) (map[string]string,
 		return nil, err
 	}
 
-	return map[string]string{
-		"ExitStatus": strconv.Itoa(exitStatus),
-		"Stdout":     stdout,
-		"Stderr":     stderr,
-	}, nil
+	ret := orderedmap.New[string, string]()
+	ret.Put("ExitStatus", strconv.Itoa(exitStatus))
+	ret.Put("Stdout", stdout)
+	ret.Put("Stderr", stderr)
+	return ret, nil
 }

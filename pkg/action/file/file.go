@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package file
 
 import (
+	"github.com/cqroot/gtypes/orderedmap"
 	"github.com/cqroot/minop/pkg/host"
 	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/remote"
@@ -52,7 +53,7 @@ func (act *File) Validate(actCtx map[string]string) error {
 	return nil
 }
 
-func (act *File) Execute(h host.Host, logger *log.Logger) (map[string]string, error) {
+func (act *File) Execute(h host.Host, logger *log.Logger) (*orderedmap.OrderedMap[string, string], error) {
 	r, err := remote.New(h, logger)
 	if err != nil {
 		return nil, err
