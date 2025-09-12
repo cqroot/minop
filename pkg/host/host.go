@@ -34,10 +34,6 @@ type Host struct {
 	Port     int
 }
 
-type HostManager struct {
-	Hosts map[string][]Host
-}
-
 var (
 	ErrEmptyUsername = errors.New("empty username")
 	ErrEmptyPassword = errors.New("empty password")
@@ -92,10 +88,8 @@ func HostFromLine(line string) (Host, error) {
 	return h, nil
 }
 
-func New(filename string) (*HostManager, error) {
-	hostMgr := HostManager{
-		Hosts: make(map[string][]Host),
-	}
+func Read(filename string) (map[string][]Host, error) {
+	hostGroup := make(map[string][]Host)
 
 	file, err := os.Open(filename)
 	if err != nil {
@@ -126,9 +120,9 @@ func New(filename string) (*HostManager, error) {
 			if err != nil {
 				return nil, err
 			}
-			hostMgr.Hosts[currGroup] = append(hostMgr.Hosts[currGroup], h)
+			hostGroup[currGroup] = append(hostGroup[currGroup], h)
 		}
 	}
 
-	return &hostMgr, nil
+	return hostGroup, nil
 }

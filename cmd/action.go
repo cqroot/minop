@@ -43,11 +43,11 @@ var (
 )
 
 func RunActionCommandCmd(cmd *cobra.Command, args []string) {
-	hostmgr, err := host.New("./host.list")
+	hostGroup, err := host.Read("./host.list")
 	cobra.CheckErr(err)
 	logger := NewLogger()
 
-	for _, h := range hostmgr.Hosts["default"] {
+	for _, h := range hostGroup["default"] {
 		cmd, err := command.New(map[string]string{
 			"command": actCtxCommandCmd,
 		})
@@ -98,11 +98,11 @@ func NewActionCommandCmd() *cobra.Command {
 }
 
 func RunActionFileCmd(cmd *cobra.Command, args []string) {
-	hostmgr, err := host.New("./host.list")
+	hostGroup, err := host.Read("./host.list")
 	cobra.CheckErr(err)
 	logger := NewLogger()
 
-	for _, h := range hostmgr.Hosts["default"] {
+	for _, h := range hostGroup["default"] {
 		logger.Info().
 			Str("User", h.User).
 			Str("Addr", h.Address).
@@ -151,11 +151,11 @@ func NewActionFileCmd() *cobra.Command {
 }
 
 func RunActionDirCmd(cmd *cobra.Command, args []string) {
-	hostmgr, err := host.New("./host.list")
+	hostGroup, err := host.Read("./host.list")
 	cobra.CheckErr(err)
 	logger := NewLogger()
 
-	for _, h := range hostmgr.Hosts["default"] {
+	for _, h := range hostGroup["default"] {
 		r, err := remote.New(h, logger)
 		cobra.CheckErr(err)
 

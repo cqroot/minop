@@ -18,14 +18,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package cmd
 
 import (
+	"github.com/cqroot/minop/pkg/task"
 	"github.com/spf13/cobra"
 )
+
+func RunRootCmd(cmd *cobra.Command, args []string) {
+	t, err := task.New("./minop.yaml")
+	cobra.CheckErr(err)
+
+	err = t.Execute()
+	cobra.CheckErr(err)
+}
 
 func NewRootCmd() *cobra.Command {
 	rootCmd := cobra.Command{
 		Use:   "minop",
 		Short: "Minop is a simple remote execution and deployment tool",
 		Long:  "Minop is a simple remote execution and deployment tool",
+		Run:   RunRootCmd,
 	}
 
 	rootCmd.AddCommand(NewActionCmd())

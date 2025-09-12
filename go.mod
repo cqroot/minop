@@ -1,6 +1,6 @@
 module github.com/cqroot/minop
 
-go 1.24.6
+go 1.25.1
 
 require (
 	github.com/jedib0t/go-pretty/v6 v6.6.8
@@ -8,6 +8,7 @@ require (
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/cobra v1.10.1
 	golang.org/x/crypto v0.42.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (

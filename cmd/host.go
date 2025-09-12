@@ -26,7 +26,7 @@ import (
 )
 
 func RunHostCmd(cmd *cobra.Command, args []string) {
-	hostmgr, err := host.New("./host.list")
+	hostGroup, err := host.Read("./host.list")
 	cobra.CheckErr(err)
 
 	t := table.NewWriter()
@@ -35,7 +35,7 @@ func RunHostCmd(cmd *cobra.Command, args []string) {
 	t.AppendHeader(table.Row{"Group", "Address", "User", "Port"})
 
 	isFirst := true
-	for group, hosts := range hostmgr.Hosts {
+	for group, hosts := range hostGroup {
 		for _, host := range hosts {
 			if isFirst {
 				t.AppendRow(table.Row{group, host.Address, host.User, host.Port})
