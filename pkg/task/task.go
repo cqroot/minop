@@ -66,13 +66,13 @@ func New(name string) (*Task, error) {
 			if err != nil {
 				return nil, err
 			}
-			acts[i] = *action.New(role, act)
+			acts[i] = *action.New(name, role, act)
 		case "file":
 			act, err := file.New(actCtx)
 			if err != nil {
 				return nil, err
 			}
-			acts[i] = *action.New(role, act)
+			acts[i] = *action.New(name, role, act)
 		}
 	}
 
@@ -90,6 +90,7 @@ func (t Task) Execute() error {
 		Level(zerolog.DebugLevel)
 
 	for _, act := range t.Actions {
+		color.HiCyan("%s:\n", act.Name())
 		for role, hosts := range hostGroup {
 			if act.Role() != "all" && act.Role() != role {
 				continue
@@ -99,15 +100,15 @@ func (t Task) Execute() error {
 				if err != nil {
 					return err
 				}
-				fmt.Printf("%s %s@%s:%d\n", color.New(color.FgBlack).Add(color.BgBlue).Add(color.Bold).Sprint(" Host "),
-					h.User, h.Address, h.Port)
+				color.HiCyan("    %s@%s:%d", h.User, h.Address, h.Port)
 				if ret != nil {
-					ret.ForEach(func(key, val string) {
-						color.HiCyan("    %s:\n", key)
+					ret.ForEach(func(key, val string) error {
+						color.Cyan("        %s:\n", key)
 						scanner := bufio.NewScanner(strings.NewReader(val))
 						for scanner.Scan() {
-							fmt.Printf("        %s\n", scanner.Text())
+							fmt.Printf("            %s\n", scanner.Text())
 						}
+						return nil
 					})
 				}
 			}

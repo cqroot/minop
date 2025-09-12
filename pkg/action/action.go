@@ -29,15 +29,25 @@ type Action interface {
 }
 
 type ActionWrapper struct {
-	Action
+	name string
 	role string
+	Action
 }
 
-func New(role string, act Action) *ActionWrapper {
+func New(name string, role string, act Action) *ActionWrapper {
 	return &ActionWrapper{
+		name:   name,
 		role:   role,
 		Action: act,
 	}
+}
+
+func (aw *ActionWrapper) SetName(name string) {
+	aw.name = name
+}
+
+func (aw ActionWrapper) Name() string {
+	return aw.name
 }
 
 func (aw *ActionWrapper) SetRole(role string) {

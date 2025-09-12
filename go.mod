@@ -3,7 +3,7 @@ module github.com/cqroot/minop
 go 1.25.1
 
 require (
-	github.com/cqroot/gtypes v0.0.1
+	github.com/cqroot/gtypes v0.0.2
 	github.com/fatih/color v1.18.0
 	github.com/jedib0t/go-pretty/v6 v6.6.8
 	github.com/pkg/sftp v1.13.9
