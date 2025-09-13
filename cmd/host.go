@@ -27,7 +27,7 @@ import (
 
 func RunHostCmd(cmd *cobra.Command, args []string) {
 	hostGroup, err := host.Read("./host.list")
-	cobra.CheckErr(err)
+	CheckErr(err)
 
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)

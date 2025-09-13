@@ -30,16 +30,16 @@ import (
 	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/utils/maputils"
 	"github.com/fatih/color"
-	"github.com/rs/zerolog"
 	"gopkg.in/yaml.v3"
 )
 
 type Task struct {
 	actions         []action.ActionWrapper
+	logger          *log.Logger
 	optVerboseLevel int
 }
 
-func New(name string, opts ...Option) (*Task, error) {
+func New(name string, logger *log.Logger, opts ...Option) (*Task, error) {
 	content, err := os.ReadFile(name)
 	if err != nil {
 		return nil, err
@@ -79,6 +79,7 @@ func New(name string, opts ...Option) (*Task, error) {
 
 	t := Task{
 		actions:         acts,
+		logger:          logger,
 		optVerboseLevel: 0,
 	}
 	for _, opt := range opts {
@@ -101,17 +102,18 @@ func (t Task) printValue(key string, val string, prefix string) {
 	}
 }
 
-func (t Task) PrintActionResult(hostGroup map[string][]host.Host, act action.ActionWrapper, prefix string, logger *log.Logger) error {
+func (t Task) PrintActionResult(hostGroup map[string][]host.Host, act action.ActionWrapper, prefix string) error {
 	for role, hosts := range hostGroup {
 		if act.Role() != "all" && act.Role() != role {
 			continue
 		}
 		for _, h := range hosts {
-			ret, err := act.Execute(h, logger)
+			color.HiCyan("%s%s@%s:%d", prefix, h.User, h.Address, h.Port)
+			ret, err := act.Execute(h, t.logger)
 			if err != nil {
 				return err
 			}
-			color.HiCyan("%s%s@%s:%d", prefix, h.User, h.Address, h.Port)
+
 			if t.optVerboseLevel == 0 {
 				continue
 			}
@@ -132,12 +134,13 @@ func (t Task) Execute() error {
 	if err != nil {
 		return err
 	}
-	logger := log.New(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "2006-01-02 15:04:05 Mon"}).
-		Level(zerolog.DebugLevel)
 
 	for _, act := range t.actions {
 		color.HiCyan("%s:\n", act.Name())
-		t.PrintActionResult(hostGroup, act, "    ", logger)
+		err := t.PrintActionResult(hostGroup, act, "    ")
+		if err != nil {
+			return err
+		}
 		fmt.Println()
 	}
 	return nil

@@ -54,6 +54,7 @@ func New(w io.Writer) *Logger {
 	logger := zerolog.New(w).
 		With().
 		Timestamp().
+		Caller().
 		Logger()
 	return &Logger{Logger: logger}
 }

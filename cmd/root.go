@@ -18,18 +18,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package cmd
 
 import (
+	"os"
+
+	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/task"
+	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 )
 
-var verboseLevel int
+var (
+	logger = log.New(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "2006-01-02 15:04:05 Mon"}).
+		Level(zerolog.DebugLevel)
+	verboseLevel int
+)
+
+func CheckErr(err error) {
+	if err != nil {
+		logger.Err(err).Msg("")
+		os.Exit(1)
+	}
+}
 
 func RunRootCmd(cmd *cobra.Command, args []string) {
-	t, err := task.New("./minop.yaml", task.WithVerboseLeve(verboseLevel))
-	cobra.CheckErr(err)
+	t, err := task.New("./minop.yaml", logger, task.WithVerboseLeve(verboseLevel))
+	CheckErr(err)
 
 	err = t.Execute()
-	cobra.CheckErr(err)
+	CheckErr(err)
 }
 
 func NewRootCmd() *cobra.Command {
@@ -46,5 +61,5 @@ func NewRootCmd() *cobra.Command {
 }
 
 func Execute() {
-	cobra.CheckErr(NewRootCmd().Execute())
+	CheckErr(NewRootCmd().Execute())
 }
