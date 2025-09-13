@@ -22,8 +22,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var verboseLevel int
+
 func RunRootCmd(cmd *cobra.Command, args []string) {
-	t, err := task.New("./minop.yaml")
+	t, err := task.New("./minop.yaml", task.WithVerboseLeve(verboseLevel))
 	cobra.CheckErr(err)
 
 	err = t.Execute()
@@ -37,6 +39,7 @@ func NewRootCmd() *cobra.Command {
 		Long:  "Minop is a simple remote execution and deployment tool",
 		Run:   RunRootCmd,
 	}
+	rootCmd.Flags().CountVarP(&verboseLevel, "verbose", "v", "Increase output verbosity. Use multiple v's for more detail, e.g., -v, -vv.")
 
 	rootCmd.AddCommand(NewHostCmd())
 	return &rootCmd

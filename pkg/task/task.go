@@ -35,10 +35,11 @@ import (
 )
 
 type Task struct {
-	Actions []action.ActionWrapper
+	actions         []action.ActionWrapper
+	optVerboseLevel int
 }
 
-func New(name string) (*Task, error) {
+func New(name string, opts ...Option) (*Task, error) {
 	content, err := os.ReadFile(name)
 	if err != nil {
 		return nil, err
@@ -76,9 +77,54 @@ func New(name string) (*Task, error) {
 		}
 	}
 
-	return &Task{
-		Actions: acts,
-	}, nil
+	t := Task{
+		actions:         acts,
+		optVerboseLevel: 0,
+	}
+	for _, opt := range opts {
+		opt(&t)
+	}
+	return &t, nil
+}
+
+func (t Task) printValue(key string, val string, prefix string) {
+	if t.optVerboseLevel == 1 && strings.IndexByte(val, '\n') == -1 {
+		if val != "" {
+			fmt.Printf("%s%s %s\n", prefix, color.CyanString("%s:", key), val)
+		}
+	} else {
+		color.Cyan("%s%s:\n", prefix, key)
+		scanner := bufio.NewScanner(strings.NewReader(val))
+		for scanner.Scan() {
+			fmt.Printf("%s    %s\n", prefix, scanner.Text())
+		}
+	}
+}
+
+func (t Task) PrintActionResult(hostGroup map[string][]host.Host, act action.ActionWrapper, prefix string, logger *log.Logger) error {
+	for role, hosts := range hostGroup {
+		if act.Role() != "all" && act.Role() != role {
+			continue
+		}
+		for _, h := range hosts {
+			ret, err := act.Execute(h, logger)
+			if err != nil {
+				return err
+			}
+			color.HiCyan("%s%s@%s:%d", prefix, h.User, h.Address, h.Port)
+			if t.optVerboseLevel == 0 {
+				continue
+			}
+
+			if ret != nil {
+				ret.ForEach(func(key, val string) error {
+					t.printValue(key, val, fmt.Sprintf("%s    ", prefix))
+					return nil
+				})
+			}
+		}
+	}
+	return nil
 }
 
 func (t Task) Execute() error {
@@ -89,30 +135,9 @@ func (t Task) Execute() error {
 	logger := log.New(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "2006-01-02 15:04:05 Mon"}).
 		Level(zerolog.DebugLevel)
 
-	for _, act := range t.Actions {
+	for _, act := range t.actions {
 		color.HiCyan("%s:\n", act.Name())
-		for role, hosts := range hostGroup {
-			if act.Role() != "all" && act.Role() != role {
-				continue
-			}
-			for _, h := range hosts {
-				ret, err := act.Execute(h, logger)
-				if err != nil {
-					return err
-				}
-				color.HiCyan("    %s@%s:%d", h.User, h.Address, h.Port)
-				if ret != nil {
-					ret.ForEach(func(key, val string) error {
-						color.Cyan("        %s:\n", key)
-						scanner := bufio.NewScanner(strings.NewReader(val))
-						for scanner.Scan() {
-							fmt.Printf("            %s\n", scanner.Text())
-						}
-						return nil
-					})
-				}
-			}
-		}
+		t.PrintActionResult(hostGroup, act, "    ", logger)
 		fmt.Println()
 	}
 	return nil
