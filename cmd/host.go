@@ -19,14 +19,16 @@ package cmd
 
 import (
 	"os"
+	"path/filepath"
 
+	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/host"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
 func RunHostCmd(cmd *cobra.Command, args []string) {
-	hostGroup, err := host.Read("./host.list")
+	hostGroup, err := host.Read(filepath.Join(".", constants.HostFileName))
 	CheckErr(err)
 
 	t := table.NewWriter()

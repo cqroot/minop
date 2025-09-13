@@ -21,11 +21,13 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/cqroot/minop/pkg/action"
 	"github.com/cqroot/minop/pkg/action/command"
 	"github.com/cqroot/minop/pkg/action/file"
+	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/host"
 	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/utils/maputils"
@@ -130,7 +132,7 @@ func (t Task) PrintActionResult(hostGroup map[string][]host.Host, act action.Act
 }
 
 func (t Task) Execute() error {
-	hostGroup, err := host.Read("./host.list")
+	hostGroup, err := host.Read(filepath.Join(".", constants.HostFileName))
 	if err != nil {
 		return err
 	}

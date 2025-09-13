@@ -19,7 +19,9 @@ package cmd
 
 import (
 	"os"
+	"path/filepath"
 
+	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/task"
 	"github.com/rs/zerolog"
@@ -40,7 +42,7 @@ func CheckErr(err error) {
 }
 
 func RunRootCmd(cmd *cobra.Command, args []string) {
-	t, err := task.New("./minop.yaml", logger, task.WithVerboseLeve(verboseLevel))
+	t, err := task.New(filepath.Join(".", constants.TaskFileName), logger, task.WithVerboseLeve(verboseLevel))
 	CheckErr(err)
 
 	err = t.Execute()
