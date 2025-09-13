@@ -24,3 +24,11 @@ func WithVerboseLeve(verboseLevel int) Option {
 		t.optVerboseLevel = verboseLevel
 	}
 }
+
+func WithMaxProcs(maxProcs int) Option {
+	return func(t *Task) {
+		if maxProcs > 0 {
+			t.optMaxProcs = maxProcs
+		}
+	}
+}

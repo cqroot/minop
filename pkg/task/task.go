@@ -19,11 +19,13 @@ package task
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/cqroot/gtypes/orderedmap"
 	"github.com/cqroot/minop/pkg/action"
 	"github.com/cqroot/minop/pkg/action/command"
 	"github.com/cqroot/minop/pkg/action/file"
@@ -32,6 +34,8 @@ import (
 	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/utils/maputils"
 	"github.com/fatih/color"
+	"golang.org/x/sync/errgroup"
+	"golang.org/x/sync/semaphore"
 	"gopkg.in/yaml.v3"
 )
 
@@ -39,6 +43,7 @@ type Task struct {
 	actions         []action.ActionWrapper
 	logger          *log.Logger
 	optVerboseLevel int
+	optMaxProcs     int
 }
 
 func New(filename string, logger *log.Logger, opts ...Option) (*Task, error) {
@@ -82,6 +87,7 @@ func New(filename string, logger *log.Logger, opts ...Option) (*Task, error) {
 		actions:         acts,
 		logger:          logger,
 		optVerboseLevel: 0,
+		optMaxProcs:     1,
 	}
 	for _, opt := range opts {
 		opt(&t)
@@ -103,31 +109,75 @@ func (t Task) printValue(key string, val string, prefix string) {
 	}
 }
 
+type execResult struct {
+	h   host.Host
+	res *orderedmap.OrderedMap[string, string]
+}
+
 func (t Task) PrintActionResult(hostGroup map[string][]host.Host, act action.ActionWrapper, prefix string) error {
-	for role, hosts := range hostGroup {
-		if act.Role() != "all" && act.Role() != role {
-			continue
-		}
-		for _, h := range hosts {
-			color.HiCyan("%s%s@%s:%d", prefix, h.User, h.Address, h.Port)
-			ret, err := act.Execute(h, t.logger)
-			if err != nil {
-				return err
-			}
+	chanExecResults := make(chan execResult)
+
+	printDone := make(chan struct{})
+	go func() {
+		defer close(printDone)
+		for res := range chanExecResults {
+			color.HiCyan("%s%s@%s:%d", prefix, res.h.User, res.h.Address, res.h.Port)
 
 			if t.optVerboseLevel == 0 {
 				continue
 			}
 
-			if ret != nil {
-				ret.ForEach(func(key, val string) error {
+			if res.res != nil {
+				_ = res.res.ForEach(func(key, val string) error {
 					t.printValue(key, val, fmt.Sprintf("%s    ", prefix))
 					return nil
 				})
 			}
 		}
+	}()
+
+	sem := semaphore.NewWeighted(int64(t.optMaxProcs))
+	g, ctx := errgroup.WithContext(context.Background())
+
+	for role, hosts := range hostGroup {
+		if act.Role() != "all" && act.Role() != role {
+			continue
+		}
+
+		for _, h := range hosts {
+			if err := sem.Acquire(ctx, 1); err != nil {
+				continue
+			}
+
+			currHost := h
+			g.Go(func() error {
+				defer sem.Release(1)
+
+				res, err := act.Execute(currHost, t.logger)
+				if err != nil {
+					return err
+				}
+
+				chanExecResults <- execResult{
+					h:   currHost,
+					res: res,
+				}
+				return nil
+			})
+		}
 	}
-	return nil
+
+	var firstErr error
+	go func() {
+		err := g.Wait()
+		if err != nil {
+			firstErr = err
+		}
+		close(chanExecResults)
+	}()
+
+	<-printDone
+	return firstErr
 }
 
 func (t Task) Execute() error {

@@ -31,7 +31,8 @@ import (
 var (
 	logger = log.New(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "2006-01-02 15:04:05 Mon"}).
 		Level(zerolog.DebugLevel)
-	verboseLevel int
+	flagVerboseLevel int
+	flagMaxProcs     int
 )
 
 func CheckErr(err error) {
@@ -42,7 +43,10 @@ func CheckErr(err error) {
 }
 
 func RunRootCmd(cmd *cobra.Command, args []string) {
-	t, err := task.New(filepath.Join(".", constants.TaskFileName), logger, task.WithVerboseLeve(verboseLevel))
+	t, err := task.New(filepath.Join(".", constants.TaskFileName), logger,
+		task.WithVerboseLeve(flagVerboseLevel),
+		task.WithMaxProcs(flagMaxProcs),
+	)
 	CheckErr(err)
 
 	err = t.Execute()
@@ -56,7 +60,8 @@ func NewRootCmd() *cobra.Command {
 		Long:  "Minop is a simple remote execution and deployment tool",
 		Run:   RunRootCmd,
 	}
-	rootCmd.Flags().CountVarP(&verboseLevel, "verbose", "v", "Increase output verbosity. Use multiple v's for more detail, e.g., -v, -vv.")
+	rootCmd.Flags().CountVarP(&flagVerboseLevel, "verbose", "v", "Increase output verbosity. Use multiple v's for more detail, e.g., -v, -vv (default 0)")
+	rootCmd.Flags().IntVarP(&flagMaxProcs, "max-procs", "p", 1, "Maximum number of tasks to execute simultaneously (default 1)")
 
 	rootCmd.AddCommand(NewHostCmd())
 	return &rootCmd

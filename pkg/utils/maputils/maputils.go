@@ -32,7 +32,7 @@ var (
 func GetString(strMap map[string]string, key string) (string, error) {
 	value, ok := strMap[key]
 	if !ok {
-		return "", fmt.Errorf("%w: %s", ErrKeyNotFound, key)
+		return "", fmt.Errorf("%w: %s (%+v)", ErrKeyNotFound, key, strMap)
 	}
 	return value, nil
 }
@@ -48,7 +48,7 @@ func GetStringOrDefault(strMap map[string]string, key string, def string) string
 func GetBool(strMap map[string]string, key string) (bool, error) {
 	value, ok := strMap[key]
 	if !ok {
-		return false, fmt.Errorf("%w: %s", ErrKeyNotFound, key)
+		return false, fmt.Errorf("%w: %s (%+v)", ErrKeyNotFound, key, strMap)
 	}
 	if !strutils.IsBool(value) {
 		return false, fmt.Errorf("%w: bool", ErrValueType)
