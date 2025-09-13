@@ -41,8 +41,8 @@ type Task struct {
 	optVerboseLevel int
 }
 
-func New(name string, logger *log.Logger, opts ...Option) (*Task, error) {
-	content, err := os.ReadFile(name)
+func New(filename string, logger *log.Logger, opts ...Option) (*Task, error) {
+	content, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -56,27 +56,26 @@ func New(name string, logger *log.Logger, opts ...Option) (*Task, error) {
 	acts := make([]action.ActionWrapper, len(actCtxs))
 
 	for i, actCtx := range actCtxs {
-		name, err := maputils.GetString(actCtx, "name")
+		actName, err := maputils.GetString(actCtx, "action")
 		if err != nil {
 			return nil, err
 		}
 
 		role := maputils.GetStringOrDefault(actCtx, "role", "all")
-
-		switch name {
+		var act action.Action
+		switch actName {
 		case "command":
-			act, err := command.New(actCtx)
+			act, err = command.New(actCtx)
 			if err != nil {
 				return nil, err
 			}
-			acts[i] = *action.New(name, role, act)
 		case "file":
-			act, err := file.New(actCtx)
+			act, err = file.New(actCtx)
 			if err != nil {
 				return nil, err
 			}
-			acts[i] = *action.New(name, role, act)
 		}
+		acts[i] = *action.New(maputils.GetStringOrDefault(actCtx, "name", actName), role, act)
 	}
 
 	t := Task{
