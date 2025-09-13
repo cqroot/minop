@@ -96,7 +96,7 @@ func New(filename string, logger *log.Logger, opts ...Option) (*Task, error) {
 }
 
 func (t Task) printValue(key string, val string, prefix string) {
-	if t.optVerboseLevel == 1 && (strings.IndexByte(val, '\n') == -1 || val[len(val)-1] == '\n') {
+	if t.optVerboseLevel == 1 && (strings.IndexByte(val, '\n') == -1 || strings.IndexByte(val, '\n') == len(val)-1) {
 		if val != "" {
 			fmt.Printf("%s%s %s\n", prefix, color.CyanString("%s:", key), strings.ReplaceAll(val, "\n", ""))
 		}
