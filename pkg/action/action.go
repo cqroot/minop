@@ -19,13 +19,13 @@ package action
 
 import (
 	"github.com/cqroot/gtypes/orderedmap"
-	"github.com/cqroot/minop/pkg/host"
 	"github.com/cqroot/minop/pkg/log"
+	"github.com/cqroot/minop/pkg/remote"
 )
 
 type Action interface {
 	Validate(actCtx map[string]string) error
-	Execute(h host.Host, logger *log.Logger) (*orderedmap.OrderedMap[string, string], error)
+	Execute(r *remote.Remote, logger *log.Logger) (*orderedmap.OrderedMap[string, string], error)
 }
 
 type ActionWrapper struct {

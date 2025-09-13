@@ -21,7 +21,6 @@ import (
 	"fmt"
 
 	"github.com/cqroot/gtypes/orderedmap"
-	"github.com/cqroot/minop/pkg/host"
 	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/remote"
 	"github.com/cqroot/minop/pkg/utils/maputils"
@@ -58,18 +57,13 @@ func (act *File) Validate(actCtx map[string]string) error {
 	return nil
 }
 
-func (act *File) Execute(h host.Host, logger *log.Logger) (*orderedmap.OrderedMap[string, string], error) {
-	r, err := remote.New(h, logger)
-	if err != nil {
-		return nil, err
-	}
-
+func (act *File) Execute(r *remote.Remote, logger *log.Logger) (*orderedmap.OrderedMap[string, string], error) {
 	if act.Backup == true {
 		r.ExecuteCommand(fmt.Sprintf("[[ -f '%s' ]] && cp -a '%s' '%s.minop_bak'",
 			act.RemotePath, act.RemotePath, act.RemotePath))
 	}
 
-	err = r.UploadFile(act.LocalPath, act.RemotePath)
+	err := r.UploadFile(act.LocalPath, act.RemotePath)
 	if err != nil {
 		return nil, err
 	}

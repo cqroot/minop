@@ -22,7 +22,6 @@ import (
 	"strconv"
 
 	"github.com/cqroot/gtypes/orderedmap"
-	"github.com/cqroot/minop/pkg/host"
 	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/remote"
 	"github.com/cqroot/minop/pkg/utils/maputils"
@@ -54,12 +53,7 @@ func (act *Command) Validate(actCtx map[string]string) error {
 	return nil
 }
 
-func (act *Command) Execute(h host.Host, logger *log.Logger) (*orderedmap.OrderedMap[string, string], error) {
-	r, err := remote.New(h, logger)
-	if err != nil {
-		return nil, err
-	}
-
+func (act *Command) Execute(r *remote.Remote, logger *log.Logger) (*orderedmap.OrderedMap[string, string], error) {
 	exitStatus, stdout, stderr, err := r.ExecuteCommand(act.Command)
 	if err != nil {
 		return nil, err

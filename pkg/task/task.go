@@ -32,6 +32,7 @@ import (
 	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/host"
 	"github.com/cqroot/minop/pkg/log"
+	"github.com/cqroot/minop/pkg/remote"
 	"github.com/cqroot/minop/pkg/utils/maputils"
 	"github.com/fatih/color"
 	"golang.org/x/sync/errgroup"
@@ -114,7 +115,7 @@ type execResult struct {
 	res *orderedmap.OrderedMap[string, string]
 }
 
-func (t Task) PrintActionResult(hostGroup map[string][]host.Host, act action.ActionWrapper, prefix string) error {
+func (t Task) PrintActionResult(hostGroup map[string][]host.Host, rgs *map[host.Host]*remote.Remote, act action.ActionWrapper, prefix string) error {
 	chanExecResults := make(chan execResult)
 
 	printDone := make(chan struct{})
@@ -149,11 +150,21 @@ func (t Task) PrintActionResult(hostGroup map[string][]host.Host, act action.Act
 				continue
 			}
 
+			r, ok := (*rgs)[h]
+			if !ok {
+				newR, err := remote.New(h, t.logger)
+				if err != nil {
+					return err
+				}
+				(*rgs)[h] = newR
+				r = newR
+			}
+
 			currHost := h
 			g.Go(func() error {
 				defer sem.Release(1)
 
-				res, err := act.Execute(currHost, t.logger)
+				res, err := act.Execute(r, t.logger)
 				if err != nil {
 					return err
 				}
@@ -186,9 +197,10 @@ func (t Task) Execute() error {
 		return err
 	}
 
+	rgs := make(map[host.Host]*remote.Remote)
 	for _, act := range t.actions {
 		color.HiCyan("%s:\n", act.Name())
-		err := t.PrintActionResult(hostGroup, act, "    ")
+		err := t.PrintActionResult(hostGroup, &rgs, act, "    ")
 		if err != nil {
 			return err
 		}
