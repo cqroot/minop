@@ -30,6 +30,7 @@ import (
 type File struct {
 	LocalPath  string
 	RemotePath string
+	Backup     bool
 }
 
 func New(actCtx map[string]string) (*File, error) {
@@ -52,6 +53,8 @@ func (act *File) Validate(actCtx map[string]string) error {
 		return err
 	}
 	act.RemotePath = dst
+
+	act.Backup = maputils.GetBoolOrDefault(actCtx, "backup", false)
 	return nil
 }
 
@@ -59,6 +62,11 @@ func (act *File) Execute(h host.Host, logger *log.Logger) (*orderedmap.OrderedMa
 	r, err := remote.New(h, logger)
 	if err != nil {
 		return nil, err
+	}
+
+	if act.Backup == true {
+		r.ExecuteCommand(fmt.Sprintf("[[ -f '%s' ]] && cp -a '%s' '%s.minop_bak'",
+			act.RemotePath, act.RemotePath, act.RemotePath))
 	}
 
 	err = r.UploadFile(act.LocalPath, act.RemotePath)
