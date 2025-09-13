@@ -65,9 +65,9 @@ func (act *Command) Execute(h host.Host, logger *log.Logger) (*orderedmap.Ordere
 		return nil, err
 	}
 
-	ret := orderedmap.New[string, string]()
-	ret.Put("ExitStatus", strconv.Itoa(exitStatus))
-	ret.Put("Stdout", stdout)
-	ret.Put("Stderr", stderr)
-	return ret, nil
+	res := orderedmap.New[string, string]()
+	res.Put("ExitStatus", strconv.Itoa(exitStatus))
+	res.Put("Stdout", stdout)
+	res.Put("Stderr", stderr)
+	return res, nil
 }

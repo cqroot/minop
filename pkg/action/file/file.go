@@ -18,6 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package file
 
 import (
+	"fmt"
+
 	"github.com/cqroot/gtypes/orderedmap"
 	"github.com/cqroot/minop/pkg/host"
 	"github.com/cqroot/minop/pkg/log"
@@ -60,5 +62,11 @@ func (act *File) Execute(h host.Host, logger *log.Logger) (*orderedmap.OrderedMa
 	}
 
 	err = r.UploadFile(act.LocalPath, act.RemotePath)
-	return nil, err
+	if err != nil {
+		return nil, err
+	}
+
+	res := orderedmap.New[string, string]()
+	res.Put("Result", fmt.Sprintf("%s -> %s", act.LocalPath, act.RemotePath))
+	return res, nil
 }
