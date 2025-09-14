@@ -24,6 +24,7 @@ import (
 	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/task"
+	"github.com/cqroot/minop/pkg/version"
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 )
@@ -68,6 +69,7 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.Flags().IntVarP(&flagMaxProcs, "max-procs", "p", 1, "Maximum number of tasks to execute simultaneously (default 1)")
 
 	rootCmd.AddCommand(NewHostCmd())
+	rootCmd.Version = version.Get().String()
 	return &rootCmd
 }
 
