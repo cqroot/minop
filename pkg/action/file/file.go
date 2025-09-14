@@ -27,9 +27,9 @@ import (
 )
 
 type File struct {
-	LocalPath  string
-	RemotePath string
-	Backup     bool
+	src    string
+	dst    string
+	backup bool
 }
 
 func New(actCtx map[string]string) (*File, error) {
@@ -45,30 +45,31 @@ func (act *File) Validate(actCtx map[string]string) error {
 	if err != nil {
 		return err
 	}
-	act.LocalPath = src
+	act.src = src
 
 	dst, err := maputils.GetString(actCtx, "dst")
 	if err != nil {
 		return err
 	}
-	act.RemotePath = dst
+	act.dst = dst
 
-	act.Backup = maputils.GetBoolOrDefault(actCtx, "backup", false)
+	act.backup = maputils.GetBoolOrDefault(actCtx, "backup", false)
 	return nil
 }
 
 func (act *File) Execute(r *remote.Remote, logger *log.Logger) (*orderedmap.OrderedMap[string, string], error) {
-	if act.Backup == true {
+	if act.backup == true {
+		logger.Debug().Str("Dst", act.dst).Msg("backup file")
 		r.ExecuteCommand(fmt.Sprintf(
-			"[ ! -e '%[1]s.minop_bak' ] && [ -f '%[1]s' ] && cp -a -- '%[1]s' '%[1]s.minop_bak'", act.RemotePath))
+			"[ ! -e '%[1]s.minop_bak' ] && [ -f '%[1]s' ] && cp -a -- '%[1]s' '%[1]s.minop_bak'", act.dst))
 	}
 
-	err := r.UploadFile(act.LocalPath, act.RemotePath)
+	err := r.UploadFile(act.src, act.dst)
 	if err != nil {
 		return nil, err
 	}
 
 	res := orderedmap.New[string, string]()
-	res.Put("Result", fmt.Sprintf("%s -> %s", act.LocalPath, act.RemotePath))
+	res.Put("Result", fmt.Sprintf("%s -> %s", act.src, act.dst))
 	return res, nil
 }

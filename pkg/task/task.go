@@ -50,12 +50,14 @@ type Task struct {
 func New(filename string, logger *log.Logger, opts ...Option) (*Task, error) {
 	content, err := os.ReadFile(filename)
 	if err != nil {
+		logger.Error().Err(err).Msg("")
 		return nil, err
 	}
 
 	var actCtxs []map[string]string
 	err = yaml.Unmarshal(content, &actCtxs)
 	if err != nil {
+		logger.Error().Err(err).Msg("")
 		return nil, err
 	}
 
@@ -64,8 +66,10 @@ func New(filename string, logger *log.Logger, opts ...Option) (*Task, error) {
 	for i, actCtx := range actCtxs {
 		actName, err := maputils.GetString(actCtx, "action")
 		if err != nil {
+			logger.Error().Err(err).Msg("")
 			return nil, err
 		}
+		logger.Debug().Str("ActionName", actName).Msg("found an action")
 
 		role := maputils.GetStringOrDefault(actCtx, "role", "all")
 		var act action.Action
@@ -73,14 +77,17 @@ func New(filename string, logger *log.Logger, opts ...Option) (*Task, error) {
 		case "command":
 			act, err = command.New(actCtx)
 			if err != nil {
+				logger.Error().Err(err).Msg("")
 				return nil, err
 			}
 		case "file":
 			act, err = file.New(actCtx)
 			if err != nil {
+				logger.Error().Err(err).Msg("")
 				return nil, err
 			}
 		}
+		logger.Debug().Any("Action", act).Msg("")
 		acts[i] = *action.New(maputils.GetStringOrDefault(actCtx, "name", actName), role, act)
 	}
 
@@ -97,7 +104,7 @@ func New(filename string, logger *log.Logger, opts ...Option) (*Task, error) {
 }
 
 func (t Task) printValue(key string, val string, prefix string) {
-	if t.optVerboseLevel == 1 && (strings.IndexByte(val, '\n') == -1 || strings.IndexByte(val, '\n') == len(val)-1) {
+	if t.optVerboseLevel == 0 && (strings.IndexByte(val, '\n') == -1 || strings.IndexByte(val, '\n') == len(val)-1) {
 		if val != "" {
 			fmt.Printf("%s%s %s\n", prefix, color.CyanString("%s:", key), strings.ReplaceAll(val, "\n", ""))
 		}
@@ -123,10 +130,6 @@ func (t Task) PrintActionResult(hostGroup map[string][]host.Host, rgs *map[host.
 		defer close(printDone)
 		for res := range chanExecResults {
 			color.HiCyan("%s%s@%s:%d", prefix, res.h.User, res.h.Address, res.h.Port)
-
-			if t.optVerboseLevel == 0 {
-				continue
-			}
 
 			if res.res != nil {
 				_ = res.res.ForEach(func(key, val string) error {

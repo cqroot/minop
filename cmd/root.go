@@ -30,7 +30,7 @@ import (
 
 var (
 	logger = log.New(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "2006-01-02 15:04:05 Mon"}).
-		Level(zerolog.DebugLevel)
+		Level(zerolog.ErrorLevel)
 	flagVerboseLevel int
 	flagMaxProcs     int
 )
@@ -43,6 +43,10 @@ func CheckErr(err error) {
 }
 
 func RunRootCmd(cmd *cobra.Command, args []string) {
+	if flagVerboseLevel >= 2 {
+		logger = logger.Level(zerolog.DebugLevel)
+	}
+
 	t, err := task.New(filepath.Join(".", constants.TaskFileName), logger,
 		task.WithVerboseLeve(flagVerboseLevel),
 		task.WithMaxProcs(flagMaxProcs),
