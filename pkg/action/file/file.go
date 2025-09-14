@@ -59,8 +59,8 @@ func (act *File) Validate(actCtx map[string]string) error {
 
 func (act *File) Execute(r *remote.Remote, logger *log.Logger) (*orderedmap.OrderedMap[string, string], error) {
 	if act.Backup == true {
-		r.ExecuteCommand(fmt.Sprintf("[[ -f '%s' ]] && cp -a '%s' '%s.minop_bak'",
-			act.RemotePath, act.RemotePath, act.RemotePath))
+		r.ExecuteCommand(fmt.Sprintf(
+			"[ ! -e '%[1]s.minop_bak' ] && [ -f '%[1]s' ] && cp -a -- '%[1]s' '%[1]s.minop_bak'", act.RemotePath))
 	}
 
 	err := r.UploadFile(act.LocalPath, act.RemotePath)
