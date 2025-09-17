@@ -32,13 +32,13 @@ import (
 var (
 	logger = log.New(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "2006-01-02 15:04:05 Mon"}).
 		Level(zerolog.ErrorLevel)
-	flagVerboseLevel int
+	flagConfigFile   string
 	flagMaxProcs     int
+	flagVerboseLevel int
 )
 
 func CheckErr(err error) {
 	if err != nil {
-		logger.Err(err).Msg("")
 		os.Exit(1)
 	}
 }
@@ -48,7 +48,7 @@ func RunRootCmd(cmd *cobra.Command, args []string) {
 		logger = logger.Level(zerolog.DebugLevel)
 	}
 
-	t, err := task.New(filepath.Join(".", constants.TaskFileName), logger,
+	t, err := task.New(flagConfigFile, logger,
 		task.WithVerboseLeve(flagVerboseLevel),
 		task.WithMaxProcs(flagMaxProcs),
 	)
@@ -65,8 +65,9 @@ func NewRootCmd() *cobra.Command {
 		Long:  "Minop is a simple remote execution and deployment tool",
 		Run:   RunRootCmd,
 	}
-	rootCmd.Flags().CountVarP(&flagVerboseLevel, "verbose", "v", "Increase output verbosity. Use multiple v's for more detail, e.g., -v, -vv (default 0)")
+	rootCmd.Flags().StringVarP(&flagConfigFile, "config", "c", filepath.Join(".", constants.TaskFileName), "Specify config file")
 	rootCmd.Flags().IntVarP(&flagMaxProcs, "max-procs", "p", 1, "Maximum number of tasks to execute simultaneously (default 1)")
+	rootCmd.Flags().CountVarP(&flagVerboseLevel, "verbose", "v", "Increase output verbosity. Use multiple v's for more detail, e.g., -v, -vv (default 0)")
 
 	rootCmd.AddCommand(NewHostCmd())
 	rootCmd.Version = version.Get().String()
