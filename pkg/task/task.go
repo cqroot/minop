@@ -24,6 +24,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/cqroot/gtypes/orderedmap"
 	"github.com/cqroot/minop/pkg/action"
@@ -37,6 +38,7 @@ import (
 	"github.com/fatih/color"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
+	"golang.org/x/term"
 	"gopkg.in/yaml.v3"
 )
 
@@ -129,7 +131,9 @@ func (t Task) PrintActionResult(hostGroup map[string][]host.Host, rgs *map[host.
 	go func() {
 		defer close(printDone)
 		for res := range chanExecResults {
-			color.HiCyan("%s%s@%s:%d", prefix, res.h.User, res.h.Address, res.h.Port)
+			hostStr := fmt.Sprintf("%s%s@%s:%d", prefix, res.h.User, res.h.Address, res.h.Port)
+			fmt.Printf("%s  %s\n", color.HiCyanString(hostStr),
+				color.HiBlackString(time.Now().Format("[2006-01-02 15:04:05]")))
 
 			if res.res != nil {
 				_ = res.res.ForEach(func(key, val string) error {
@@ -202,7 +206,20 @@ func (t Task) Execute() error {
 
 	rgs := make(map[host.Host]*remote.Remote)
 	for _, act := range t.actions {
-		color.HiCyan("%s:\n", act.Name())
+		termWidth := 500
+		if term.IsTerminal(int(os.Stdout.Fd())) {
+			width, _, err := term.GetSize(int(os.Stdout.Fd()))
+			if err == nil {
+				termWidth = width
+			}
+		}
+
+		fmt.Printf("%s %s %s\n",
+			color.HiCyanString(act.Name()),
+			color.HiBlackString(strings.Repeat("•", termWidth-len(act.Name())-2-19)),
+			color.HiBlackString(time.Now().Format("2006-01-02 15:04:05")),
+		)
+
 		err := t.PrintActionResult(hostGroup, &rgs, act, "    ")
 		if err != nil {
 			return err
