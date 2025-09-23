@@ -108,7 +108,25 @@ func (r *Remote) ExecuteCommand(cmd string) (int, string, string, error) {
 	return exitStatus, stdout.String(), stderr.String(), err
 }
 
-// UploadFile uploads a local file to remote path
+// determineOptimalBufferSize calculates optimal buffer size based on file size
+func determineOptimalBufferSize(fileSize int64) int {
+	// For small files (< 1MB), use 32KB buffer
+	if fileSize < 1024*1024 {
+		return 32 * 1024 // 32KB
+	}
+	// For medium files (1MB - 10MB), use 128KB buffer
+	if fileSize < 10*1024*1024 {
+		return 128 * 1024 // 128KB
+	}
+	// For large files (10MB - 100MB), use 512KB buffer
+	if fileSize < 100*1024*1024 {
+		return 512 * 1024 // 512KB
+	}
+	// For very large files (> 100MB), use 1MB buffer
+	return 1024 * 1024 // 1MB
+}
+
+// UploadFile uploads a local file to remote path with buffer optimization
 func (r *Remote) UploadFile(localPath, remotePath string) error {
 	// Open local file
 	localFile, err := os.Open(localPath)
@@ -118,6 +136,13 @@ func (r *Remote) UploadFile(localPath, remotePath string) error {
 	}
 	defer localFile.Close()
 
+	// Get file info to check size
+	fileInfo, err := localFile.Stat()
+	if err != nil {
+		r.Logger.Error().Err(err).Msg("get file info error")
+		return fmt.Errorf("get file info error: %w", err)
+	}
+
 	// Create remote file
 	remoteFile, err := r.sftp.Create(remotePath)
 	if err != nil {
@@ -126,12 +151,15 @@ func (r *Remote) UploadFile(localPath, remotePath string) error {
 	}
 	defer remoteFile.Close()
 
-	// Copy file content
-	_, err = io.Copy(remoteFile, localFile)
+	// Use buffered copy with optimal buffer size
+	bufferSize := determineOptimalBufferSize(fileInfo.Size())
+	_, err = io.CopyBuffer(remoteFile, localFile, make([]byte, bufferSize))
 	if err != nil {
-		r.Logger.Err(err).Msg("copy file content error")
+		r.Logger.Error().Err(err).Msg("copy file content error")
+		return fmt.Errorf("copy file content error: %w", err)
 	}
-	return err
+
+	return nil
 }
 
 // DownloadFile downloads a remote file to local path
