@@ -15,98 +15,47 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-package task
+package executor
 
 import (
 	"bufio"
 	"context"
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/cqroot/gtypes/orderedmap"
 	"github.com/cqroot/minop/pkg/action"
-	"github.com/cqroot/minop/pkg/action/command"
-	"github.com/cqroot/minop/pkg/action/file"
-	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/host"
 	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/remote"
-	"github.com/cqroot/minop/pkg/utils/maputils"
 	"github.com/fatih/color"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
-	"golang.org/x/term"
-	"gopkg.in/yaml.v3"
 )
 
-type Task struct {
-	actions         []action.ActionWrapper
+type ActionExecutor struct {
 	logger          *log.Logger
 	optVerboseLevel int
 	optMaxProcs     int
 }
 
-func New(filename string, logger *log.Logger, opts ...Option) (*Task, error) {
-	content, err := os.ReadFile(filename)
-	if err != nil {
-		logger.Error().Err(err).Msg("")
-		return nil, err
-	}
-
-	var actCtxs []map[string]string
-	err = yaml.Unmarshal(content, &actCtxs)
-	if err != nil {
-		logger.Error().Err(err).Msg("")
-		return nil, err
-	}
-
-	acts := make([]action.ActionWrapper, len(actCtxs))
-
-	for i, actCtx := range actCtxs {
-		actName, err := maputils.GetString(actCtx, "action")
-		if err != nil {
-			logger.Error().Err(err).Msg("")
-			return nil, err
-		}
-		logger.Debug().Str("ActionName", actName).Msg("found an action")
-
-		role := maputils.GetStringOrDefault(actCtx, "role", "all")
-		var act action.Action
-		switch actName {
-		case "command":
-			act, err = command.New(actCtx)
-			if err != nil {
-				logger.Error().Err(err).Msg("")
-				return nil, err
-			}
-		case "file":
-			act, err = file.New(actCtx)
-			if err != nil {
-				logger.Error().Err(err).Msg("")
-				return nil, err
-			}
-		}
-		logger.Debug().Any("Action", act).Msg("")
-		acts[i] = *action.New(maputils.GetStringOrDefault(actCtx, "name", actName), role, act)
-	}
-
-	t := Task{
-		actions:         acts,
+func New(logger *log.Logger, opts ...Option) *ActionExecutor {
+	e := ActionExecutor{
 		logger:          logger,
 		optVerboseLevel: 0,
 		optMaxProcs:     1,
 	}
+
 	for _, opt := range opts {
-		opt(&t)
+		opt(&e)
 	}
-	return &t, nil
+
+	return &e
 }
 
-func (t Task) printValue(key string, val string, prefix string) {
-	if t.optVerboseLevel == 0 && (strings.IndexByte(val, '\n') == -1 || strings.IndexByte(val, '\n') == len(val)-1) {
+func (e ActionExecutor) printValue(key string, val string, prefix string) {
+	if e.optVerboseLevel == 0 && (strings.IndexByte(val, '\n') == -1 || strings.IndexByte(val, '\n') == len(val)-1) {
 		if val != "" {
 			fmt.Printf("%s%s %s\n", prefix, color.CyanString("%s:", key), strings.ReplaceAll(val, "\n", ""))
 		}
@@ -124,7 +73,7 @@ type execResult struct {
 	res *orderedmap.OrderedMap[string, string]
 }
 
-func (t Task) PrintActionResult(hostGroup map[string][]host.Host, rgs *map[host.Host]*remote.Remote, act action.ActionWrapper, prefix string) error {
+func (e ActionExecutor) PrintActionResult(hostGroup map[string][]host.Host, rgs *map[host.Host]*remote.Remote, act action.ActionWrapper, prefix string) error {
 	chanExecResults := make(chan execResult)
 
 	printDone := make(chan struct{})
@@ -137,14 +86,14 @@ func (t Task) PrintActionResult(hostGroup map[string][]host.Host, rgs *map[host.
 
 			if res.res != nil {
 				_ = res.res.ForEach(func(key, val string) error {
-					t.printValue(key, val, fmt.Sprintf("%s    ", prefix))
+					e.printValue(key, val, fmt.Sprintf("%s    ", prefix))
 					return nil
 				})
 			}
 		}
 	}()
 
-	sem := semaphore.NewWeighted(int64(t.optMaxProcs))
+	sem := semaphore.NewWeighted(int64(e.optMaxProcs))
 	g, ctx := errgroup.WithContext(context.Background())
 
 	for role, hosts := range hostGroup {
@@ -159,7 +108,7 @@ func (t Task) PrintActionResult(hostGroup map[string][]host.Host, rgs *map[host.
 
 			r, ok := (*rgs)[h]
 			if !ok {
-				newR, err := remote.New(h, t.logger)
+				newR, err := remote.New(h, e.logger)
 				if err != nil {
 					return err
 				}
@@ -171,7 +120,7 @@ func (t Task) PrintActionResult(hostGroup map[string][]host.Host, rgs *map[host.
 			g.Go(func() error {
 				defer sem.Release(1)
 
-				res, err := act.Execute(r, t.logger)
+				res, err := act.Execute(r, e.logger)
 				if err != nil {
 					return err
 				}
@@ -196,35 +145,4 @@ func (t Task) PrintActionResult(hostGroup map[string][]host.Host, rgs *map[host.
 
 	<-printDone
 	return firstErr
-}
-
-func (t Task) Execute() error {
-	hostGroup, err := host.Read(filepath.Join(".", constants.HostFileName))
-	if err != nil {
-		return err
-	}
-
-	rgs := make(map[host.Host]*remote.Remote)
-	for _, act := range t.actions {
-		termWidth := 500
-		if term.IsTerminal(int(os.Stdout.Fd())) {
-			width, _, err := term.GetSize(int(os.Stdout.Fd()))
-			if err == nil {
-				termWidth = width
-			}
-		}
-
-		fmt.Printf("%s %s %s\n",
-			color.HiCyanString(act.Name()),
-			color.HiBlackString(strings.Repeat("•", termWidth-len(act.Name())-2-19)),
-			color.HiBlackString(time.Now().Format("2006-01-02 15:04:05")),
-		)
-
-		err := t.PrintActionResult(hostGroup, &rgs, act, "    ")
-		if err != nil {
-			return err
-		}
-		fmt.Println()
-	}
-	return nil
 }

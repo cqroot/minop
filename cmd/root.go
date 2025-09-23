@@ -22,8 +22,8 @@ import (
 	"path/filepath"
 
 	"github.com/cqroot/minop/pkg/constants"
+	"github.com/cqroot/minop/pkg/executor"
 	"github.com/cqroot/minop/pkg/log"
-	"github.com/cqroot/minop/pkg/task"
 	"github.com/cqroot/minop/pkg/version"
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
@@ -48,13 +48,14 @@ func RunRootCmd(cmd *cobra.Command, args []string) {
 		logger = logger.Level(zerolog.DebugLevel)
 	}
 
-	t, err := task.New(flagConfigFile, logger,
-		task.WithVerboseLeve(flagVerboseLevel),
-		task.WithMaxProcs(flagMaxProcs),
-	)
+	e := executor.New(logger,
+		executor.WithVerboseLeve(flagVerboseLevel),
+		executor.WithMaxProcs(flagMaxProcs))
+
+	acts, err := executor.LoadActionsFromConfig(flagConfigFile, logger)
 	CheckErr(err)
 
-	err = t.Execute()
+	err = executor.ExecuteActions(e, acts)
 	CheckErr(err)
 }
 

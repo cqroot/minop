@@ -15,20 +15,20 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-package task
+package executor
 
-type Option func(t *Task)
+type Option func(e *ActionExecutor)
 
 func WithVerboseLeve(verboseLevel int) Option {
-	return func(t *Task) {
-		t.optVerboseLevel = verboseLevel
+	return func(e *ActionExecutor) {
+		e.optVerboseLevel = verboseLevel
 	}
 }
 
 func WithMaxProcs(maxProcs int) Option {
-	return func(t *Task) {
+	return func(e *ActionExecutor) {
 		if maxProcs > 0 {
-			t.optMaxProcs = maxProcs
+			e.optMaxProcs = maxProcs
 		}
 	}
 }
