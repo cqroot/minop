@@ -45,7 +45,7 @@ type Remote struct {
 
 // New creates a new Remote instance and establishes connections
 func New(h host.Host, logger *log.Logger) (*Remote, error) {
-	client := &Remote{
+	r := &Remote{
 		Hostname: h.Address,
 		Port:     h.Port,
 		Username: h.User,
@@ -63,22 +63,50 @@ func New(h host.Host, logger *log.Logger) (*Remote, error) {
 		Timeout:         10 * time.Second,
 	}
 
+	// Format connection string and dial SSH
 	conn, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", h.Address, h.Port), sshConfig)
 	if err != nil {
 		logger.Error().Err(err).Msg("SSH dial error")
 		return nil, fmt.Errorf("SSH dial error: %w", err)
 	}
-	client.client = conn
+	r.client = conn
 
 	// Create SFTP client
 	sftpClient, err := sftp.NewClient(conn)
 	if err != nil {
 		logger.Error().Err(err).Msg("SFTP client error")
+		conn.Close() // Close SSH connection if SFTP fails
 		return nil, fmt.Errorf("SFTP client error: %w", err)
 	}
-	client.sftp = sftpClient
+	r.sftp = sftpClient
 
-	return client, nil
+	return r, nil
+}
+
+// Close closes the SSH and SFTP connections
+func (r *Remote) Close() error {
+	var errs []error
+
+	// Close SFTP client if it exists
+	if r.sftp != nil {
+		if err := r.sftp.Close(); err != nil {
+			errs = append(errs, fmt.Errorf("SFTP close error: %w", err))
+		}
+	}
+
+	// Close SSH client if it exists
+	if r.client != nil {
+		if err := r.client.Close(); err != nil {
+			errs = append(errs, fmt.Errorf("SSH close error: %w", err))
+		}
+	}
+
+	// Return combined errors if any occurred
+	if len(errs) > 0 {
+		return fmt.Errorf("multiple errors closing connections: %v", errs)
+	}
+
+	return nil
 }
 
 // ExecuteCommand executes a command on remote host and returns the output
@@ -102,7 +130,11 @@ func (r *Remote) ExecuteCommand(cmd string) (int, string, string, error) {
 	var e *ssh.ExitError
 	if err != nil && errors.As(err, &e) {
 		exitStatus = e.ExitStatus()
-		err = nil
+		err = nil // Command executed but returned non-zero exit status
+	} else if err != nil {
+		// Other types of errors (connection issues, etc.)
+		r.Logger.Error().Err(err).Msg("command execution error")
+		return 0, "", "", fmt.Errorf("command execution error: %w", err)
 	}
 
 	return exitStatus, stdout.String(), stderr.String(), err
@@ -128,6 +160,8 @@ func determineOptimalBufferSize(fileSize int64) int {
 
 // UploadFile uploads a local file to remote path with buffer optimization
 func (r *Remote) UploadFile(localPath, remotePath string) error {
+	r.Logger.Debug().Str("local", localPath).Str("remote", remotePath).Msg("starting file upload")
+
 	// Open local file
 	localFile, err := os.Open(localPath)
 	if err != nil {
@@ -141,6 +175,12 @@ func (r *Remote) UploadFile(localPath, remotePath string) error {
 	if err != nil {
 		r.Logger.Error().Err(err).Msg("get file info error")
 		return fmt.Errorf("get file info error: %w", err)
+	}
+
+	// Ensure remote directory exists
+	remoteDir := filepath.Dir(remotePath)
+	if err := r.ensureRemoteDir(remoteDir); err != nil {
+		return fmt.Errorf("ensure remote directory error: %w", err)
 	}
 
 	// Create remote file
@@ -159,89 +199,111 @@ func (r *Remote) UploadFile(localPath, remotePath string) error {
 		return fmt.Errorf("copy file content error: %w", err)
 	}
 
+	r.Logger.Info().Str("local", localPath).Str("remote", remotePath).Msg("file uploaded successfully")
 	return nil
 }
 
-// DownloadFile downloads a remote file to local path
-func (r *Remote) DownloadFile(remotePath, localPath string) error {
-	// Open remote file
-	remoteFile, err := r.sftp.Open(remotePath)
-	if err != nil {
-		r.Logger.Error().Err(err).Msg("open remote file error")
-		return fmt.Errorf("open remote file error: %w", err)
+// ensureRemoteDir ensures that the remote directory exists, creating it if necessary
+func (r *Remote) ensureRemoteDir(remoteDir string) error {
+	// Skip if directory is empty (root)
+	if remoteDir == "" || remoteDir == "." || remoteDir == "/" {
+		return nil
 	}
-	defer remoteFile.Close()
 
-	// Create local file
-	localFile, err := os.Create(localPath)
-	if err != nil {
-		r.Logger.Error().Err(err).Msg("create local file error")
-		return fmt.Errorf("create local file error: %w", err)
+	// Check if directory already exists
+	fileInfo, err := r.sftp.Stat(remoteDir)
+	if err == nil {
+		if fileInfo.IsDir() {
+			return nil
+		}
+		return fmt.Errorf("remote path exists but is not a directory: %s", remoteDir)
 	}
-	defer localFile.Close()
 
-	// Copy file content
-	_, err = io.Copy(localFile, remoteFile)
-	if err != nil {
-		r.Logger.Error().Err(err).Msg("copy file content error")
+	// If error is not "file doesn't exist", return it
+	if !os.IsNotExist(err) {
+		return fmt.Errorf("check remote directory error: %w", err)
 	}
-	return err
+
+	// Create directory (and parent directories if needed)
+	if err := r.sftp.MkdirAll(remoteDir); err != nil {
+		// Double-check if directory was created by another process
+		if _, checkErr := r.sftp.Stat(remoteDir); checkErr == nil {
+			return nil
+		}
+		return fmt.Errorf("create remote directory error: %w", err)
+	}
+
+	return nil
 }
 
-// UploadDirectory uploads a local directory recursively to remote path
+// UploadDirectory uploads a local directory recursively to remote path with better error handling
 func (r *Remote) UploadDirectory(localDir, remoteDir string) error {
-	return filepath.Walk(localDir, func(path string, info os.FileInfo, err error) error {
+	localInfo, err := os.Stat(localDir)
+	if err != nil {
+		r.Logger.Error().Err(err).Str("path", localDir).Msg("local directory error")
+		return fmt.Errorf("local directory error: %w", err)
+	}
+
+	if !localInfo.IsDir() {
+		return fmt.Errorf("local path is not a directory: %s", localDir)
+	}
+
+	if err := r.ensureRemoteDir(remoteDir); err != nil {
+		return err
+	}
+
+	r.Logger.Debug().Str("local", localDir).Str("remote", remoteDir).Msg("starting directory upload")
+
+	var uploadErrors []error
+
+	// Walk through local directory recursively
+	err = filepath.Walk(localDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return err
+			r.Logger.Warn().Err(err).Str("path", path).Msg("skip path due to error")
+			uploadErrors = append(uploadErrors, err)
+			return nil
 		}
 
-		relPath, _ := filepath.Rel(localDir, path)
-		remotePath := filepath.Join(remoteDir, relPath)
+		// Calculate relative path from local directory root
+		relPath, err := filepath.Rel(localDir, path)
+		if err != nil {
+			r.Logger.Warn().Err(err).Str("path", path).Msg("get relative path error")
+			uploadErrors = append(uploadErrors, err)
+			return nil
+		}
+
+		// Convert to slash-separated path for remote server compatibility
+		relPath = filepath.ToSlash(relPath)
+		remotePath := filepath.ToSlash(filepath.Join(remoteDir, relPath))
 
 		if info.IsDir() {
-			return r.sftp.Mkdir(remotePath)
-		}
-
-		return r.UploadFile(path, remotePath)
-	})
-}
-
-// DownloadDirectory downloads a remote directory recursively to local path
-func (r *Remote) DownloadDirectory(remoteDir, localDir string) error {
-	walker := r.sftp.Walk(remoteDir)
-	for walker.Step() {
-		if err := walker.Err(); err != nil {
-			return err
-		}
-
-		remotePath := walker.Path()
-		relPath, _ := filepath.Rel(remoteDir, remotePath)
-		localPath := filepath.Join(localDir, relPath)
-
-		if walker.Stat().IsDir() {
-			err := os.MkdirAll(localPath, os.ModePerm)
-			if err != nil {
-				r.Logger.Error().Err(err).Msg("make directory error")
-				return err
+			// Ensure remote directory exists
+			if err := r.ensureRemoteDir(remotePath); err != nil {
+				r.Logger.Warn().Err(err).Str("path", remotePath).Msg("create remote directory error")
+				uploadErrors = append(uploadErrors, err)
 			}
-			continue
+			return nil
 		}
 
-		if err := r.DownloadFile(remotePath, localPath); err != nil {
-			r.Logger.Error().Err(err).Msg("download file error")
-			return err
+		// Upload file
+		r.Logger.Debug().Str("local", path).Str("remote", remotePath).Msg("uploading file")
+		if err := r.UploadFile(path, remotePath); err != nil {
+			r.Logger.Warn().Err(err).Str("path", path).Msg("upload file error")
+			uploadErrors = append(uploadErrors, err)
 		}
-	}
-	return nil
-}
 
-// Close closes all connections
-func (r *Remote) Close() error {
-	if r.sftp != nil {
-		r.sftp.Close()
+		return nil
+	})
+	if err != nil {
+		uploadErrors = append(uploadErrors, err)
 	}
-	if r.client != nil {
-		return r.client.Close()
+
+	// Report errors if any occurred during upload
+	if len(uploadErrors) > 0 {
+		return fmt.Errorf("directory upload completed with %d errors. First error: %w",
+			len(uploadErrors), uploadErrors[0])
 	}
+
+	r.Logger.Info().Str("local", localDir).Str("remote", remoteDir).Msg("directory upload completed successfully")
 	return nil
 }

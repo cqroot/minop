@@ -15,10 +15,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-package file
+package cmd
 
 import (
-	"fmt"
+	"errors"
+	"strconv"
 
 	"github.com/cqroot/gtypes/orderedmap"
 	"github.com/cqroot/minop/pkg/log"
@@ -26,50 +27,41 @@ import (
 	"github.com/cqroot/minop/pkg/utils/maputils"
 )
 
-type FileAct struct {
-	src    string
-	dst    string
-	backup bool
+var ErrEmptyCommand = errors.New("empty command")
+
+type CmdAct struct {
+	Command string
 }
 
-func New(actCtx map[string]string) (*FileAct, error) {
-	act := FileAct{}
+func New(actCtx map[string]string) (*CmdAct, error) {
+	act := CmdAct{}
 	if err := act.Validate(actCtx); err != nil {
 		return nil, err
 	}
 	return &act, nil
 }
 
-func (act *FileAct) Validate(actCtx map[string]string) error {
-	src, err := maputils.GetString(actCtx, "src")
+func (act *CmdAct) Validate(actCtx map[string]string) error {
+	cmd, err := maputils.GetString(actCtx, "command")
 	if err != nil {
 		return err
 	}
-	act.src = src
-
-	dst, err := maputils.GetString(actCtx, "dst")
-	if err != nil {
-		return err
+	if cmd == "" {
+		return ErrEmptyCommand
 	}
-	act.dst = dst
-
-	act.backup = maputils.GetBoolOrDefault(actCtx, "backup", false)
+	act.Command = cmd
 	return nil
 }
 
-func (act *FileAct) Execute(r *remote.Remote, logger *log.Logger) (*orderedmap.OrderedMap[string, string], error) {
-	if act.backup == true {
-		logger.Debug().Str("Dst", act.dst).Msg("backup file")
-		r.ExecuteCommand(fmt.Sprintf(
-			"[ ! -e '%[1]s.minop_bak' ] && [ -f '%[1]s' ] && cp -a -- '%[1]s' '%[1]s.minop_bak'", act.dst))
-	}
-
-	err := r.UploadFile(act.src, act.dst)
+func (act *CmdAct) Execute(r *remote.Remote, logger *log.Logger) (*orderedmap.OrderedMap[string, string], error) {
+	exitStatus, stdout, stderr, err := r.ExecuteCommand(act.Command)
 	if err != nil {
 		return nil, err
 	}
 
 	res := orderedmap.New[string, string]()
-	res.Put("Result", fmt.Sprintf("%s -> %s", act.src, act.dst))
+	res.Put("ExitStatus", strconv.Itoa(exitStatus))
+	res.Put("Stdout", stdout)
+	res.Put("Stderr", stderr)
 	return res, nil
 }

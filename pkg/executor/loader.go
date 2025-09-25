@@ -25,7 +25,8 @@ import (
 	"time"
 
 	"github.com/cqroot/minop/pkg/action"
-	"github.com/cqroot/minop/pkg/action/command"
+	"github.com/cqroot/minop/pkg/action/cmd"
+	"github.com/cqroot/minop/pkg/action/dir"
 	"github.com/cqroot/minop/pkg/action/file"
 	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/host"
@@ -64,14 +65,20 @@ func LoadActionsFromConfig(filename string, logger *log.Logger) ([]action.Action
 		role := maputils.GetStringOrDefault(actCtx, "role", "all")
 		var act action.Action
 		switch actName {
-		case "command":
-			act, err = command.New(actCtx)
+		case "cmd":
+			act, err = cmd.New(actCtx)
 			if err != nil {
 				logger.Error().Err(err).Msg("")
 				return nil, err
 			}
 		case "file":
 			act, err = file.New(actCtx)
+			if err != nil {
+				logger.Error().Err(err).Msg("")
+				return nil, err
+			}
+		case "dir":
+			act, err = dir.New(actCtx)
 			if err != nil {
 				logger.Error().Err(err).Msg("")
 				return nil, err
