@@ -98,6 +98,7 @@ func ExecuteActions(e *ActionExecutor, acts []action.ActionWrapper) error {
 	}
 
 	rgs := make(map[host.Host]*remote.Remote)
+	e.outputPrefix = "    "
 
 	for _, act := range acts {
 		termWidth := 500
@@ -114,7 +115,7 @@ func ExecuteActions(e *ActionExecutor, acts []action.ActionWrapper) error {
 			color.HiBlackString(time.Now().Format("2006-01-02 15:04:05")),
 		)
 
-		err := e.PrintActionResult(hostGroup, &rgs, act, "    ")
+		err := e.ExecuteAction(hostGroup, &rgs, act)
 		if err != nil {
 			return err
 		}

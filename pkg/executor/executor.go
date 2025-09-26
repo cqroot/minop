@@ -38,6 +38,7 @@ type ActionExecutor struct {
 	logger          *log.Logger
 	optVerboseLevel int
 	optMaxProcs     int
+	outputPrefix       string
 }
 
 func New(logger *log.Logger, opts ...Option) *ActionExecutor {
@@ -54,7 +55,8 @@ func New(logger *log.Logger, opts ...Option) *ActionExecutor {
 	return &e
 }
 
-func (e ActionExecutor) printValue(key string, val string, prefix string) {
+func (e ActionExecutor) printValue(key string, val string) {
+	prefix := fmt.Sprintf("%s    ", e.outputPrefix)
 	if e.optVerboseLevel == 0 && (strings.IndexByte(val, '\n') == -1 || strings.IndexByte(val, '\n') == len(val)-1) {
 		if val != "" {
 			fmt.Printf("%s%s %s\n", prefix, color.CyanString("%s:", key), strings.ReplaceAll(val, "\n", ""))
@@ -73,20 +75,20 @@ type execResult struct {
 	res *orderedmap.OrderedMap[string, string]
 }
 
-func (e ActionExecutor) PrintActionResult(hostGroup map[string][]host.Host, rgs *map[host.Host]*remote.Remote, act action.ActionWrapper, prefix string) error {
+func (e ActionExecutor) ExecuteAction(hostGroup map[string][]host.Host, rgs *map[host.Host]*remote.Remote, act action.ActionWrapper) error {
 	chanExecResults := make(chan execResult)
 
 	printDone := make(chan struct{})
 	go func() {
 		defer close(printDone)
 		for res := range chanExecResults {
-			hostStr := fmt.Sprintf("%s%s@%s:%d", prefix, res.h.User, res.h.Address, res.h.Port)
+			hostStr := fmt.Sprintf("%s%s@%s:%d", e.outputPrefix, res.h.User, res.h.Address, res.h.Port)
 			fmt.Printf("%s  %s\n", color.HiCyanString(hostStr),
 				color.HiBlackString(time.Now().Format("[2006-01-02 15:04:05]")))
 
 			if res.res != nil {
 				_ = res.res.ForEach(func(key, val string) error {
-					e.printValue(key, val, fmt.Sprintf("%s    ", prefix))
+					e.printValue(key, val)
 					return nil
 				})
 			}

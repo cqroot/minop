@@ -75,7 +75,7 @@ func RunCliCmd(cmd *cobra.Command, args []string) {
 		actWrapper := *action.New("command", "all", act)
 		e := executor.New(logger, executor.WithMaxProcs(flagMaxProcs))
 
-		err = e.PrintActionResult(hostGroup, &rgs, actWrapper, "")
+		err = e.ExecuteAction(hostGroup, &rgs, actWrapper)
 		CheckErr(err)
 
 		fmt.Println("")
