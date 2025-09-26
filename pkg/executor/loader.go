@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"github.com/cqroot/minop/pkg/action"
-	"github.com/cqroot/minop/pkg/action/cmd"
+	"github.com/cqroot/minop/pkg/action/command"
 	"github.com/cqroot/minop/pkg/action/dir"
 	"github.com/cqroot/minop/pkg/action/file"
 	"github.com/cqroot/minop/pkg/constants"
@@ -66,7 +66,7 @@ func LoadActionsFromConfig(filename string, logger *log.Logger) ([]action.Action
 		var act action.Action
 		switch actName {
 		case "cmd":
-			act, err = cmd.New(actCtx)
+			act, err = command.New(actCtx)
 			if err != nil {
 				logger.Error().Err(err).Msg("")
 				return nil, err

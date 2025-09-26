@@ -67,10 +67,11 @@ func NewRootCmd() *cobra.Command {
 		Run:   RunRootCmd,
 	}
 	rootCmd.Flags().StringVarP(&flagConfigFile, "config", "c", filepath.Join(".", constants.TaskFileName), "Specify config file")
-	rootCmd.Flags().IntVarP(&flagMaxProcs, "max-procs", "p", 1, "Maximum number of tasks to execute simultaneously (default 1)")
+	rootCmd.PersistentFlags().IntVarP(&flagMaxProcs, "max-procs", "p", 1, "Maximum number of tasks to execute simultaneously (default 1)")
 	rootCmd.Flags().CountVarP(&flagVerboseLevel, "verbose", "v", "Increase output verbosity. Use multiple v's for more detail, e.g., -v, -vv (default 0)")
 
 	rootCmd.AddCommand(NewHostCmd())
+	rootCmd.AddCommand(NewCliCmd())
 	rootCmd.Version = version.Get().String()
 	return &rootCmd
 }
