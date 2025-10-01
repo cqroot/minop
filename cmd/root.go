@@ -47,15 +47,20 @@ func RunRootCmd(cmd *cobra.Command, args []string) {
 	if flagVerboseLevel >= 2 {
 		logger = logger.Level(zerolog.DebugLevel)
 	}
+	logger.Debug().
+		Str("config", flagConfigFile).
+		Int("max_procs", flagMaxProcs).
+		Int("verbose_level", flagVerboseLevel).
+		Msg("run root command")
 
 	e := executor.New(logger,
 		executor.WithVerboseLeve(flagVerboseLevel),
 		executor.WithMaxProcs(flagMaxProcs))
 
-	acts, err := executor.LoadActionsFromConfig(flagConfigFile, logger)
+	ops, err := e.LoadOperations(flagConfigFile, logger)
 	CheckErr(err)
 
-	err = executor.ExecuteActions(e, acts)
+	err = e.ExecuteOperations(ops)
 	CheckErr(err)
 }
 

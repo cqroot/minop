@@ -15,45 +15,49 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-package action
+package operation
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/cqroot/gtypes/orderedmap"
 	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/remote"
 )
 
-type Action interface {
-	Validate(actCtx map[string]string) error
-	Execute(r *remote.Remote, logger *log.Logger) (*orderedmap.OrderedMap[string, string], error)
+type Input struct {
+	Name string `yaml:"name"`
+	Role string `yaml:"role"`
+
+	Shell string `yaml:"shell"`
+
+	Copy   string `yaml:"copy"`
+	To     string `yaml:"to"`
+	Backup bool   `yaml:"backup"`
+	Mode   string `yaml:"mode"`
+	Owner  string `yaml:"owner"`
 }
 
-type ActionWrapper struct {
-	name string
-	role string
-	Action
+type Operation interface {
+	baseOperation
+	Execute(r *remote.Remote) (*orderedmap.OrderedMap[string, string], error)
 }
 
-func New(name string, role string, act Action) *ActionWrapper {
-	return &ActionWrapper{
-		name:   name,
-		role:   role,
-		Action: act,
+var ErrInvalidOperation = errors.New("invalid operation")
+
+func MakeErrInvalidOperation(in Input) error {
+	return fmt.Errorf("%w\n%+v", ErrInvalidOperation, in)
+}
+
+func GetOperation(in Input, logger *log.Logger) (Operation, error) {
+	if in.Shell != "" {
+		return NewOpShell(in, logger)
 	}
-}
 
-func (aw *ActionWrapper) SetName(name string) {
-	aw.name = name
-}
+	if in.Copy != "" {
+		return NewOpCopy(in, logger)
+	}
 
-func (aw ActionWrapper) Name() string {
-	return aw.name
-}
-
-func (aw *ActionWrapper) SetRole(role string) {
-	aw.role = role
-}
-
-func (aw ActionWrapper) Role() string {
-	return aw.role
+	return nil, MakeErrInvalidOperation(in)
 }

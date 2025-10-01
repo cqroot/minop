@@ -20,106 +20,46 @@ package executor
 import (
 	"fmt"
 	"os"
-	"path/filepath"
-	"strings"
-	"time"
 
-	"github.com/cqroot/minop/pkg/action"
-	"github.com/cqroot/minop/pkg/action/command"
-	"github.com/cqroot/minop/pkg/action/dir"
-	"github.com/cqroot/minop/pkg/action/file"
-	"github.com/cqroot/minop/pkg/constants"
-	"github.com/cqroot/minop/pkg/host"
 	"github.com/cqroot/minop/pkg/log"
-	"github.com/cqroot/minop/pkg/remote"
-	"github.com/cqroot/minop/pkg/utils/maputils"
-	"github.com/fatih/color"
-	"golang.org/x/term"
+	"github.com/cqroot/minop/pkg/operation"
 	"gopkg.in/yaml.v3"
 )
 
-func LoadActionsFromConfig(filename string, logger *log.Logger) ([]action.ActionWrapper, error) {
+func (e Executor) LoadOperations(filename string, logger *log.Logger) ([]operation.Operation, error) {
 	content, err := os.ReadFile(filename)
 	if err != nil {
-		logger.Error().Err(err).Msg("")
+		logger.Error().Err(err).Msg("failed to read file")
 		return nil, err
 	}
 
-	var actCtxs []map[string]string
-	err = yaml.Unmarshal(content, &actCtxs)
+	var ins []operation.Input
+	err = yaml.Unmarshal(content, &ins)
 	if err != nil {
-		logger.Error().Err(err).Msg("")
-		return nil, err
+		logger.Error().Err(err).Msg("failed to unmarshal YAML data")
+		return nil, fmt.Errorf("failed to unmarshal YAML data\n%w", err)
 	}
 
-	acts := make([]action.ActionWrapper, len(actCtxs))
-
-	for i, actCtx := range actCtxs {
-		actName, err := maputils.GetString(actCtx, "action")
+	ops := make([]operation.Operation, len(ins))
+	for idx, in := range ins {
+		op, err := operation.GetOperation(in, logger)
 		if err != nil {
-			logger.Error().Err(err).Msg("")
 			return nil, err
 		}
-		logger.Debug().Str("ActionName", actName).Msg("found an action")
 
-		role := maputils.GetStringOrDefault(actCtx, "role", "all")
-		var act action.Action
-		switch actName {
-		case "cmd":
-			act, err = command.New(actCtx)
-			if err != nil {
-				logger.Error().Err(err).Msg("")
-				return nil, err
-			}
-		case "file":
-			act, err = file.New(actCtx)
-			if err != nil {
-				logger.Error().Err(err).Msg("")
-				return nil, err
-			}
-		case "dir":
-			act, err = dir.New(actCtx)
-			if err != nil {
-				logger.Error().Err(err).Msg("")
-				return nil, err
-			}
-		}
-		logger.Debug().Any("Action", act).Msg("")
-		acts[i] = *action.New(maputils.GetStringOrDefault(actCtx, "name", actName), role, act)
-	}
-
-	return acts, nil
-}
-
-func ExecuteActions(e *ActionExecutor, acts []action.ActionWrapper) error {
-	hostGroup, err := host.Read(filepath.Join(".", constants.HostFileName))
-	if err != nil {
-		return err
-	}
-
-	rgs := make(map[host.Host]*remote.Remote)
-	e.outputPrefix = "    "
-
-	for _, act := range acts {
-		termWidth := 500
-		if term.IsTerminal(int(os.Stdout.Fd())) {
-			width, _, err := term.GetSize(int(os.Stdout.Fd()))
-			if err == nil {
-				termWidth = width
-			}
+		if in.Name != "" {
+			op.SetName(in.Name)
+		} else {
+			op.SetName("Anonymous Operation")
 		}
 
-		fmt.Printf("%s %s %s\n",
-			color.HiCyanString(act.Name()),
-			color.HiBlackString(strings.Repeat("•", termWidth-len(act.Name())-2-19)),
-			color.HiBlackString(time.Now().Format("2006-01-02 15:04:05")),
-		)
-
-		err := e.ExecuteAction(hostGroup, &rgs, act)
-		if err != nil {
-			return err
+		if in.Role != "" {
+			op.SetRole(in.Role)
+		} else {
+			op.SetRole("all")
 		}
-		fmt.Println()
+
+		ops[idx] = op
 	}
-	return nil
+	return ops, nil
 }

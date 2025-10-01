@@ -88,7 +88,7 @@ func HostFromLine(line string) (Host, error) {
 	return h, nil
 }
 
-func Read(filename string) (map[string][]Host, error) {
+func Load(filename string) (map[string][]Host, error) {
 	hostGroup := make(map[string][]Host)
 
 	file, err := os.Open(filename)

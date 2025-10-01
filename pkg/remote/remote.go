@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"time"
 
@@ -45,12 +46,13 @@ type Remote struct {
 
 // New creates a new Remote instance and establishes connections
 func New(h host.Host, logger *log.Logger) (*Remote, error) {
+	remoteLogger := log.NewFromLogger(logger.With().Str("host", fmt.Sprintf("%s@%s:%d", h.User, h.Address, h.Port)).Logger())
 	r := &Remote{
 		Hostname: h.Address,
 		Port:     h.Port,
 		Username: h.User,
 		Password: h.Password,
-		Logger:   logger,
+		Logger:   remoteLogger,
 	}
 
 	// Establish SSH connection
@@ -66,7 +68,7 @@ func New(h host.Host, logger *log.Logger) (*Remote, error) {
 	// Format connection string and dial SSH
 	conn, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", h.Address, h.Port), sshConfig)
 	if err != nil {
-		logger.Error().Err(err).Msg("SSH dial error")
+		r.Logger.Error().Err(err).Msg("SSH dial error")
 		return nil, fmt.Errorf("SSH dial error: %w", err)
 	}
 	r.client = conn
@@ -74,13 +76,17 @@ func New(h host.Host, logger *log.Logger) (*Remote, error) {
 	// Create SFTP client
 	sftpClient, err := sftp.NewClient(conn)
 	if err != nil {
-		logger.Error().Err(err).Msg("SFTP client error")
+		r.Logger.Error().Err(err).Msg("SFTP client error")
 		conn.Close() // Close SSH connection if SFTP fails
 		return nil, fmt.Errorf("SFTP client error: %w", err)
 	}
 	r.sftp = sftpClient
 
 	return r, nil
+}
+
+func ToUnixPath(pathStr string) string {
+	return path.Clean(filepath.ToSlash(pathStr))
 }
 
 // Close closes the SSH and SFTP connections
@@ -160,7 +166,22 @@ func determineOptimalBufferSize(fileSize int64) int {
 
 // UploadFile uploads a local file to remote path with buffer optimization
 func (r *Remote) UploadFile(localPath, remotePath string) error {
-	r.Logger.Debug().Str("local", localPath).Str("remote", remotePath).Msg("starting file upload")
+	remotePath = ToUnixPath(remotePath)
+
+	startTime := time.Now()
+	r.Logger.Debug().
+		Str("local", localPath).
+		Str("remote", remotePath).
+		Msg("starting file upload")
+
+	defer func() {
+		elapsed := time.Since(startTime)
+		r.Logger.Info().
+			Str("local", localPath).
+			Str("remote", remotePath).
+			Dur("elapsed", elapsed).
+			Msg("file upload completed")
+	}()
 
 	// Open local file
 	localFile, err := os.Open(localPath)
@@ -178,7 +199,7 @@ func (r *Remote) UploadFile(localPath, remotePath string) error {
 	}
 
 	// Ensure remote directory exists
-	remoteDir := filepath.Dir(remotePath)
+	remoteDir := ToUnixPath(filepath.Dir(remotePath))
 	if err := r.ensureRemoteDir(remoteDir); err != nil {
 		return fmt.Errorf("ensure remote directory error: %w", err)
 	}
@@ -238,6 +259,8 @@ func (r *Remote) ensureRemoteDir(remoteDir string) error {
 
 // UploadDirectory uploads a local directory recursively to remote path with better error handling
 func (r *Remote) UploadDirectory(localDir, remoteDir string) error {
+	remoteDir = ToUnixPath(remoteDir)
+
 	localInfo, err := os.Stat(localDir)
 	if err != nil {
 		r.Logger.Error().Err(err).Str("path", localDir).Msg("local directory error")
@@ -300,8 +323,13 @@ func (r *Remote) UploadDirectory(localDir, remoteDir string) error {
 
 	// Report errors if any occurred during upload
 	if len(uploadErrors) > 0 {
-		return fmt.Errorf("directory upload completed with %d errors. First error: %w",
-			len(uploadErrors), uploadErrors[0])
+		r.Logger.Error().Int("err_count", len(uploadErrors)).Msg("directory upload completed with errors")
+		for i, err := range uploadErrors {
+			if i < 5 {
+				r.Logger.Error().Int("index", i).Err(err).Msg("")
+			}
+		}
+		return fmt.Errorf("directory upload completed with %d errors", len(uploadErrors))
 	}
 
 	r.Logger.Info().Str("local", localDir).Str("remote", remoteDir).Msg("directory upload completed successfully")

@@ -24,11 +24,10 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/cqroot/minop/pkg/action"
-	"github.com/cqroot/minop/pkg/action/command"
 	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/executor"
 	"github.com/cqroot/minop/pkg/host"
+	"github.com/cqroot/minop/pkg/operation"
 	"github.com/cqroot/minop/pkg/remote"
 	"github.com/cqroot/prompt"
 	promptconstants "github.com/cqroot/prompt/constants"
@@ -49,9 +48,10 @@ func MinopTheme(msg string, state prompt.State, model string) string {
 }
 
 func RunCliCmd(cmd *cobra.Command, args []string) {
-	hostGroup, err := host.Read(filepath.Join(".", constants.HostFileName))
+	hostGroup, err := host.Load(filepath.Join(".", constants.HostFileName))
 	CheckErr(err)
 	rgs := make(map[host.Host]*remote.Remote)
+	e := executor.New(logger, executor.WithMaxProcs(flagMaxProcs))
 
 	for true {
 		val, err := prompt.New(prompt.WithTheme(MinopTheme)).Ask("MINOP").Input("Remote command")
@@ -67,15 +67,13 @@ func RunCliCmd(cmd *cobra.Command, args []string) {
 			return
 		}
 
-		act, err := command.New(map[string]string{
-			"command": val,
-		})
+		op, err := operation.NewOpShell(operation.Input{
+			Shell: val,
+		}, logger)
 		CheckErr(err)
+		op.SetRole("all")
 
-		actWrapper := *action.New("command", "all", act)
-		e := executor.New(logger, executor.WithMaxProcs(flagMaxProcs))
-
-		err = e.ExecuteAction(hostGroup, &rgs, actWrapper)
+		err = e.ExecuteOperation(hostGroup, &rgs, op)
 		CheckErr(err)
 
 		fmt.Println("")

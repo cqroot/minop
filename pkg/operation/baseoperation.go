@@ -15,20 +15,32 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-package executor
+package operation
 
-type Option func(e *Executor)
-
-func WithVerboseLeve(verboseLevel int) Option {
-	return func(e *Executor) {
-		e.optVerboseLevel = verboseLevel
-	}
+type baseOperation interface {
+	Name() string
+	SetName(string)
+	Role() string
+	SetRole(string)
 }
 
-func WithMaxProcs(maxProcs int) Option {
-	return func(e *Executor) {
-		if maxProcs > 0 {
-			e.optMaxProcs = maxProcs
-		}
-	}
+type baseOperationImpl struct {
+	name string
+	role string
+}
+
+func (op baseOperationImpl) Name() string {
+	return op.name
+}
+
+func (op *baseOperationImpl) SetName(name string) {
+	op.name = name
+}
+
+func (op baseOperationImpl) Role() string {
+	return op.role
+}
+
+func (op *baseOperationImpl) SetRole(role string) {
+	op.role = role
 }

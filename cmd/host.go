@@ -28,7 +28,7 @@ import (
 )
 
 func RunHostCmd(cmd *cobra.Command, args []string) {
-	hostGroup, err := host.Read(filepath.Join(".", constants.HostFileName))
+	hostGroup, err := host.Load(filepath.Join(".", constants.HostFileName))
 	CheckErr(err)
 
 	t := table.NewWriter()

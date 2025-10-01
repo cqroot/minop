@@ -15,46 +15,34 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-package command
+package operation
 
 import (
-	"errors"
 	"strconv"
 
 	"github.com/cqroot/gtypes/orderedmap"
 	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/remote"
-	"github.com/cqroot/minop/pkg/utils/maputils"
 )
 
-var ErrEmptyCommand = errors.New("empty command")
-
-type CmdAct struct {
-	Command string
+type OpShell struct {
+	baseOperationImpl
+	logger *log.Logger
+	shell  string
 }
 
-func New(actCtx map[string]string) (*CmdAct, error) {
-	act := CmdAct{}
-	if err := act.Validate(actCtx); err != nil {
-		return nil, err
+func NewOpShell(in Input, logger *log.Logger) (*OpShell, error) {
+	if in.Shell == "" {
+		return nil, MakeErrInvalidOperation(in)
 	}
-	return &act, nil
+	return &OpShell{
+		logger: logger,
+		shell:  in.Shell,
+	}, nil
 }
 
-func (act *CmdAct) Validate(actCtx map[string]string) error {
-	cmd, err := maputils.GetString(actCtx, "command")
-	if err != nil {
-		return err
-	}
-	if cmd == "" {
-		return ErrEmptyCommand
-	}
-	act.Command = cmd
-	return nil
-}
-
-func (act *CmdAct) Execute(r *remote.Remote, logger *log.Logger) (*orderedmap.OrderedMap[string, string], error) {
-	exitStatus, stdout, stderr, err := r.ExecuteCommand(act.Command)
+func (op OpShell) Execute(r *remote.Remote) (*orderedmap.OrderedMap[string, string], error) {
+	exitStatus, stdout, stderr, err := r.ExecuteCommand(op.shell)
 	if err != nil {
 		return nil, err
 	}

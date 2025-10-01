@@ -18,9 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package log
 
 import (
-	"context"
 	"io"
-	"os"
 	"sync"
 
 	"github.com/rs/zerolog"
@@ -32,21 +30,7 @@ type Logger struct {
 	mu sync.Mutex
 }
 
-var (
-	globalLogger *Logger
-	once         sync.Once
-)
-
-// initGlobalLogger initializes the global logger instance
-func initGlobalLogger() {
-	globalLogger = New(os.Stderr)
-}
-
-// Global returns the global logger instance (thread-safe initialization)
-func Global() *Logger {
-	once.Do(initGlobalLogger)
-	return globalLogger
-}
+var once sync.Once
 
 // New creates a new logger with the given output writer
 func New(w io.Writer) *Logger {
@@ -59,22 +43,10 @@ func New(w io.Writer) *Logger {
 	return &Logger{Logger: logger}
 }
 
-// SetGlobal sets the global logger instance
-func SetGlobal(l *Logger) {
-	globalLogger = l
-}
-
-// WithContext returns a new context with the logger embedded
-func (l *Logger) WithContext(ctx context.Context) context.Context {
-	return l.Logger.WithContext(ctx)
-}
-
-// FromContext retrieves logger from context, falls back to global logger if not found
-func FromContext(ctx context.Context) *Logger {
-	if logger := zerolog.Ctx(ctx); logger != nil {
-		return &Logger{Logger: *logger}
+func NewFromLogger(logger zerolog.Logger) *Logger {
+	return &Logger{
+		Logger: logger,
 	}
-	return Global()
 }
 
 // With returns a zerolog.Context for adding structured fields

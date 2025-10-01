@@ -21,28 +21,32 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/cqroot/gtypes/orderedmap"
-	"github.com/cqroot/minop/pkg/action"
+	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/host"
 	"github.com/cqroot/minop/pkg/log"
+	"github.com/cqroot/minop/pkg/operation"
 	"github.com/cqroot/minop/pkg/remote"
 	"github.com/fatih/color"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
+	"golang.org/x/term"
 )
 
-type ActionExecutor struct {
+type Executor struct {
 	logger          *log.Logger
 	optVerboseLevel int
 	optMaxProcs     int
-	outputPrefix       string
+	outputPrefix    string
 }
 
-func New(logger *log.Logger, opts ...Option) *ActionExecutor {
-	e := ActionExecutor{
+func New(logger *log.Logger, opts ...Option) *Executor {
+	e := Executor{
 		logger:          logger,
 		optVerboseLevel: 0,
 		optMaxProcs:     1,
@@ -55,7 +59,7 @@ func New(logger *log.Logger, opts ...Option) *ActionExecutor {
 	return &e
 }
 
-func (e ActionExecutor) printValue(key string, val string) {
+func (e Executor) printValue(key string, val string) {
 	prefix := fmt.Sprintf("%s    ", e.outputPrefix)
 	if e.optVerboseLevel == 0 && (strings.IndexByte(val, '\n') == -1 || strings.IndexByte(val, '\n') == len(val)-1) {
 		if val != "" {
@@ -75,7 +79,7 @@ type execResult struct {
 	res *orderedmap.OrderedMap[string, string]
 }
 
-func (e ActionExecutor) ExecuteAction(hostGroup map[string][]host.Host, rgs *map[host.Host]*remote.Remote, act action.ActionWrapper) error {
+func (e Executor) ExecuteOperation(hostGroup map[string][]host.Host, rgs *map[host.Host]*remote.Remote, op operation.Operation) error {
 	chanExecResults := make(chan execResult)
 
 	printDone := make(chan struct{})
@@ -99,7 +103,7 @@ func (e ActionExecutor) ExecuteAction(hostGroup map[string][]host.Host, rgs *map
 	g, ctx := errgroup.WithContext(context.Background())
 
 	for role, hosts := range hostGroup {
-		if act.Role() != "all" && act.Role() != role {
+		if op.Role() != "all" && op.Role() != role {
 			continue
 		}
 
@@ -122,7 +126,7 @@ func (e ActionExecutor) ExecuteAction(hostGroup map[string][]host.Host, rgs *map
 			g.Go(func() error {
 				defer sem.Release(1)
 
-				res, err := act.Execute(r, e.logger)
+				res, err := op.Execute(r)
 				if err != nil {
 					return err
 				}
@@ -147,4 +151,37 @@ func (e ActionExecutor) ExecuteAction(hostGroup map[string][]host.Host, rgs *map
 
 	<-printDone
 	return firstErr
+}
+
+func (e Executor) ExecuteOperations(ops []operation.Operation) error {
+	hostGroup, err := host.Load(filepath.Join(".", constants.HostFileName))
+	if err != nil {
+		return err
+	}
+
+	rgs := make(map[host.Host]*remote.Remote)
+	e.outputPrefix = "    "
+
+	for _, op := range ops {
+		termWidth := 500
+		if term.IsTerminal(int(os.Stdout.Fd())) {
+			width, _, err := term.GetSize(int(os.Stdout.Fd()))
+			if err == nil {
+				termWidth = width
+			}
+		}
+
+		fmt.Printf("%s %s %s\n",
+			color.HiCyanString(op.Name()),
+			color.HiBlackString(strings.Repeat("•", termWidth-len(op.Name())-2-19)),
+			color.HiBlackString(time.Now().Format("2006-01-02 15:04:05")),
+		)
+
+		err := e.ExecuteOperation(hostGroup, &rgs, op)
+		if err != nil {
+			return err
+		}
+		fmt.Println()
+	}
+	return nil
 }
