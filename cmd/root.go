@@ -32,7 +32,7 @@ import (
 var (
 	logger = log.New(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "2006-01-02 15:04:05 Mon"}).
 		Level(zerolog.ErrorLevel)
-	flagConfigFile   string
+	flagTaskFile     string
 	flagMaxProcs     int
 	flagVerboseLevel int
 )
@@ -48,7 +48,7 @@ func RunRootCmd(cmd *cobra.Command, args []string) {
 		logger = logger.Level(zerolog.DebugLevel)
 	}
 	logger.Debug().
-		Str("config", flagConfigFile).
+		Str("task_file", flagTaskFile).
 		Int("max_procs", flagMaxProcs).
 		Int("verbose_level", flagVerboseLevel).
 		Msg("run root command")
@@ -57,7 +57,7 @@ func RunRootCmd(cmd *cobra.Command, args []string) {
 		executor.WithVerboseLeve(flagVerboseLevel),
 		executor.WithMaxProcs(flagMaxProcs))
 
-	ops, err := e.LoadOperations(flagConfigFile, logger)
+	ops, err := e.LoadOperations(flagTaskFile, logger)
 	CheckErr(err)
 
 	err = e.ExecuteOperations(ops)
@@ -71,7 +71,7 @@ func NewRootCmd() *cobra.Command {
 		Long:  "Minop is a simple remote execution and deployment tool",
 		Run:   RunRootCmd,
 	}
-	rootCmd.Flags().StringVarP(&flagConfigFile, "config", "c", filepath.Join(".", constants.TaskFileName), "Specify config file")
+	rootCmd.Flags().StringVarP(&flagTaskFile, "task", "t", filepath.Join(".", constants.TaskFileName), "Specify task file")
 	rootCmd.PersistentFlags().IntVarP(&flagMaxProcs, "max-procs", "p", 1, "Maximum number of tasks to execute simultaneously (default 1)")
 	rootCmd.Flags().CountVarP(&flagVerboseLevel, "verbose", "v", "Increase output verbosity. Use multiple v's for more detail, e.g., -v, -vv (default 0)")
 
