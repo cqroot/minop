@@ -60,11 +60,13 @@ func New(logger *log.Logger, opts ...Option) *Executor {
 }
 
 func (e Executor) printValue(key string, val string) {
+	if val == "" {
+		return
+	}
+
 	prefix := fmt.Sprintf("%s    ", e.outputPrefix)
 	if e.optVerboseLevel == 0 && (strings.IndexByte(val, '\n') == -1 || strings.IndexByte(val, '\n') == len(val)-1) {
-		if val != "" {
-			fmt.Printf("%s%s %s\n", prefix, color.CyanString("%s:", key), strings.ReplaceAll(val, "\n", ""))
-		}
+		fmt.Printf("%s%s %s\n", prefix, color.CyanString("%s:", key), strings.ReplaceAll(val, "\n", ""))
 	} else {
 		color.Cyan("%s%s:\n", prefix, key)
 		scanner := bufio.NewScanner(strings.NewReader(val))
