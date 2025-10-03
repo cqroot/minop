@@ -73,8 +73,8 @@ func RunRootCmd(cmd *cobra.Command, args []string) {
 func NewRootCmd() *cobra.Command {
 	rootCmd := cobra.Command{
 		Use:   "minop",
-		Short: "Minop is a simple remote execution and deployment tool",
-		Long:  "Minop is a simple remote execution and deployment tool",
+		Short: "MINOP is a simple tool for remote task orchestration and batch execution.",
+		Long:  "MINOP is a simple tool for remote task orchestration and batch execution.",
 		Run:   RunRootCmd,
 	}
 	rootCmd.Flags().StringVarP(&flagTaskFile, "task", "t", "", "Specify task file")
