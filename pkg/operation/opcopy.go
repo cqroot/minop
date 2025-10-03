@@ -22,13 +22,13 @@ import (
 	"os"
 
 	"github.com/cqroot/gtypes/orderedmap"
-	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/remote"
+	"github.com/rs/zerolog"
 )
 
 type OpCopy struct {
 	baseOperationImpl
-	logger *log.Logger
+	logger zerolog.Logger
 	copy   string
 	to     string
 	backup bool
@@ -36,7 +36,7 @@ type OpCopy struct {
 	owner  string
 }
 
-func NewOpCopy(in Input, logger *log.Logger) (*OpCopy, error) {
+func NewOpCopy(in Input, logger zerolog.Logger) (*OpCopy, error) {
 	if in.To == "" {
 		return nil, MakeErrInvalidOperation(in)
 	}

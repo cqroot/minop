@@ -21,12 +21,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/operation"
+	"github.com/rs/zerolog"
 	"gopkg.in/yaml.v3"
 )
 
-func (e Executor) LoadOperations(filename string, logger *log.Logger) ([]operation.Operation, error) {
+func (e Executor) LoadOperations(filename string, logger zerolog.Logger) ([]operation.Operation, error) {
 	content, err := os.ReadFile(filename)
 	if err != nil {
 		logger.Error().Err(err).Msg("failed to read file")

@@ -27,20 +27,20 @@ import (
 	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/executor"
 	"github.com/cqroot/minop/pkg/host"
-	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/operation"
 	"github.com/cqroot/minop/pkg/remote"
 	"github.com/cqroot/prompt"
 	promptconstants "github.com/cqroot/prompt/constants"
+	"github.com/rs/zerolog"
 )
 
 type Cli struct {
-	logger          *log.Logger
+	logger          zerolog.Logger
 	optVerboseLevel int
 	optMaxProcs     int
 }
 
-func New(logger *log.Logger, opts ...Option) *Cli {
+func New(logger zerolog.Logger, opts ...Option) *Cli {
 	e := Cli{
 		logger:          logger,
 		optVerboseLevel: 0,

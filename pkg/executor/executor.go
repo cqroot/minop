@@ -29,23 +29,23 @@ import (
 	"github.com/cqroot/gtypes/orderedmap"
 	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/host"
-	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/operation"
 	"github.com/cqroot/minop/pkg/remote"
 	"github.com/fatih/color"
+	"github.com/rs/zerolog"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
 	"golang.org/x/term"
 )
 
 type Executor struct {
-	logger          *log.Logger
+	logger          zerolog.Logger
 	optVerboseLevel int
 	optMaxProcs     int
 	outputPrefix    string
 }
 
-func New(logger *log.Logger, opts ...Option) *Executor {
+func New(logger zerolog.Logger, opts ...Option) *Executor {
 	e := Executor{
 		logger:          logger,
 		optVerboseLevel: 0,

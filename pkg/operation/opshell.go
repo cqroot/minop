@@ -21,17 +21,17 @@ import (
 	"strconv"
 
 	"github.com/cqroot/gtypes/orderedmap"
-	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/remote"
+	"github.com/rs/zerolog"
 )
 
 type OpShell struct {
 	baseOperationImpl
-	logger *log.Logger
+	logger zerolog.Logger
 	shell  string
 }
 
-func NewOpShell(in Input, logger *log.Logger) (*OpShell, error) {
+func NewOpShell(in Input, logger zerolog.Logger) (*OpShell, error) {
 	if in.Shell == "" {
 		return nil, MakeErrInvalidOperation(in)
 	}

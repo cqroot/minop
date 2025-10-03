@@ -22,15 +22,14 @@ import (
 
 	"github.com/cqroot/minop/pkg/cli"
 	"github.com/cqroot/minop/pkg/executor"
-	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/version"
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 )
 
 var (
-	logger = log.New(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "2006-01-02 15:04:05 Mon"}).
-		Level(zerolog.ErrorLevel)
+	logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "2006-01-02 15:04:05 Mon"}).
+		With().Timestamp().Caller().Logger()
 	flagTaskFile     string
 	flagMaxProcs     int
 	flagVerboseLevel int
@@ -45,6 +44,8 @@ func CheckErr(err error) {
 func RunRootCmd(cmd *cobra.Command, args []string) {
 	if flagVerboseLevel >= 2 {
 		logger = logger.Level(zerolog.DebugLevel)
+	} else {
+		logger = logger.Level(zerolog.ErrorLevel)
 	}
 	logger.Debug().
 		Str("task_file", flagTaskFile).
