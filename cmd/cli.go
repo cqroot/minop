@@ -18,17 +18,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package cmd
 
 import (
-	"errors"
-	"fmt"
-	"path/filepath"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/cqroot/minop/pkg/constants"
-	"github.com/cqroot/minop/pkg/executor"
-	"github.com/cqroot/minop/pkg/host"
-	"github.com/cqroot/minop/pkg/operation"
-	"github.com/cqroot/minop/pkg/remote"
+	"github.com/cqroot/minop/pkg/cli"
 	"github.com/cqroot/prompt"
 	promptconstants "github.com/cqroot/prompt/constants"
 	"github.com/spf13/cobra"
@@ -48,36 +41,9 @@ func MinopTheme(msg string, state prompt.State, model string) string {
 }
 
 func RunCliCmd(cmd *cobra.Command, args []string) {
-	hostGroup, err := host.Load(filepath.Join(".", constants.HostFileName))
+	c := cli.New(logger, cli.WithMaxProcs(flagMaxProcs), cli.WithVerboseLeve(flagVerboseLevel))
+	err := c.Run()
 	CheckErr(err)
-	rgs := make(map[host.Host]*remote.Remote)
-	e := executor.New(logger, executor.WithMaxProcs(flagMaxProcs))
-
-	for true {
-		val, err := prompt.New(prompt.WithTheme(MinopTheme)).Ask("MINOP").Input("Remote command")
-		if err != nil {
-			if errors.Is(err, prompt.ErrUserQuit) {
-				return
-			} else {
-				CheckErr(err)
-			}
-		}
-
-		if val == "exit" || val == "quit" {
-			return
-		}
-
-		op, err := operation.NewOpShell(operation.Input{
-			Shell: val,
-		}, logger)
-		CheckErr(err)
-		op.SetRole("all")
-
-		err = e.ExecuteOperation(hostGroup, &rgs, op)
-		CheckErr(err)
-
-		fmt.Println("")
-	}
 }
 
 func NewCliCmd() *cobra.Command {

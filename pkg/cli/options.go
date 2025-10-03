@@ -15,8 +15,20 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-package constants
+package cli
 
-const (
-	HostFileName = "hosts"
-)
+type Option func(c *Cli)
+
+func WithVerboseLeve(verboseLevel int) Option {
+	return func(c *Cli) {
+		c.optVerboseLevel = verboseLevel
+	}
+}
+
+func WithMaxProcs(maxProcs int) Option {
+	return func(c *Cli) {
+		if maxProcs > 0 {
+			c.optMaxProcs = maxProcs
+		}
+	}
+}

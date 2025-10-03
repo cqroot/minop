@@ -19,9 +19,8 @@ package cmd
 
 import (
 	"os"
-	"path/filepath"
 
-	"github.com/cqroot/minop/pkg/constants"
+	"github.com/cqroot/minop/pkg/cli"
 	"github.com/cqroot/minop/pkg/executor"
 	"github.com/cqroot/minop/pkg/log"
 	"github.com/cqroot/minop/pkg/version"
@@ -53,6 +52,13 @@ func RunRootCmd(cmd *cobra.Command, args []string) {
 		Int("verbose_level", flagVerboseLevel).
 		Msg("run root command")
 
+	if flagTaskFile == "" {
+		c := cli.New(logger, cli.WithMaxProcs(flagMaxProcs), cli.WithVerboseLeve(flagVerboseLevel))
+		err := c.Run()
+		CheckErr(err)
+		return
+	}
+
 	e := executor.New(logger,
 		executor.WithVerboseLeve(flagVerboseLevel),
 		executor.WithMaxProcs(flagMaxProcs))
@@ -71,7 +77,7 @@ func NewRootCmd() *cobra.Command {
 		Long:  "Minop is a simple remote execution and deployment tool",
 		Run:   RunRootCmd,
 	}
-	rootCmd.Flags().StringVarP(&flagTaskFile, "task", "t", filepath.Join(".", constants.TaskFileName), "Specify task file")
+	rootCmd.Flags().StringVarP(&flagTaskFile, "task", "t", "", "Specify task file")
 	rootCmd.PersistentFlags().IntVarP(&flagMaxProcs, "max-procs", "p", 1, "Maximum number of tasks to execute simultaneously (default 1)")
 	rootCmd.Flags().CountVarP(&flagVerboseLevel, "verbose", "v", "Increase output verbosity. Use multiple v's for more detail, e.g., -v, -vv (default 0)")
 
