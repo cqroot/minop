@@ -83,7 +83,6 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.Flags().CountVarP(&flagVerboseLevel, "verbose", "v", "Increase output verbosity. Use multiple v's for more detail, e.g., -v, -vv (default 0)")
 
 	rootCmd.AddCommand(NewHostCmd())
-	rootCmd.AddCommand(NewCliCmd())
 	rootCmd.Version = version.Get().String()
 	return &rootCmd
 }
