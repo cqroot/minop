@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-package host
+package remote
 
 import (
 	"bufio"
@@ -88,7 +88,7 @@ func HostFromLine(line string) (Host, error) {
 	return h, nil
 }
 
-func Load(filename string) (map[string][]Host, error) {
+func HostsFromFile(filename string) (map[string][]Host, error) {
 	hostGroup := make(map[string][]Host)
 
 	file, err := os.Open(filename)

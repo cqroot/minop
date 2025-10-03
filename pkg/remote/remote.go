@@ -27,7 +27,6 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/cqroot/minop/pkg/host"
 	"github.com/pkg/sftp"
 	"github.com/rs/zerolog"
 	"golang.org/x/crypto/ssh"
@@ -45,7 +44,7 @@ type Remote struct {
 }
 
 // New creates a new Remote instance and establishes connections
-func New(h host.Host, logger zerolog.Logger) (*Remote, error) {
+func New(h Host, logger zerolog.Logger) (*Remote, error) {
 	r := &Remote{
 		Hostname: h.Address,
 		Port:     h.Port,

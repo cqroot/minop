@@ -22,13 +22,13 @@ import (
 	"path/filepath"
 
 	"github.com/cqroot/minop/pkg/constants"
-	"github.com/cqroot/minop/pkg/host"
+	"github.com/cqroot/minop/pkg/remote"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
 func RunHostCmd(cmd *cobra.Command, args []string) {
-	hostGroup, err := host.Load(filepath.Join(".", constants.HostFileName))
+	hostGroup, err := remote.HostsFromFile(filepath.Join(".", constants.HostFileName))
 	CheckErr(err)
 
 	t := table.NewWriter()

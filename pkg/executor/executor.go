@@ -28,7 +28,6 @@ import (
 
 	"github.com/cqroot/gtypes/orderedmap"
 	"github.com/cqroot/minop/pkg/constants"
-	"github.com/cqroot/minop/pkg/host"
 	"github.com/cqroot/minop/pkg/operation"
 	"github.com/cqroot/minop/pkg/remote"
 	"github.com/fatih/color"
@@ -77,11 +76,11 @@ func (e Executor) printValue(key string, val string) {
 }
 
 type execResult struct {
-	h   host.Host
+	h   remote.Host
 	res *orderedmap.OrderedMap[string, string]
 }
 
-func (e Executor) ExecuteOperation(hostGroup map[string][]host.Host, rgs *map[host.Host]*remote.Remote, op operation.Operation) error {
+func (e Executor) ExecuteOperation(hostGroup map[string][]remote.Host, rgs *map[remote.Host]*remote.Remote, op operation.Operation) error {
 	chanExecResults := make(chan execResult)
 
 	printDone := make(chan struct{})
@@ -156,12 +155,12 @@ func (e Executor) ExecuteOperation(hostGroup map[string][]host.Host, rgs *map[ho
 }
 
 func (e Executor) ExecuteOperations(ops []operation.Operation) error {
-	hostGroup, err := host.Load(filepath.Join(".", constants.HostFileName))
+	hostGroup, err := remote.HostsFromFile(filepath.Join(".", constants.HostFileName))
 	if err != nil {
 		return err
 	}
 
-	rgs := make(map[host.Host]*remote.Remote)
+	rgs := make(map[remote.Host]*remote.Remote)
 	e.outputPrefix = "    "
 
 	for _, op := range ops {

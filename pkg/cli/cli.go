@@ -26,7 +26,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/executor"
-	"github.com/cqroot/minop/pkg/host"
 	"github.com/cqroot/minop/pkg/operation"
 	"github.com/cqroot/minop/pkg/remote"
 	"github.com/cqroot/prompt"
@@ -68,11 +67,11 @@ func MinopTheme(msg string, state prompt.State, model string) string {
 }
 
 func (c Cli) Run() error {
-	hostGroup, err := host.Load(filepath.Join(".", constants.HostFileName))
+	hostGroup, err := remote.HostsFromFile(filepath.Join(".", constants.HostFileName))
 	if err != nil {
 		return err
 	}
-	rgs := make(map[host.Host]*remote.Remote)
+	rgs := make(map[remote.Host]*remote.Remote)
 	e := executor.New(c.logger, executor.WithMaxProcs(c.optMaxProcs))
 
 	for true {
