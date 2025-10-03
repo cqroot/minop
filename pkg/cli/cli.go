@@ -71,7 +71,7 @@ func (c Cli) Run() error {
 	if err != nil {
 		return err
 	}
-	rgs := make(map[remote.Host]*remote.Remote)
+	pool := remote.NewHostPool(c.logger)
 	e := executor.New(c.logger, executor.WithMaxProcs(c.optMaxProcs))
 
 	for true {
@@ -96,7 +96,7 @@ func (c Cli) Run() error {
 		}
 		op.SetRole("all")
 
-		err = e.ExecuteOperation(hostGroup, &rgs, op)
+		err = e.ExecuteOperation(hostGroup, pool, op)
 		if err != nil {
 			return err
 		}

@@ -80,7 +80,7 @@ type execResult struct {
 	res *orderedmap.OrderedMap[string, string]
 }
 
-func (e Executor) ExecuteOperation(hostGroup map[string][]remote.Host, rgs *map[remote.Host]*remote.Remote, op operation.Operation) error {
+func (e Executor) ExecuteOperation(hostGroup map[string][]remote.Host, pool *remote.HostPool, op operation.Operation) error {
 	chanExecResults := make(chan execResult)
 
 	printDone := make(chan struct{})
@@ -113,14 +113,9 @@ func (e Executor) ExecuteOperation(hostGroup map[string][]remote.Host, rgs *map[
 				continue
 			}
 
-			r, ok := (*rgs)[h]
-			if !ok {
-				newR, err := remote.New(h, e.logger)
-				if err != nil {
-					return err
-				}
-				(*rgs)[h] = newR
-				r = newR
+			r, err := pool.GetRemote(h)
+			if err != nil {
+				return err
 			}
 
 			currHost := h
@@ -160,7 +155,7 @@ func (e Executor) ExecuteOperations(ops []operation.Operation) error {
 		return err
 	}
 
-	rgs := make(map[remote.Host]*remote.Remote)
+	pool := remote.NewHostPool(e.logger)
 	e.outputPrefix = "    "
 
 	for _, op := range ops {
@@ -178,7 +173,7 @@ func (e Executor) ExecuteOperations(ops []operation.Operation) error {
 			color.HiBlackString(time.Now().Format("2006-01-02 15:04:05")),
 		)
 
-		err := e.ExecuteOperation(hostGroup, &rgs, op)
+		err := e.ExecuteOperation(hostGroup, pool, op)
 		if err != nil {
 			return err
 		}
