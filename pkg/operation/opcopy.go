@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cqroot/gtypes/orderedmap"
+	"github.com/cqroot/gtypes"
 	"github.com/cqroot/minop/pkg/remote"
 	"github.com/rs/zerolog"
 )
@@ -50,7 +50,7 @@ func NewOpCopy(in Input, logger zerolog.Logger) (*OpCopy, error) {
 	}, nil
 }
 
-func (op OpCopy) Execute(r *remote.Remote) (*orderedmap.OrderedMap[string, string], error) {
+func (op OpCopy) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
 	if op.backup == true {
 		op.logger.Debug().Str("Dst", op.to).Msg("backup file")
 		r.ExecuteCommand(fmt.Sprintf(
@@ -78,7 +78,7 @@ func (op OpCopy) Execute(r *remote.Remote) (*orderedmap.OrderedMap[string, strin
 		return nil, err
 	}
 
-	res := orderedmap.New[string, string]()
+	res := gtypes.NewOrderedMap[string, string]()
 	res.Put("Result", fmt.Sprintf("%s -> %s", op.copy, op.to))
 	return res, nil
 }

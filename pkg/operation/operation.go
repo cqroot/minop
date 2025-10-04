@@ -21,7 +21,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/cqroot/gtypes/orderedmap"
+	"github.com/cqroot/gtypes"
 	"github.com/cqroot/minop/pkg/remote"
 	"github.com/rs/zerolog"
 )
@@ -41,7 +41,7 @@ type Input struct {
 
 type Operation interface {
 	baseOperation
-	Execute(r *remote.Remote) (*orderedmap.OrderedMap[string, string], error)
+	Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error)
 }
 
 var ErrInvalidOperation = errors.New("invalid operation")

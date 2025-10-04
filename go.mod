@@ -4,7 +4,7 @@ go 1.25.1
 
 require (
 	github.com/charmbracelet/lipgloss v1.1.0
-	github.com/cqroot/gtypes v0.0.2
+	github.com/cqroot/gtypes v0.0.3
 	github.com/cqroot/prompt v0.9.4
 	github.com/fatih/color v1.18.0
 	github.com/jedib0t/go-pretty/v6 v6.6.8

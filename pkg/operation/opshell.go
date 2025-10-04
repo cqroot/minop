@@ -20,7 +20,7 @@ package operation
 import (
 	"strconv"
 
-	"github.com/cqroot/gtypes/orderedmap"
+	"github.com/cqroot/gtypes"
 	"github.com/cqroot/minop/pkg/remote"
 	"github.com/rs/zerolog"
 )
@@ -41,13 +41,13 @@ func NewOpShell(in Input, logger zerolog.Logger) (*OpShell, error) {
 	}, nil
 }
 
-func (op OpShell) Execute(r *remote.Remote) (*orderedmap.OrderedMap[string, string], error) {
+func (op OpShell) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
 	exitStatus, stdout, stderr, err := r.ExecuteCommand(op.shell)
 	if err != nil {
 		return nil, err
 	}
 
-	res := orderedmap.New[string, string]()
+	res := gtypes.NewOrderedMap[string, string]()
 	res.Put("ExitStatus", strconv.Itoa(exitStatus))
 	res.Put("Stdout", stdout)
 	res.Put("Stderr", stderr)

@@ -26,7 +26,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cqroot/gtypes/orderedmap"
+	"github.com/cqroot/gtypes"
 	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/operation"
 	"github.com/cqroot/minop/pkg/remote"
@@ -77,7 +77,7 @@ func (e Executor) printValue(key string, val string) {
 
 type execResult struct {
 	h   remote.Host
-	res *orderedmap.OrderedMap[string, string]
+	res *gtypes.OrderedMap[string, string]
 }
 
 func (e Executor) ExecuteOperation(hostGroup map[string][]remote.Host, pool *remote.HostPool, op operation.Operation) error {
