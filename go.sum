@@ -22,6 +22,8 @@ github.com/coreos/go-systemd/v22 v22.5.0/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSV
 github.com/cpuguy83/go-md2man/v2 v2.0.6/go.mod h1:oOW0eioCTA6cOiMLiUPZOpcVxMig6NIQQ7OS05n1F4g=
 github.com/cqroot/gtypes v0.0.3 h1:9Xp9fp8ScU2WgETXaFK83hGYEyeMfd1TAWTPkv++6oI=
 github.com/cqroot/gtypes v0.0.3/go.mod h1:ZjhbnTBRwxKcAJZ7ZHFEIvIdSVc3knCB9xQjxDVfUs4=
+github.com/cqroot/gutils v0.0.1 h1:yJj/ouBdcWzBAbyIwYfEpyFgnLQSV0FovdWEiTVHzLs=
+github.com/cqroot/gutils v0.0.1/go.mod h1:3fZum9fLRmPEuTEok/V1XykVck3Fskh0Evweoa42jF8=
 github.com/cqroot/multichoose v0.1.1 h1:diGuKYKea9ePOTwUyUDor9zKRqKFWXGkYGqUa9+firU=
 github.com/cqroot/multichoose v0.1.1/go.mod h1:BJzIGqbQZNADPDuA3IzhmTMpRc2F3fZKysMRYP+Ydw8=
 github.com/cqroot/prompt v0.9.4 h1:uFRlhXuOP3CSD+Pii0Z8VJhgXpavSloFf7/KAERwjz8=
