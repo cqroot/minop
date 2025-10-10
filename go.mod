@@ -12,9 +12,9 @@ require (
 	github.com/pkg/sftp v1.13.9
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/cobra v1.10.1
-	golang.org/x/crypto v0.42.0
+	golang.org/x/crypto v0.43.0
 	golang.org/x/sync v0.17.0
-	golang.org/x/term v0.35.0
+	golang.org/x/term v0.36.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -43,6 +43,6 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/spf13/pflag v1.0.9 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
-	golang.org/x/sys v0.36.0 // indirect
-	golang.org/x/text v0.29.0 // indirect
+	golang.org/x/sys v0.37.0 // indirect
+	golang.org/x/text v0.30.0 // indirect
 )
