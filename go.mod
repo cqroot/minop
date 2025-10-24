@@ -9,7 +9,7 @@ require (
 	github.com/cqroot/prompt v0.9.4
 	github.com/fatih/color v1.18.0
 	github.com/jedib0t/go-pretty/v6 v6.6.8
-	github.com/pkg/sftp v1.13.9
+	github.com/pkg/sftp v1.13.10
 	github.com/rs/zerolog v1.34.0
 	github.com/spf13/cobra v1.10.1
 	golang.org/x/crypto v0.43.0
