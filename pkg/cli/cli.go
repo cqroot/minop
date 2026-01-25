@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/cqroot/gtypes"
 	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/executor"
 	"github.com/cqroot/minop/pkg/operation"
@@ -31,6 +32,7 @@ import (
 	"github.com/cqroot/prompt"
 	promptconstants "github.com/cqroot/prompt/constants"
 	"github.com/cqroot/prompt/input"
+	"github.com/fatih/color"
 )
 
 type Cli struct {
@@ -64,6 +66,21 @@ func MinopTheme(msg string, state prompt.State, model string) string {
 	return s.String()
 }
 
+func ShowHelp() {
+	color.HiMagenta("\nMINOP CLI COMMANDS\n")
+
+	help := gtypes.NewOrderedMap[string, string]()
+	help.Put("exit", "Quit minop")
+	help.Put("quit", "Quit minop")
+	help.Put("help", "Show help output")
+	help.ForEach(func(k, v string) error {
+		fmt.Printf("    %s    %s\n", color.HiGreenString(k), v)
+		return nil
+	})
+
+	fmt.Println()
+}
+
 func (c Cli) Run() error {
 	hostGroup, err := remote.HostsFromFile(filepath.Join(".", constants.HostFileName))
 	if err != nil {
@@ -83,8 +100,19 @@ func (c Cli) Run() error {
 			}
 		}
 
-		if val == "exit" || val == "quit" {
+		trimmed := strings.Trim(val, " ")
+
+		if trimmed == "" {
+			continue
+		}
+
+		if trimmed == "exit" || trimmed == "quit" || trimmed == "q" {
 			return nil
+		}
+
+		if trimmed == "help" || trimmed == "h" {
+			ShowHelp()
+			continue
 		}
 
 		op, err := operation.NewOpShell(operation.Input{
