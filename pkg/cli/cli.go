@@ -30,6 +30,7 @@ import (
 	"github.com/cqroot/minop/pkg/remote"
 	"github.com/cqroot/prompt"
 	promptconstants "github.com/cqroot/prompt/constants"
+	"github.com/cqroot/prompt/input"
 )
 
 type Cli struct {
@@ -72,7 +73,8 @@ func (c Cli) Run() error {
 	e := executor.New(executor.WithMaxProcs(c.optMaxProcs))
 
 	for true {
-		val, err := prompt.New(prompt.WithTheme(MinopTheme)).Ask("MINOP").Input("Remote command")
+		val, err := prompt.New(prompt.WithTheme(MinopTheme)).Ask("MINOP").
+			Input("", input.WithWidth(0), input.WithCharLimit(0))
 		if err != nil {
 			if errors.Is(err, prompt.ErrUserQuit) {
 				return nil
