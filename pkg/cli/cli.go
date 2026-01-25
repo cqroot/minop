@@ -30,18 +30,15 @@ import (
 	"github.com/cqroot/minop/pkg/remote"
 	"github.com/cqroot/prompt"
 	promptconstants "github.com/cqroot/prompt/constants"
-	"github.com/rs/zerolog"
 )
 
 type Cli struct {
-	logger          zerolog.Logger
 	optVerboseLevel int
 	optMaxProcs     int
 }
 
-func New(logger zerolog.Logger, opts ...Option) *Cli {
+func New(opts ...Option) *Cli {
 	e := Cli{
-		logger:          logger,
 		optVerboseLevel: 0,
 		optMaxProcs:     1,
 	}
@@ -71,8 +68,8 @@ func (c Cli) Run() error {
 	if err != nil {
 		return err
 	}
-	pool := remote.NewHostPool(c.logger)
-	e := executor.New(c.logger, executor.WithMaxProcs(c.optMaxProcs))
+	pool := remote.NewHostPool()
+	e := executor.New(executor.WithMaxProcs(c.optMaxProcs))
 
 	for true {
 		val, err := prompt.New(prompt.WithTheme(MinopTheme)).Ask("MINOP").Input("Remote command")
@@ -90,7 +87,7 @@ func (c Cli) Run() error {
 
 		op, err := operation.NewOpShell(operation.Input{
 			Shell: val,
-		}, c.logger)
+		})
 		if err != nil {
 			return err
 		}

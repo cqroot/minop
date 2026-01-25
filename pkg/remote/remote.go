@@ -27,6 +27,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/cqroot/minop/pkg/logs"
 	"github.com/pkg/sftp"
 	"github.com/rs/zerolog"
 	"golang.org/x/crypto/ssh"
@@ -44,13 +45,13 @@ type Remote struct {
 }
 
 // New creates a new Remote instance and establishes connections
-func New(h Host, logger zerolog.Logger) (*Remote, error) {
+func New(h Host) (*Remote, error) {
 	r := &Remote{
 		Hostname: h.Address,
 		Port:     h.Port,
 		Username: h.User,
 		Password: h.Password,
-		Logger:   logger.With().Str("host", fmt.Sprintf("%s@%s:%d", h.User, h.Address, h.Port)).Logger(),
+		Logger:   logs.Logger().With().Str("host", fmt.Sprintf("%s@%s:%d", h.User, h.Address, h.Port)).Logger(),
 	}
 
 	// Establish SSH connection

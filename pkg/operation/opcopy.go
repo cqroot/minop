@@ -22,6 +22,7 @@ import (
 	"os"
 
 	"github.com/cqroot/gtypes"
+	"github.com/cqroot/minop/pkg/logs"
 	"github.com/cqroot/minop/pkg/remote"
 	"github.com/rs/zerolog"
 )
@@ -36,12 +37,11 @@ type OpCopy struct {
 	owner  string
 }
 
-func NewOpCopy(in Input, logger zerolog.Logger) (*OpCopy, error) {
+func NewOpCopy(in Input) (*OpCopy, error) {
 	if in.To == "" {
 		return nil, MakeErrInvalidOperation(in)
 	}
 	return &OpCopy{
-		logger: logger,
 		copy:   in.Copy,
 		to:     in.To,
 		backup: in.Backup,
@@ -52,7 +52,7 @@ func NewOpCopy(in Input, logger zerolog.Logger) (*OpCopy, error) {
 
 func (op OpCopy) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
 	if op.backup == true {
-		op.logger.Debug().Str("Dst", op.to).Msg("backup file")
+		logs.Logger().Debug().Str("Dst", op.to).Msg("backup file")
 		r.ExecuteCommand(fmt.Sprintf(
 			"[ ! -e '%[1]s.minop_bak' ] && [ -f '%[1]s' ] && cp -a -- '%[1]s' '%[1]s.minop_bak'", op.to))
 
@@ -60,13 +60,13 @@ func (op OpCopy) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], 
 
 	fileInfo, err := os.Lstat(op.copy)
 	if err != nil {
-		op.logger.Err(err).Msg("")
+		logs.Logger().Err(err).Msg("")
 		return nil, err
 	}
 
 	if fileInfo.Mode()&os.ModeSymlink != 0 {
 		err = fmt.Errorf("%s is a symbolic link", op.copy)
-		op.logger.Err(err).Msg("")
+		logs.Logger().Err(err).Msg("")
 		return nil, err
 	} else if fileInfo.IsDir() {
 		err = r.UploadDirectory(op.copy, op.to)

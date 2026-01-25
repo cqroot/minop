@@ -22,21 +22,18 @@ import (
 
 	"github.com/cqroot/gtypes"
 	"github.com/cqroot/minop/pkg/remote"
-	"github.com/rs/zerolog"
 )
 
 type OpShell struct {
 	baseOperationImpl
-	logger zerolog.Logger
 	shell  string
 }
 
-func NewOpShell(in Input, logger zerolog.Logger) (*OpShell, error) {
+func NewOpShell(in Input) (*OpShell, error) {
 	if in.Shell == "" {
 		return nil, MakeErrInvalidOperation(in)
 	}
 	return &OpShell{
-		logger: logger,
 		shell:  in.Shell,
 	}, nil
 }

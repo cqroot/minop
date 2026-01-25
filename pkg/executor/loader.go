@@ -21,28 +21,28 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/cqroot/minop/pkg/logs"
 	"github.com/cqroot/minop/pkg/operation"
-	"github.com/rs/zerolog"
 	"gopkg.in/yaml.v3"
 )
 
-func (e Executor) LoadOperations(filename string, logger zerolog.Logger) ([]operation.Operation, error) {
+func (e Executor) LoadOperations(filename string) ([]operation.Operation, error) {
 	content, err := os.ReadFile(filename)
 	if err != nil {
-		logger.Error().Err(err).Msg("failed to read file")
+		logs.Logger().Error().Err(err).Msg("failed to read file")
 		return nil, err
 	}
 
 	var ins []operation.Input
 	err = yaml.Unmarshal(content, &ins)
 	if err != nil {
-		logger.Error().Err(err).Msg("failed to unmarshal YAML data")
+		logs.Logger().Error().Err(err).Msg("failed to unmarshal YAML data")
 		return nil, fmt.Errorf("failed to unmarshal YAML data\n%w", err)
 	}
 
 	ops := make([]operation.Operation, len(ins))
 	for idx, in := range ins {
-		op, err := operation.GetOperation(in, logger)
+		op, err := operation.GetOperation(in)
 		if err != nil {
 			return nil, err
 		}

@@ -17,24 +17,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package remote
 
-import "github.com/rs/zerolog"
-
 type HostPool struct {
-	hosts  map[Host]*Remote
-	logger zerolog.Logger
+	hosts map[Host]*Remote
 }
 
-func NewHostPool(logger zerolog.Logger) *HostPool {
+func NewHostPool() *HostPool {
 	return &HostPool{
-		hosts:  make(map[Host]*Remote),
-		logger: logger,
+		hosts: make(map[Host]*Remote),
 	}
 }
 
 func (p *HostPool) GetRemote(host Host) (*Remote, error) {
 	r, ok := p.hosts[host]
 	if !ok {
-		newR, err := New(host, p.logger)
+		newR, err := New(host)
 		if err != nil {
 			return nil, err
 		}

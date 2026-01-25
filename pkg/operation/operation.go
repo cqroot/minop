@@ -23,7 +23,6 @@ import (
 
 	"github.com/cqroot/gtypes"
 	"github.com/cqroot/minop/pkg/remote"
-	"github.com/rs/zerolog"
 )
 
 type Input struct {
@@ -50,13 +49,13 @@ func MakeErrInvalidOperation(in Input) error {
 	return fmt.Errorf("%w\n%+v", ErrInvalidOperation, in)
 }
 
-func GetOperation(in Input, logger zerolog.Logger) (Operation, error) {
+func GetOperation(in Input) (Operation, error) {
 	if in.Shell != "" {
-		return NewOpShell(in, logger)
+		return NewOpShell(in)
 	}
 
 	if in.Copy != "" {
-		return NewOpCopy(in, logger)
+		return NewOpCopy(in)
 	}
 
 	return nil, MakeErrInvalidOperation(in)

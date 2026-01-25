@@ -31,22 +31,19 @@ import (
 	"github.com/cqroot/minop/pkg/operation"
 	"github.com/cqroot/minop/pkg/remote"
 	"github.com/fatih/color"
-	"github.com/rs/zerolog"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
 	"golang.org/x/term"
 )
 
 type Executor struct {
-	logger          zerolog.Logger
 	optVerboseLevel int
 	optMaxProcs     int
 	outputPrefix    string
 }
 
-func New(logger zerolog.Logger, opts ...Option) *Executor {
+func New(opts ...Option) *Executor {
 	e := Executor{
-		logger:          logger,
 		optVerboseLevel: 0,
 		optMaxProcs:     1,
 	}
@@ -155,7 +152,7 @@ func (e Executor) ExecuteOperations(ops []operation.Operation) error {
 		return err
 	}
 
-	pool := remote.NewHostPool(e.logger)
+	pool := remote.NewHostPool()
 	e.outputPrefix = "    "
 
 	for _, op := range ops {

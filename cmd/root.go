@@ -22,14 +22,13 @@ import (
 
 	"github.com/cqroot/minop/pkg/cli"
 	"github.com/cqroot/minop/pkg/executor"
+	"github.com/cqroot/minop/pkg/logs"
 	"github.com/cqroot/minop/pkg/version"
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
 )
 
 var (
-	logger = zerolog.New(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "2006-01-02 15:04:05 Mon"}).
-		With().Timestamp().Caller().Logger()
 	flagTaskFile     string
 	flagMaxProcs     int
 	flagVerboseLevel int
@@ -43,28 +42,27 @@ func CheckErr(err error) {
 
 func RunRootCmd(cmd *cobra.Command, args []string) {
 	if flagVerboseLevel >= 2 {
-		logger = logger.Level(zerolog.DebugLevel)
-	} else {
-		logger = logger.Level(zerolog.ErrorLevel)
+		logs.SetLogger(logs.Logger().Level(zerolog.DebugLevel))
 	}
-	logger.Debug().
+	logs.Logger().Debug().
 		Str("task_file", flagTaskFile).
 		Int("max_procs", flagMaxProcs).
 		Int("verbose_level", flagVerboseLevel).
+		Str("log_level", logs.Logger().GetLevel().String()).
 		Msg("run root command")
 
 	if flagTaskFile == "" {
-		c := cli.New(logger, cli.WithMaxProcs(flagMaxProcs), cli.WithVerboseLeve(flagVerboseLevel))
+		c := cli.New(cli.WithMaxProcs(flagMaxProcs), cli.WithVerboseLeve(flagVerboseLevel))
 		err := c.Run()
 		CheckErr(err)
 		return
 	}
 
-	e := executor.New(logger,
+	e := executor.New(
 		executor.WithVerboseLeve(flagVerboseLevel),
 		executor.WithMaxProcs(flagMaxProcs))
 
-	ops, err := e.LoadOperations(flagTaskFile, logger)
+	ops, err := e.LoadOperations(flagTaskFile)
 	CheckErr(err)
 
 	err = e.ExecuteOperations(ops)
