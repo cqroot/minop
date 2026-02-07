@@ -82,7 +82,7 @@ func ShowHelp() {
 }
 
 func (c Cli) Run() error {
-	hostGroup, err := remote.HostsFromFile(filepath.Join(".", constants.HostFileName))
+	hostGroup, err := remote.ParseHostsFile(filepath.Join(".", constants.HostFileName))
 	if err != nil {
 		return err
 	}

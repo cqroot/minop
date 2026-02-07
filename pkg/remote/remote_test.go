@@ -31,7 +31,7 @@ func TestExecuteCommand(t *testing.T) {
 		return
 	}
 
-	hg, err := remote.HostsFromFile(hostsName)
+	hg, err := remote.ParseHostsFile(hostsName)
 	require.Nil(t, err)
 
 	for _, hosts := range hg {
@@ -60,7 +60,7 @@ func TestUploadFile(t *testing.T) {
 		return
 	}
 
-	hg, err := remote.HostsFromFile(hostsName)
+	hg, err := remote.ParseHostsFile(hostsName)
 	require.Nil(t, err)
 
 	for _, hosts := range hg {
@@ -95,7 +95,7 @@ func TestUploadDir(t *testing.T) {
 		return
 	}
 
-	hg, err := remote.HostsFromFile(hostsName)
+	hg, err := remote.ParseHostsFile(hostsName)
 	require.Nil(t, err)
 
 	for _, hosts := range hg {

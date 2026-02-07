@@ -41,13 +41,13 @@ var (
 	ErrInvalidPort   = errors.New("invalid port")
 )
 
-func HostFromLine(line string) (Host, error) {
+func ParseHostLine(line string) (Host, error) {
 	h := Host{}
 	s := line
 
 	userDelimiter := strings.IndexByte(s, ':')
 	if userDelimiter == -1 {
-		return h, fmt.Errorf("%w: %s", ErrEmptyUsername, line)
+		return h, ErrEmptyUsername
 	} else {
 		h.User = s[:userDelimiter]
 		s = s[userDelimiter+1:]
@@ -55,7 +55,7 @@ func HostFromLine(line string) (Host, error) {
 
 	passwordDelimiter := strings.LastIndexByte(s, '@')
 	if passwordDelimiter == -1 {
-		return h, fmt.Errorf("%w: %s", ErrEmptyPassword, line)
+		return h, ErrEmptyPassword
 	} else {
 		h.Password = s[:passwordDelimiter]
 		s = s[passwordDelimiter+1:]
@@ -67,7 +67,7 @@ func HostFromLine(line string) (Host, error) {
 			h.Address = s
 			s = ""
 		} else {
-			return h, fmt.Errorf("%w: %s", ErrEmptyAddress, line)
+			return h, ErrEmptyAddress
 		}
 	} else {
 		h.Address = s[:hostnameDelimiter]
@@ -77,18 +77,18 @@ func HostFromLine(line string) (Host, error) {
 	if s == "" {
 		h.Port = 22
 	} else if !strutils.IsInteger64(s) {
-		return h, fmt.Errorf("%w: %s", ErrInvalidPort, s)
+		return h, ErrInvalidPort
 	} else {
 		h.Port = int(strutils.ToInteger64(s))
 	}
 	if h.Port < 1 || h.Port > 65535 {
-		return h, fmt.Errorf("%w: %d not in 1-65535 range", ErrInvalidPort, h.Port)
+		return h, fmt.Errorf("port %d not in 1-65535 range", h.Port)
 	}
 
 	return h, nil
 }
 
-func HostsFromFile(filename string) (map[string][]Host, error) {
+func ParseHostsFile(filename string) (map[string][]Host, error) {
 	hostGroup := make(map[string][]Host)
 
 	file, err := os.Open(filename)
@@ -102,8 +102,11 @@ func HostsFromFile(filename string) (map[string][]Host, error) {
 	fileScanner := bufio.NewScanner(file)
 	fileScanner.Split(bufio.ScanLines)
 	currGroup := "default"
+	lineNum := 0
 	for fileScanner.Scan() {
 		line := fileScanner.Text()
+		lineNum++
+
 		trimmed := strings.TrimSpace(line)
 		if trimmed == "" {
 			continue
@@ -116,9 +119,9 @@ func HostsFromFile(filename string) (map[string][]Host, error) {
 		if len(trimmed) >= 3 && strings.HasPrefix(trimmed, "[") && strings.HasSuffix(trimmed, "]") {
 			currGroup = trimmed[1 : len(trimmed)-1]
 		} else {
-			h, err := HostFromLine(trimmed)
+			h, err := ParseHostLine(trimmed)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("parse host lineline %d (%q): %w", lineNum, line, err)
 			}
 			hostGroup[currGroup] = append(hostGroup[currGroup], h)
 		}

@@ -114,7 +114,7 @@ func (r *Remote) Close() error {
 	return nil
 }
 
-// ExecuteCommand executes a command on remote host and returns the output
+// ExecuteCommand executes a command on the remote host via SSH.
 func (r *Remote) ExecuteCommand(cmd string) (int, string, string, error) {
 	session, err := r.client.NewSession()
 	if err != nil {
@@ -145,8 +145,8 @@ func (r *Remote) ExecuteCommand(cmd string) (int, string, string, error) {
 	return exitStatus, stdout.String(), stderr.String(), err
 }
 
-// determineOptimalBufferSize calculates optimal buffer size based on file size
-func determineOptimalBufferSize(fileSize int64) int {
+// optimalBufferSize calculates optimal buffer size based on file size
+func optimalBufferSize(fileSize int64) int {
 	// For small files (< 1MB), use 32KB buffer
 	if fileSize < 1024*1024 {
 		return 32 * 1024 // 32KB
@@ -212,7 +212,7 @@ func (r *Remote) UploadFile(localPath, remotePath string) error {
 	defer remoteFile.Close()
 
 	// Use buffered copy with optimal buffer size
-	bufferSize := determineOptimalBufferSize(fileInfo.Size())
+	bufferSize := optimalBufferSize(fileInfo.Size())
 	_, err = io.CopyBuffer(remoteFile, localFile, make([]byte, bufferSize))
 	if err != nil {
 		r.Logger.Error().Err(err).Msg("copy file content error")

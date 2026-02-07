@@ -147,7 +147,7 @@ func (e Executor) ExecuteOperation(hostGroup map[string][]remote.Host, pool *rem
 }
 
 func (e Executor) ExecuteOperations(ops []operation.Operation) error {
-	hostGroup, err := remote.HostsFromFile(filepath.Join(".", constants.HostFileName))
+	hostGroup, err := remote.ParseHostsFile(filepath.Join(".", constants.HostFileName))
 	if err != nil {
 		return err
 	}
