@@ -69,7 +69,7 @@ func (op OpCopy) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], 
 		logs.Logger().Err(err).Msg("")
 		return nil, err
 	} else if fileInfo.IsDir() {
-		err = r.UploadDirectory(op.copy, op.to)
+		err = r.UploadDir(op.copy, op.to)
 	} else {
 		err = r.UploadFile(op.copy, op.to)
 	}

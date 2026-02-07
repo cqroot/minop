@@ -1,2 +1,5 @@
-# Added by goreleaser init:
-dist/
+/dist/
+/coverage.out
+hosts
+test.txt
+test.dir/

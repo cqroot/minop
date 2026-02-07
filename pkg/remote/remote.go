@@ -256,8 +256,8 @@ func (r *Remote) ensureRemoteDir(remoteDir string) error {
 	return nil
 }
 
-// UploadDirectory uploads a local directory recursively to remote path with better error handling
-func (r *Remote) UploadDirectory(localDir, remoteDir string) error {
+// UploadDir uploads a local directory recursively to remote path with better error handling
+func (r *Remote) UploadDir(localDir, remoteDir string) error {
 	remoteDir = ToUnixPath(remoteDir)
 
 	localInfo, err := os.Stat(localDir)
