@@ -71,14 +71,17 @@ func TestUploadFile(t *testing.T) {
 			err = r.UploadFile(testFileName, "/root/minop.testfile")
 			require.Nil(t, err)
 
+			defer func() {
+				ret, _, _, err := r.ExecuteCommand("rm -f /root/minop.testfile")
+				require.Nil(t, err)
+				require.Equal(t, 0, ret)
+			}()
+
 			ret, stdout, _, err := r.ExecuteCommand("[ -f /root/minop.testfile ] && echo 'minop test'")
 			require.Nil(t, err)
 			require.Equal(t, 0, ret)
 			require.Equal(t, "minop test\n", stdout)
 
-			ret, stdout, _, err = r.ExecuteCommand("rm -f /root/minop.testfile")
-			require.Nil(t, err)
-			require.Equal(t, 0, ret)
 		}
 	}
 }
@@ -106,14 +109,17 @@ func TestUploadDir(t *testing.T) {
 			err = r.UploadDir(testDirName, "/root/minop.testdir")
 			require.Nil(t, err)
 
+			defer func() {
+				ret, _, _, err := r.ExecuteCommand("rm -rf /root/minop.testdir")
+				require.Nil(t, err)
+				require.Equal(t, 0, ret)
+			}()
+
 			ret, stdout, _, err := r.ExecuteCommand("[ -d /root/minop.testdir ] && echo 'minop test'")
 			require.Nil(t, err)
 			require.Equal(t, 0, ret)
 			require.Equal(t, "minop test\n", stdout)
 
-			ret, stdout, _, err = r.ExecuteCommand("rm -rf /root/minop.testdir")
-			require.Nil(t, err)
-			require.Equal(t, 0, ret)
 		}
 	}
 }
