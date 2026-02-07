@@ -73,10 +73,13 @@ func ShowHelp() {
 	help.Put("exit", "Quit minop")
 	help.Put("quit", "Quit minop")
 	help.Put("help", "Show help output")
-	help.ForEach(func(k, v string) error {
+	err := help.ForEach(func(k, v string) error {
 		fmt.Printf("    %s    %s\n", color.HiGreenString(k), v)
 		return nil
 	})
+	if err != nil {
+		panic(err)
+	}
 
 	fmt.Println()
 }
@@ -89,7 +92,7 @@ func (c Cli) Run() error {
 	pool := remote.NewHostPool()
 	e := executor.New(executor.WithMaxProcs(c.optMaxProcs))
 
-	for true {
+	for {
 		val, err := prompt.New(prompt.WithTheme(MinopTheme)).Ask("MINOP").
 			Input("", input.WithWidth(0), input.WithCharLimit(0))
 		if err != nil {
@@ -130,5 +133,4 @@ func (c Cli) Run() error {
 
 		fmt.Println("")
 	}
-	return nil
 }

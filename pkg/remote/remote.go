@@ -76,7 +76,7 @@ func New(h Host) (*Remote, error) {
 	sftpClient, err := sftp.NewClient(conn)
 	if err != nil {
 		r.Logger.Error().Err(err).Msg("SFTP client error")
-		conn.Close() // Close SSH connection if SFTP fails
+		_ = conn.Close() // Close SSH connection if SFTP fails
 		return nil, fmt.Errorf("SFTP client error: %w", err)
 	}
 	r.sftp = sftpClient
@@ -121,10 +121,10 @@ func (r *Remote) ExecuteCommand(cmd string) (int, string, string, error) {
 		r.Logger.Error().Err(err).Msg("create session error")
 		return 0, "", "", fmt.Errorf("create session error: %w", err)
 	}
-	defer session.Close()
+	defer func() { _ = session.Close() }()
 
 	var (
-		exitStatus int = 0
+		exitStatus = 0
 		stdout     bytes.Buffer
 		stderr     bytes.Buffer
 	)
@@ -188,7 +188,7 @@ func (r *Remote) UploadFile(localPath, remotePath string) error {
 		r.Logger.Error().Err(err).Msg("open local file error")
 		return fmt.Errorf("open local file error: %w", err)
 	}
-	defer localFile.Close()
+	defer func() { _ = localFile.Close() }()
 
 	// Get file info to check size
 	fileInfo, err := localFile.Stat()
@@ -209,7 +209,7 @@ func (r *Remote) UploadFile(localPath, remotePath string) error {
 		r.Logger.Error().Err(err).Msg("create remote file error")
 		return fmt.Errorf("create remote file error: %w", err)
 	}
-	defer remoteFile.Close()
+	defer func() { _ = remoteFile.Close() }()
 
 	// Use buffered copy with optimal buffer size
 	bufferSize := optimalBufferSize(fileInfo.Size())

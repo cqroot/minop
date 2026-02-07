@@ -24,12 +24,10 @@ import (
 	"github.com/cqroot/gtypes"
 	"github.com/cqroot/minop/pkg/logs"
 	"github.com/cqroot/minop/pkg/remote"
-	"github.com/rs/zerolog"
 )
 
 type OpCopy struct {
 	baseOperationImpl
-	logger zerolog.Logger
 	copy   string
 	to     string
 	backup bool
@@ -51,11 +49,19 @@ func NewOpCopy(in Input) (*OpCopy, error) {
 }
 
 func (op OpCopy) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
-	if op.backup == true {
+	if op.backup {
 		logs.Logger().Debug().Str("Dst", op.to).Msg("backup file")
-		r.ExecuteCommand(fmt.Sprintf(
+		ret, _, stderr, err := r.ExecuteCommand(fmt.Sprintf(
 			"[ ! -e '%[1]s.minop_bak' ] && [ -f '%[1]s' ] && cp -a -- '%[1]s' '%[1]s.minop_bak'", op.to))
-
+		if err != nil {
+			logs.Logger().Err(err).Msg("failed to back up source file")
+			return nil, err
+		}
+		if ret != 0 {
+			err := fmt.Errorf("command ret: %d, err: %s", ret, stderr)
+			logs.Logger().Err(err).Msg("failed to back up source file")
+			return nil, err
+		}
 	}
 
 	fileInfo, err := os.Lstat(op.copy)

@@ -39,6 +39,8 @@ func TestExecuteCommand(t *testing.T) {
 			t.Logf("Test ExecuteCommand on %s@%s:%d.\n", h.User, h.Address, h.Port)
 
 			r, err := remote.New(h)
+			require.Nil(t, err)
+
 			ret, stdout, stderr, err := r.ExecuteCommand("echo 'minop test stdout'; echo 'minop test stderr' >&2")
 			require.Nil(t, err)
 			require.Equal(t, 0, ret)
@@ -68,6 +70,8 @@ func TestUploadFile(t *testing.T) {
 			t.Logf("Test UploadFile on %s@%s:%d.\n", h.User, h.Address, h.Port)
 
 			r, err := remote.New(h)
+			require.Nil(t, err)
+
 			err = r.UploadFile(testFileName, "/root/minop.testfile")
 			require.Nil(t, err)
 
@@ -106,6 +110,8 @@ func TestUploadDir(t *testing.T) {
 			t.Logf("Test UploadDir on %s@%s:%d.\n", h.User, h.Address, h.Port)
 
 			r, err := remote.New(h)
+			require.Nil(t, err)
+
 			err = r.UploadDir(testDirName, "/root/minop.testdir")
 			require.Nil(t, err)
 

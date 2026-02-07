@@ -36,6 +36,7 @@ var (
 
 func CheckErr(err error) {
 	if err != nil {
+		logs.Logger().Err(err).Msg("")
 		os.Exit(1)
 	}
 }

@@ -25,6 +25,7 @@ import (
 	"strings"
 
 	"github.com/cqroot/gutils/strutils"
+	"github.com/cqroot/minop/pkg/logs"
 )
 
 type Host struct {
@@ -93,6 +94,7 @@ func ParseHostsFile(filename string) (map[string][]Host, error) {
 
 	file, err := os.Open(filename)
 	if err != nil {
+		logs.Logger().Err(err).Msg("")
 		return nil, err
 	}
 	defer func() {
