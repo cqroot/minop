@@ -51,14 +51,14 @@ func NewOpCopy(in Input) (*OpCopy, error) {
 func (op OpCopy) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
 	if op.backup {
 		logs.Logger().Debug().Str("Dst", op.to).Msg("backup file")
-		ret, _, stderr, err := r.ExecuteCommand(fmt.Sprintf(
-			"[ ! -e '%[1]s.minop_bak' ] && [ -f '%[1]s' ] && cp -a -- '%[1]s' '%[1]s.minop_bak'", op.to))
+		ret, stdout, stderr, err := r.ExecuteCommand(fmt.Sprintf(
+			"if [ ! -e '%[1]s.minop_bak' ]; then [ -f '%[1]s' ] && cp -a -- '%[1]s' '%[1]s.minop_bak'; else exit 0; fi", op.to))
 		if err != nil {
 			logs.Logger().Err(err).Msg("failed to back up source file")
 			return nil, err
 		}
 		if ret != 0 {
-			err := fmt.Errorf("command ret: %d, err: %s", ret, stderr)
+			err := fmt.Errorf("command ret: %d, out: %s, err: %s", ret, stdout, stderr)
 			logs.Logger().Err(err).Msg("failed to back up source file")
 			return nil, err
 		}
