@@ -85,7 +85,7 @@ func (e Executor) ExecuteOperation(hostGroup map[string][]remote.Host, pool *rem
 		defer close(printDone)
 		for res := range chanExecResults {
 			hostStr := fmt.Sprintf("%s%s@%s:%d", e.outputPrefix, res.h.User, res.h.Address, res.h.Port)
-			fmt.Printf("%s  %s\n", color.HiCyanString(hostStr),
+			fmt.Printf("%s  %s\n", color.HiBlueString(hostStr),
 				color.HiBlackString(time.Now().Format("[2006-01-02 15:04:05]")))
 
 			if res.res != nil {
@@ -165,7 +165,7 @@ func (e Executor) ExecuteOperations(ops []operation.Operation) error {
 		}
 
 		fmt.Printf("%s %s %s\n",
-			color.HiCyanString(op.Name()),
+			color.HiYellowString(op.Name()),
 			color.HiBlackString(strings.Repeat("•", termWidth-len(op.Name())-2-19)),
 			color.HiBlackString(time.Now().Format("2006-01-02 15:04:05")),
 		)
