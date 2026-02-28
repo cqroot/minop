@@ -50,7 +50,7 @@ func (e Executor) LoadOperations(filename string) ([]operation.Operation, error)
 		if in.Name != "" {
 			op.SetName(in.Name)
 		} else {
-			op.SetName("Anonymous Operation")
+			op.SetName(op.DefaultName())
 		}
 
 		if in.Role != "" {

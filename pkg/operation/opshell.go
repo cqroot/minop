@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package operation
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/cqroot/gtypes"
@@ -26,7 +27,7 @@ import (
 
 type OpShell struct {
 	baseOperationImpl
-	shell  string
+	shell string
 }
 
 func NewOpShell(in Input) (*OpShell, error) {
@@ -34,8 +35,12 @@ func NewOpShell(in Input) (*OpShell, error) {
 		return nil, MakeErrInvalidOperation(in)
 	}
 	return &OpShell{
-		shell:  in.Shell,
+		shell: in.Shell,
 	}, nil
+}
+
+func (op OpShell) DefaultName() string {
+	return fmt.Sprintf("Shell: %s", op.shell)
 }
 
 func (op OpShell) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {

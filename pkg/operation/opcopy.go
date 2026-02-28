@@ -48,6 +48,10 @@ func NewOpCopy(in Input) (*OpCopy, error) {
 	}, nil
 }
 
+func (op OpCopy) DefaultName() string {
+	return fmt.Sprintf("Copy %q to %q", op.copy, op.to)
+}
+
 func (op OpCopy) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
 	if op.backup {
 		logs.Logger().Debug().Str("Dst", op.to).Msg("backup file")

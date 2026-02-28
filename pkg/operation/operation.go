@@ -41,6 +41,7 @@ type Input struct {
 type Operation interface {
 	baseOperation
 	Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error)
+	DefaultName() string
 }
 
 var ErrInvalidOperation = errors.New("invalid operation")
