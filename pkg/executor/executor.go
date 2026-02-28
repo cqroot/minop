@@ -164,9 +164,14 @@ func (e Executor) ExecuteOperations(ops []operation.Operation) error {
 			}
 		}
 
+		delim := ""
+		delimLen := termWidth - len(op.Name()) - 2 - 19
+		if delimLen > 0 {
+			delim = strings.Repeat("•", delimLen)
+		}
 		fmt.Printf("%s %s %s\n",
 			color.HiYellowString(op.Name()),
-			color.HiBlackString(strings.Repeat("•", termWidth-len(op.Name())-2-19)),
+			color.HiBlackString(delim),
 			color.HiBlackString(time.Now().Format("2006-01-02 15:04:05")),
 		)
 
