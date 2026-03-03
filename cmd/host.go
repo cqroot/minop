@@ -53,12 +53,12 @@ func RunHostCmd(cmd *cobra.Command, args []string) {
 }
 
 func NewHostCmd() *cobra.Command {
-	hostCmd := cobra.Command{
+	c := cobra.Command{
 		Use:   "host",
 		Short: "List all hosts.",
 		Long:  "List all hosts.",
 		Run:   RunHostCmd,
 	}
 
-	return &hostCmd
+	return &c
 }

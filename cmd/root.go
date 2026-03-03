@@ -19,16 +19,20 @@ package cmd
 
 import (
 	"os"
+	"path/filepath"
 
+	"github.com/adrg/xdg"
 	"github.com/cqroot/minop/pkg/cli"
 	"github.com/cqroot/minop/pkg/executor"
 	"github.com/cqroot/minop/pkg/logs"
 	"github.com/cqroot/minop/pkg/version"
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
+	configFile       string
 	flagTaskFile     string
 	flagMaxProcs     int
 	flagVerboseLevel int
@@ -39,6 +43,45 @@ func CheckErr(err error) {
 		logs.Logger().Err(err).Msg("")
 		os.Exit(1)
 	}
+}
+
+func IsDirExists(path string) bool {
+	info, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+		return false
+	}
+	return info.IsDir()
+}
+
+func initConfig(cmd *cobra.Command) error {
+	configDir := filepath.Join(xdg.ConfigHome, "minop")
+	configFile = filepath.Join(configDir, "minop.toml")
+
+	if !IsDirExists(configDir) {
+		return nil
+	}
+
+	viper.SetConfigFile(configFile)
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return err
+		}
+	}
+
+	if err := viper.BindPFlag("max-procs", cmd.Flags().Lookup("max-procs")); err != nil {
+		return err
+	}
+	flagMaxProcs = viper.GetInt("max-procs")
+
+	if err := viper.BindPFlag("verbose", cmd.Flags().Lookup("verbose")); err != nil {
+		return err
+	}
+	flagVerboseLevel = viper.GetInt("verbose")
+
+	return nil
 }
 
 func RunRootCmd(cmd *cobra.Command, args []string) {
@@ -71,19 +114,23 @@ func RunRootCmd(cmd *cobra.Command, args []string) {
 }
 
 func NewRootCmd() *cobra.Command {
-	rootCmd := cobra.Command{
+	c := cobra.Command{
 		Use:   "minop",
 		Short: "MINOP is a simple tool for remote task orchestration and batch execution.",
 		Long:  "MINOP is a simple tool for remote task orchestration and batch execution.",
-		Run:   RunRootCmd,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			return initConfig(cmd)
+		},
+		Run: RunRootCmd,
 	}
-	rootCmd.Flags().StringVarP(&flagTaskFile, "task", "t", "", "Specify task file")
-	rootCmd.PersistentFlags().IntVarP(&flagMaxProcs, "max-procs", "p", 1, "Maximum number of tasks to execute simultaneously (default 1)")
-	rootCmd.Flags().CountVarP(&flagVerboseLevel, "verbose", "v", "Increase output verbosity. Use multiple v's for more detail, e.g., -v, -vv (default 0)")
+	c.Flags().StringVarP(&flagTaskFile, "task", "t", "", "Specify task file")
+	c.PersistentFlags().IntVarP(&flagMaxProcs, "max-procs", "p", 1, "Maximum number of tasks to execute simultaneously (default 1)")
+	c.PersistentFlags().CountVarP(&flagVerboseLevel, "verbose", "v", "Increase output verbosity. Use multiple v's for more detail, e.g., -v, -vv (default 0)")
 
-	rootCmd.AddCommand(NewHostCmd())
-	rootCmd.Version = version.Get().String()
-	return &rootCmd
+	c.AddCommand(NewHostCmd())
+	c.AddCommand(NewInfoCmd())
+	c.Version = version.Get().String()
+	return &c
 }
 
 func Execute() {
