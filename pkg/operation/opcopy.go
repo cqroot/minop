@@ -56,7 +56,7 @@ func (op OpCopy) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], 
 	if op.backup {
 		logs.Logger().Debug().Str("Dst", op.to).Msg("backup file")
 		ret, stdout, stderr, err := r.ExecuteCommand(fmt.Sprintf(
-			"if [ ! -e '%[1]s.minop_bak' ]; then [ -f '%[1]s' ] && cp -a -- '%[1]s' '%[1]s.minop_bak'; else exit 0; fi", op.to))
+			"if [ ! -e '%[1]s.minop_bak' ] && [ -f '%[1]s' ]; then cp -a -- '%[1]s' '%[1]s.minop_bak'; else exit 0; fi", op.to))
 		if err != nil {
 			logs.Logger().Err(err).Msg("failed to back up source file")
 			return nil, err
