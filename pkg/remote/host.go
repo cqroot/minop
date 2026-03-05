@@ -49,39 +49,66 @@ func ParseHostLine(line string) (Host, error) {
 	userDelimiter := strings.IndexByte(s, ':')
 	if userDelimiter == -1 {
 		return h, ErrEmptyUsername
-	} else {
-		h.User = s[:userDelimiter]
-		s = s[userDelimiter+1:]
 	}
+	h.User = s[:userDelimiter]
+	s = s[userDelimiter+1:]
 
 	passwordDelimiter := strings.LastIndexByte(s, '@')
 	if passwordDelimiter == -1 {
 		return h, ErrEmptyPassword
-	} else {
-		h.Password = s[:passwordDelimiter]
-		s = s[passwordDelimiter+1:]
+	}
+	h.Password = s[:passwordDelimiter]
+	s = s[passwordDelimiter+1:]
+
+	if len(s) == 0 {
+		return h, ErrEmptyAddress
 	}
 
-	hostnameDelimiter := strings.IndexByte(s, ':')
-	if hostnameDelimiter == -1 {
-		if len(s) != 0 {
-			h.Address = s
-			s = ""
+	if s[0] == '[' {
+		closeIdx := strings.IndexByte(s, ']')
+		if closeIdx == -1 {
+			return h, fmt.Errorf("missing closing bracket for IPv6 address")
+		}
+		h.Address = s[:closeIdx+1]
+		remaining := s[closeIdx+1:]
+
+		if remaining == "" {
+			h.Port = 22
+		} else if remaining[0] == ':' {
+			portStr := remaining[1:]
+			if portStr == "" {
+				return h, ErrInvalidPort
+			}
+			if !strutils.IsInteger64(portStr) {
+				return h, ErrInvalidPort
+			}
+			h.Port = int(strutils.ToInteger64(portStr))
 		} else {
-			return h, ErrEmptyAddress
+			return h, fmt.Errorf("unexpected characters after IPv6 address: %s", remaining)
 		}
 	} else {
-		h.Address = s[:hostnameDelimiter]
-		s = s[hostnameDelimiter+1:]
+		hostnameDelimiter := strings.IndexByte(s, ':')
+		if hostnameDelimiter == -1 {
+			if len(s) != 0 {
+				h.Address = s
+				s = ""
+			} else {
+				return h, ErrEmptyAddress
+			}
+		} else {
+			h.Address = s[:hostnameDelimiter]
+			s = s[hostnameDelimiter+1:]
+		}
+
+		if s == "" {
+			h.Port = 22
+		} else if !strutils.IsInteger64(s) {
+			return h, ErrInvalidPort
+		} else {
+			h.Port = int(strutils.ToInteger64(s))
+		}
 	}
 
-	if s == "" {
-		h.Port = 22
-	} else if !strutils.IsInteger64(s) {
-		return h, ErrInvalidPort
-	} else {
-		h.Port = int(strutils.ToInteger64(s))
-	}
 	if h.Port < 1 || h.Port > 65535 {
 		return h, fmt.Errorf("port %d not in 1-65535 range", h.Port)
 	}
