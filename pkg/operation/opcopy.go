@@ -49,7 +49,7 @@ func NewOpCopy(in Input) (*OpCopy, error) {
 }
 
 func (op OpCopy) DefaultName() string {
-	return fmt.Sprintf("Copy %q to %q", op.copy, op.to)
+	return fmt.Sprintf("COPY: %q -> %q", op.copy, op.to)
 }
 
 func (op OpCopy) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {

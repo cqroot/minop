@@ -40,7 +40,7 @@ func NewOpShell(in Input) (*OpShell, error) {
 }
 
 func (op OpShell) DefaultName() string {
-	return fmt.Sprintf("Shell: %s", op.shell)
+	return fmt.Sprintf("SHELL: %s", op.shell)
 }
 
 func (op OpShell) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
