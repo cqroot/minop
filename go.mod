@@ -8,7 +8,7 @@ require (
 	github.com/cqroot/gtypes v0.0.3
 	github.com/cqroot/gutils v0.0.1
 	github.com/cqroot/prompt v0.9.4
-	github.com/fatih/color v1.18.0
+	github.com/fatih/color v1.19.0
 	github.com/jedib0t/go-pretty/v6 v6.7.8
 	github.com/pkg/sftp v1.13.10
 	github.com/rs/zerolog v1.34.0
@@ -38,7 +38,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
@@ -57,6 +57,6 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/sys v0.42.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
 )
