@@ -55,16 +55,17 @@ go install github.com/cqroot/minop@latest
 
 ## 用法
 
-## 创建主机列表文件 hosts
+## 创建主机列表文件
 
-创建一个名为 `hosts` 的文件，它的每一行都是一个远程主机，格式为 `<user>:<password>@<address>:<port>`。示例如下：
+创建一个名为 `hosts.yaml` 的 YAML 格式文件。该文件应包含主机组，每个组是一个主机字符串列表，格式为 `<user>:<password>@<address>:<port>`。示例如下：
 
-```
-root:asdf@127.0.0.1:8001
+```yaml
+all:
+  - root:asdf@127.0.0.1:8001
 
-[main]
-root:asdf@127.0.0.1:8002
-root:asdf@127.0.0.1:8003
+main:
+  - root:asdf@127.0.0.1:8002
+  - root:asdf@127.0.0.1:8003
 ```
 
 位于特定章节下的主机，会归属于指定的角色下（如上述示例中，后两个主机的角色为 `main`）。

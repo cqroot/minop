@@ -57,17 +57,18 @@ Download the binary for your platform from the releases page and add its directo
 
 ### Create the Hosts File
 
-Create a file named `hosts`. Each line in this file should represent a remote host in the format `<user>:<password>@<address>:<port>`. Example:
+Create a file named `hosts.yaml` in YAML format. The file should contain groups of hosts, where each group is a list of host strings in the format `<user>:<password>@<address>:<port>`. Example:
 
+```yaml
+all:
+  - root:asdf@127.0.0.1:8001
+
+main:
+  - root:asdf@127.0.0.1:8002
+  - root:asdf@127.0.0.1:8003
 ```
-root:asdf@127.0.0.1:8001
 
-[main]
-root:asdf@127.0.0.1:8002
-root:asdf@127.0.0.1:8003
-```
-
-Hosts listed under a specific section header (like `[main]` in the example) will be assigned to that role.
+Hosts listed under a specific section header (like `main` in the example) will be assigned to that role.
 
 ### Interactive CLI
 
