@@ -10,7 +10,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.26.1'
+          go-version: "1.26.2"
 
       - uses: golangci/golangci-lint-action@v9
         with:
@@ -34,7 +34,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
-          go-version: '1.26.1'
+          go-version: "1.26.2"
 
       - name: Install gofumpt
         run: go install mvdan.cc/gofumpt@latest
@@ -44,7 +44,7 @@ jobs:
       - name: Go test
         run: make test
 
-      - name: Upload coverage to Codecov
+      - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
-          flags: ${{ matrix.platform }}
+          token: ${{ secrets.CODECOV_TOKEN }}
