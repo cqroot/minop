@@ -36,10 +36,11 @@ type Host struct {
 }
 
 var (
-	ErrEmptyUsername = errors.New("empty username")
-	ErrEmptyPassword = errors.New("empty password")
-	ErrEmptyAddress  = errors.New("empty hostname")
-	ErrInvalidPort   = errors.New("invalid port")
+	ErrEmptyUsername      = errors.New("empty username")
+	ErrEmptyPassword      = errors.New("empty password")
+	ErrEmptyAddress       = errors.New("empty hostname")
+	ErrInvalidPort        = errors.New("invalid port")
+	ErrMissingIPv6Bracket = errors.New("missing closing bracket for IPv6 address")
 )
 
 func ParseHostLine(line string) (Host, error) {
@@ -48,26 +49,32 @@ func ParseHostLine(line string) (Host, error) {
 
 	userDelimiter := strings.IndexByte(s, ':')
 	if userDelimiter == -1 {
-		return h, ErrEmptyUsername
+		return Host{}, ErrEmptyUsername
 	}
 	h.User = s[:userDelimiter]
 	s = s[userDelimiter+1:]
+	if h.User == "" {
+		return Host{}, ErrEmptyUsername
+	}
 
 	passwordDelimiter := strings.LastIndexByte(s, '@')
 	if passwordDelimiter == -1 {
-		return h, ErrEmptyPassword
+		return Host{}, ErrEmptyPassword
 	}
 	h.Password = s[:passwordDelimiter]
 	s = s[passwordDelimiter+1:]
+	if h.Password == "" {
+		return Host{}, ErrEmptyPassword
+	}
 
-	if len(s) == 0 {
-		return h, ErrEmptyAddress
+	if s == "" {
+		return Host{}, ErrEmptyAddress
 	}
 
 	if s[0] == '[' {
 		closeIdx := strings.IndexByte(s, ']')
 		if closeIdx == -1 {
-			return h, fmt.Errorf("missing closing bracket for IPv6 address")
+			return Host{}, ErrMissingIPv6Bracket
 		}
 		h.Address = s[:closeIdx+1]
 		remaining := s[closeIdx+1:]
@@ -77,23 +84,24 @@ func ParseHostLine(line string) (Host, error) {
 		} else if remaining[0] == ':' {
 			portStr := remaining[1:]
 			if portStr == "" {
-				return h, ErrInvalidPort
+				h.Port = 22
+			} else {
+				if !strutils.IsInteger64(portStr) {
+					return Host{}, fmt.Errorf("%w: %s", ErrInvalidPort, portStr)
+				}
+				h.Port = int(strutils.ToInteger64(portStr))
 			}
-			if !strutils.IsInteger64(portStr) {
-				return h, ErrInvalidPort
-			}
-			h.Port = int(strutils.ToInteger64(portStr))
 		} else {
-			return h, fmt.Errorf("unexpected characters after IPv6 address: %s", remaining)
+			return Host{}, fmt.Errorf("unexpected characters after IPv6 address: %s", remaining)
 		}
 	} else {
 		hostnameDelimiter := strings.IndexByte(s, ':')
 		if hostnameDelimiter == -1 {
-			if len(s) != 0 {
+			if s != "" {
 				h.Address = s
 				s = ""
 			} else {
-				return h, ErrEmptyAddress
+				return Host{}, ErrEmptyAddress
 			}
 		} else {
 			h.Address = s[:hostnameDelimiter]
@@ -103,14 +111,18 @@ func ParseHostLine(line string) (Host, error) {
 		if s == "" {
 			h.Port = 22
 		} else if !strutils.IsInteger64(s) {
-			return h, ErrInvalidPort
+			return Host{}, ErrInvalidPort
 		} else {
 			h.Port = int(strutils.ToInteger64(s))
 		}
 	}
 
+	if h.Address == "" {
+		return Host{}, ErrEmptyAddress
+	}
+
 	if h.Port < 1 || h.Port > 65535 {
-		return h, fmt.Errorf("port %d not in 1-65535 range", h.Port)
+		return Host{}, fmt.Errorf("port %d not in 1-65535 range", h.Port)
 	}
 
 	return h, nil
