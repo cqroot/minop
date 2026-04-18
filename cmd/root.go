@@ -84,10 +84,16 @@ func initConfig(cmd *cobra.Command) error {
 	return nil
 }
 
-func RunRootCmd(cmd *cobra.Command, args []string) {
+func PersistentPreRunE(cmd *cobra.Command, args []string) error {
+	err := initConfig(cmd)
+	if err != nil {
+		return err
+	}
+
 	if flagVerboseLevel >= 2 {
 		logs.SetLogger(logs.Logger().Level(zerolog.DebugLevel))
 	}
+
 	logs.Logger().Debug().
 		Str("task_file", flagTaskFile).
 		Int("max_procs", flagMaxProcs).
@@ -95,6 +101,10 @@ func RunRootCmd(cmd *cobra.Command, args []string) {
 		Str("log_level", logs.Logger().GetLevel().String()).
 		Msg("run root command")
 
+	return nil
+}
+
+func RunRootCmd(cmd *cobra.Command, args []string) {
 	if flagTaskFile == "" {
 		c := cli.New(cli.WithMaxProcs(flagMaxProcs), cli.WithVerboseLeve(flagVerboseLevel))
 		err := c.Run()
@@ -115,13 +125,11 @@ func RunRootCmd(cmd *cobra.Command, args []string) {
 
 func NewRootCmd() *cobra.Command {
 	c := cobra.Command{
-		Use:   "minop",
-		Short: "MINOP is a simple tool for remote task orchestration and batch execution.",
-		Long:  "MINOP is a simple tool for remote task orchestration and batch execution.",
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			return initConfig(cmd)
-		},
-		Run: RunRootCmd,
+		Use:               "minop",
+		Short:             "MINOP is a simple tool for remote task orchestration and batch execution.",
+		Long:              "MINOP is a simple tool for remote task orchestration and batch execution.",
+		PersistentPreRunE: PersistentPreRunE,
+		Run:               RunRootCmd,
 	}
 	c.PersistentFlags().StringVarP(&flagTaskFile, "task", "t", "", "Specify task file")
 	c.PersistentFlags().IntVarP(&flagMaxProcs, "max-procs", "p", 1, "Maximum number of tasks to execute simultaneously (default 1)")

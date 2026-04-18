@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package remote
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"os"
@@ -26,6 +25,7 @@ import (
 
 	"github.com/cqroot/gutils/strutils"
 	"github.com/cqroot/minop/pkg/logs"
+	"github.com/stretchr/testify/assert/yaml"
 )
 
 type Host struct {
@@ -117,42 +117,33 @@ func ParseHostLine(line string) (Host, error) {
 }
 
 func ParseHostsFile(filename string) (map[string][]Host, error) {
-	hostGroup := make(map[string][]Host)
-
-	file, err := os.Open(filename)
+	logs.Logger().Debug().Str("filename", filename).Msg("Parsing hosts file")
+	content, err := os.ReadFile(filename)
 	if err != nil {
 		logs.Logger().Err(err).Msg("")
 		return nil, err
 	}
-	defer func() {
-		_ = file.Close()
-	}()
 
-	fileScanner := bufio.NewScanner(file)
-	fileScanner.Split(bufio.ScanLines)
-	currGroup := "default"
-	lineNum := 0
-	for fileScanner.Scan() {
-		line := fileScanner.Text()
-		lineNum++
+	yamlContent := make(map[string][]string)
+	err = yaml.Unmarshal(content, &yamlContent)
+	if err != nil {
+		logs.Logger().Err(err).Msg("Failed to parse hosts file as YAML")
+		return nil, fmt.Errorf("failed to parse hosts file as YAML: %w", err)
+	}
 
-		trimmed := strings.TrimSpace(line)
-		if trimmed == "" {
-			continue
-		}
-
-		if strings.HasPrefix(trimmed, "#") {
-			continue
-		}
-
-		if len(trimmed) >= 3 && strings.HasPrefix(trimmed, "[") && strings.HasSuffix(trimmed, "]") {
-			currGroup = trimmed[1 : len(trimmed)-1]
-		} else {
-			h, err := ParseHostLine(trimmed)
-			if err != nil {
-				return nil, fmt.Errorf("parse host lineline %d (%q): %w", lineNum, line, err)
+	hostGroup := make(map[string][]Host)
+	for role, lines := range yamlContent {
+		for _, line := range lines {
+			line = strings.TrimSpace(line)
+			if line == "" {
+				continue
 			}
-			hostGroup[currGroup] = append(hostGroup[currGroup], h)
+
+			h, err := ParseHostLine(line)
+			if err != nil {
+				return nil, fmt.Errorf("parse host line for role %q: %w", role, err)
+			}
+			hostGroup[role] = append(hostGroup[role], h)
 		}
 	}
 
