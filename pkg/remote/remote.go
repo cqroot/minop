@@ -241,7 +241,7 @@ func (r *Remote) ensureRemoteDir(remoteDir string) error {
 
 	// If error is not "file doesn't exist", return it
 	if !os.IsNotExist(err) {
-		return fmt.Errorf("check remote directory error: %w", err)
+		return fmt.Errorf("check remote directory error: %s: %w", remoteDir, err)
 	}
 
 	// Create directory (and parent directories if needed)
@@ -250,7 +250,7 @@ func (r *Remote) ensureRemoteDir(remoteDir string) error {
 		if _, checkErr := r.sftp.Stat(remoteDir); checkErr == nil {
 			return nil
 		}
-		return fmt.Errorf("create remote directory error: %w", err)
+		return fmt.Errorf("create remote directory error: %s: %w", remoteDir, err)
 	}
 
 	return nil
