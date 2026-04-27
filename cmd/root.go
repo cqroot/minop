@@ -113,7 +113,7 @@ func RunRootCmd(cmd *cobra.Command, args []string) {
 	}
 
 	e := executor.New(
-		executor.WithVerboseLeve(flagVerboseLevel),
+		executor.WithVerboseLevel(flagVerboseLevel),
 		executor.WithMaxProcs(flagMaxProcs))
 
 	ops, err := e.LoadOperations(flagTaskFile)
@@ -138,6 +138,7 @@ func NewRootCmd() *cobra.Command {
 	c.AddCommand(NewHostCmd())
 	c.AddCommand(NewTaskCmd())
 	c.AddCommand(NewInfoCmd())
+	c.AddCommand(NewCheckCmd())
 	c.Version = version.Get().String()
 	return &c
 }

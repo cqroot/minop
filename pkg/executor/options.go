@@ -19,7 +19,7 @@ package executor
 
 type Option func(e *Executor)
 
-func WithVerboseLeve(verboseLevel int) Option {
+func WithVerboseLevel(verboseLevel int) Option {
 	return func(e *Executor) {
 		e.optVerboseLevel = verboseLevel
 	}

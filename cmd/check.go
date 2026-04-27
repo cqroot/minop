@@ -25,7 +25,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func RunTaskCmd(cmd *cobra.Command, args []string) {
+func RunCheckCmd(cmd *cobra.Command, args []string) {
 	e := executor.New(
 		executor.WithVerboseLevel(flagVerboseLevel),
 		executor.WithMaxProcs(flagMaxProcs))
@@ -43,12 +43,12 @@ func RunTaskCmd(cmd *cobra.Command, args []string) {
 	}
 }
 
-func NewTaskCmd() *cobra.Command {
+func NewCheckCmd() *cobra.Command {
 	c := cobra.Command{
-		Use:   "task",
-		Short: "Show task info.",
-		Long:  "Show task info.",
-		Run:   RunTaskCmd,
+		Use:   "check",
+		Short: "Check and validate task file.",
+		Long:  "Load and validate the specified task file, then print the task information.",
+		Run:   RunCheckCmd,
 	}
 
 	return &c
