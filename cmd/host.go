@@ -47,10 +47,10 @@ func RunHostCmd(cmd *cobra.Command, args []string) {
 		groups = append(groups, group)
 	}
 
-	fmt.Fprintln(os.Stdout)
+	_, _ = fmt.Fprintln(os.Stdout)
 	for idx, group := range groups {
 		hosts := hostGroup[group]
-		fmt.Fprintf(os.Stdout, "  %s\n", groupStyle.Render("• "+group))
+		_, _ = fmt.Fprintf(os.Stdout, "  %s\n", groupStyle.Render("• "+group))
 		for hostIdx, host := range hosts {
 			var branch string
 			if hostIdx == len(hosts)-1 {
@@ -58,12 +58,12 @@ func RunHostCmd(cmd *cobra.Command, args []string) {
 			} else {
 				branch = treeStyle.Render("  ├──")
 			}
-			fmt.Fprintf(os.Stdout, "%s %s\n",
+			_, _ = fmt.Fprintf(os.Stdout, "%s %s\n",
 				branch,
 				hostStyle.Render(fmt.Sprintf("%s@%s:%d", host.User, host.Address, host.Port)))
 		}
 		if idx < len(groups)-1 {
-			fmt.Fprintln(os.Stdout)
+			_, _ = fmt.Fprintln(os.Stdout)
 		}
 	}
 }
