@@ -26,6 +26,7 @@ import (
 	"github.com/cqroot/minop/pkg/remote"
 )
 
+// OpCopy copies files or directories to remote hosts via SFTP.
 type OpCopy struct {
 	baseOperationImpl
 	copy   string
@@ -33,6 +34,8 @@ type OpCopy struct {
 	backup bool
 }
 
+// NewOpCopy creates a new OpCopy operation from the given Input.
+// Returns ErrInvalidOperation if the To field is empty.
 func NewOpCopy(in Input) (*OpCopy, error) {
 	if in.To == "" {
 		return nil, MakeErrInvalidOperation(in)
@@ -44,10 +47,12 @@ func NewOpCopy(in Input) (*OpCopy, error) {
 	}, nil
 }
 
+// DefaultName returns the default name for copy operations.
 func (op OpCopy) DefaultName() string {
 	return fmt.Sprintf("[copy] %s => %s", op.copy, op.to)
 }
 
+// Execute uploads the local file or directory to the remote host.
 func (op OpCopy) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
 	if op.backup {
 		logs.Logger().Debug().Str("Dst", op.to).Msg("backup file")

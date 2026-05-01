@@ -25,11 +25,14 @@ import (
 	"github.com/cqroot/minop/pkg/remote"
 )
 
+// OpShell executes shell commands on remote hosts.
 type OpShell struct {
 	baseOperationImpl
 	shell string
 }
 
+// NewOpShell creates a new OpShell operation from the given Input.
+// Returns ErrInvalidOperation if Shell field is empty.
 func NewOpShell(in Input) (*OpShell, error) {
 	if in.Shell == "" {
 		return nil, MakeErrInvalidOperation(in)
@@ -39,10 +42,12 @@ func NewOpShell(in Input) (*OpShell, error) {
 	}, nil
 }
 
+// DefaultName returns the default name for shell operations.
 func (op OpShell) DefaultName() string {
 	return fmt.Sprintf("[shell] %s", op.shell)
 }
 
+// Execute runs the shell command on the remote host and returns the results.
 func (op OpShell) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
 	exitStatus, stdout, stderr, err := r.ExecuteCommand(op.shell)
 	if err != nil {

@@ -28,6 +28,7 @@ import (
 	"github.com/stretchr/testify/assert/yaml"
 )
 
+// Host represents a remote server connection with authentication details.
 type Host struct {
 	User     string
 	Password string
@@ -35,6 +36,7 @@ type Host struct {
 	Port     int
 }
 
+// Host parsing errors
 var (
 	ErrEmptyUsername      = errors.New("empty username")
 	ErrEmptyPassword      = errors.New("empty password")
@@ -43,6 +45,9 @@ var (
 	ErrMissingIPv6Bracket = errors.New("missing closing bracket for IPv6 address")
 )
 
+// ParseHostLine parses a host connection string in the format "<user>:<password>@<address>:<port>".
+// Supports IPv6 addresses in brackets, e.g., "user:pass@[::1]:22".
+// Defaults port to 22 if not specified.
 func ParseHostLine(line string) (Host, error) {
 	h := Host{}
 	s := line
@@ -128,6 +133,8 @@ func ParseHostLine(line string) (Host, error) {
 	return h, nil
 }
 
+// ParseHostsFile reads a YAML hosts file and parses it into a map of role to hosts.
+// The YAML format is: <role>: ["user:pass@host:port", ...]
 func ParseHostsFile(filename string) (map[string][]Host, error) {
 	logs.Logger().Debug().Str("filename", filename).Msg("Parsing hosts file")
 	content, err := os.ReadFile(filename)

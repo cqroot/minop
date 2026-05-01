@@ -35,6 +35,7 @@ import (
 	"golang.org/x/term"
 )
 
+// Output styles for terminal formatting
 var (
 	labelStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("14"))
 	taskStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("10"))

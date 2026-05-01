@@ -17,16 +17,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package remote
 
+// HostPool manages a cache of Remote connections keyed by Host.
+// It reuses existing connections to avoid redundant SSH/SFTP handshakes.
 type HostPool struct {
 	hosts map[Host]*Remote
 }
 
+// NewHostPool creates a new empty HostPool.
 func NewHostPool() *HostPool {
 	return &HostPool{
 		hosts: make(map[Host]*Remote),
 	}
 }
 
+// GetRemote returns a Remote connection for the given Host.
+// If a connection already exists in the pool, it returns the cached one.
+// Otherwise, it creates a new connection and caches it.
 func (p *HostPool) GetRemote(host Host) (*Remote, error) {
 	r, ok := p.hosts[host]
 	if !ok {

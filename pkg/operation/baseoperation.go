@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package operation
 
+// baseOperation defines the interface for common operation properties.
 type baseOperation interface {
 	Name() string
 	SetName(string)
@@ -24,23 +25,28 @@ type baseOperation interface {
 	SetRole(string)
 }
 
+// baseOperationImpl provides a base implementation for operations.
 type baseOperationImpl struct {
 	name string
 	role string
 }
 
+// Name returns the operation's name.
 func (op baseOperationImpl) Name() string {
 	return op.name
 }
 
+// SetName sets the operation's name.
 func (op *baseOperationImpl) SetName(name string) {
 	op.name = name
 }
 
+// Role returns the operation's target role.
 func (op baseOperationImpl) Role() string {
 	return op.role
 }
 
+// SetRole sets the operation's target role.
 func (op *baseOperationImpl) SetRole(role string) {
 	op.role = role
 }

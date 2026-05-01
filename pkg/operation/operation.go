@@ -25,6 +25,8 @@ import (
 	"github.com/cqroot/minop/pkg/remote"
 )
 
+// Input defines the YAML input structure for creating operations.
+// It specifies the operation type (shell or copy) and its parameters.
 type Input struct {
 	Name string `yaml:"name"`
 	Role string `yaml:"role"`
@@ -36,18 +38,23 @@ type Input struct {
 	Backup bool   `yaml:"backup"`
 }
 
+// Operation defines the interface for executable remote operations.
 type Operation interface {
 	baseOperation
 	Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error)
 	DefaultName() string
 }
 
+// ErrInvalidOperation is returned when an operation cannot be created from Input.
 var ErrInvalidOperation = errors.New("invalid operation")
 
+// MakeErrInvalidOperation creates an error combining ErrInvalidOperation with the Input.
 func MakeErrInvalidOperation(in Input) error {
 	return fmt.Errorf("%w\n%+v", ErrInvalidOperation, in)
 }
 
+// GetOperation creates an Operation from the given Input.
+// It returns an error if the Input is invalid or unsupported.
 func GetOperation(in Input) (Operation, error) {
 	if in.Shell != "" {
 		return NewOpShell(in)

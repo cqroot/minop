@@ -71,12 +71,14 @@ func MinopTheme(msg string, state prompt.State, model string) string {
 	return s.String()
 }
 
+// Output styling for help display
 var (
 	helpTitleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("5")).Bold(true)
 	helpKeyStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("10"))
 	helpValStyle   = lipgloss.NewStyle().Faint(true)
 )
 
+// ShowHelp displays the available CLI commands.
 func ShowHelp() {
 	fmt.Print(helpTitleStyle.Render("\nMINOP CLI COMMANDS\n"))
 

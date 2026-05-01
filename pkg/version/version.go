@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// Version info variables
 var (
 	version   = "dev"
 	commit    = "none"
@@ -15,6 +16,7 @@ var (
 	builtWith = fmt.Sprintf("%s %s/%s", runtime.Version(), runtime.GOOS, runtime.GOARCH)
 )
 
+// Info contains version and build information.
 type Info struct {
 	Version   string
 	Commit    string
@@ -22,6 +24,7 @@ type Info struct {
 	BuiltWith string
 }
 
+// Get returns the current version information.
 func Get() Info {
 	return Info{
 		Version:   version,
@@ -33,6 +36,7 @@ func Get() Info {
 
 var labelStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("12"))
 
+// String returns a formatted version info string.
 func (i Info) String() string {
 	sb := strings.Builder{}
 	sb.WriteString("\n  ")

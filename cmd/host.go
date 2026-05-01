@@ -26,6 +26,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Output styling for host tree display
 var treeStyle = lipgloss.NewStyle().
 	Foreground(lipgloss.Color("212"))
 
@@ -34,6 +35,7 @@ var hostStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("255"))
 var groupStyle = lipgloss.NewStyle().
 	Bold(true).Faint(false).Foreground(lipgloss.Color("12"))
 
+// RunHostCmd displays all configured hosts in a tree format.
 func RunHostCmd(cmd *cobra.Command, args []string) {
 	e := executor.New(
 		executor.WithVerboseLevel(flagVerboseLevel),
