@@ -20,10 +20,12 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/cqroot/minop/pkg/executor"
-	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
+
+var taskBulletStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("12"))
 
 // RunTaskCmd displays all tasks from the configuration file.
 func RunTaskCmd(cmd *cobra.Command, args []string) {
@@ -36,7 +38,7 @@ func RunTaskCmd(cmd *cobra.Command, args []string) {
 
 	fmt.Println()
 	for _, op := range ops {
-		fmt.Printf("  %s %s\n", color.HiBlueString("•"), op.DefaultName())
+		fmt.Printf("  %s %s\n", taskBulletStyle.Render("•"), op.DefaultName())
 	}
 }
 

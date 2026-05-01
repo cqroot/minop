@@ -31,7 +31,6 @@ import (
 	"github.com/cqroot/prompt"
 	promptconstants "github.com/cqroot/prompt/constants"
 	"github.com/cqroot/prompt/input"
-	"github.com/fatih/color"
 )
 
 // defaultConfigFile is the path used when no config file is explicitly specified.
@@ -72,16 +71,21 @@ func MinopTheme(msg string, state prompt.State, model string) string {
 	return s.String()
 }
 
-// ShowHelp displays the available CLI commands.
+var (
+	helpTitleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("5")).Bold(true)
+	helpKeyStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("10"))
+	helpValStyle   = lipgloss.NewStyle().Faint(true)
+)
+
 func ShowHelp() {
-	color.HiMagenta("\nMINOP CLI COMMANDS\n")
+	fmt.Print(helpTitleStyle.Render("\nMINOP CLI COMMANDS\n"))
 
 	helpEntries := gtypes.NewOrderedMap[string, string]()
 	helpEntries.Put("exit", "Quit minop")
 	helpEntries.Put("quit", "Quit minop")
 	helpEntries.Put("help", "Show help output")
 	_ = helpEntries.ForEach(func(k, v string) error {
-		fmt.Printf("    %s    %s\n", color.HiGreenString(k), v)
+		fmt.Printf("    %s    %s\n", helpKeyStyle.Render(k), helpValStyle.Render(v))
 		return nil
 	})
 

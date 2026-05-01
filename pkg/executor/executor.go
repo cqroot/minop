@@ -25,14 +25,22 @@ import (
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/cqroot/gtypes"
 	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/operation"
 	"github.com/cqroot/minop/pkg/remote"
-	"github.com/fatih/color"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
 	"golang.org/x/term"
+)
+
+var (
+	labelStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("14"))
+	taskStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("10"))
+	dimStyle       = lipgloss.NewStyle().Faint(true)
+	hostStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("12"))
+	timestampStyle = lipgloss.NewStyle().Faint(true)
 )
 
 // Executor orchestrates remote operations across multiple hosts.
@@ -65,9 +73,9 @@ func (e Executor) printValue(key string, val string) {
 
 	prefix := fmt.Sprintf("%s    ", e.outputPrefix)
 	if e.optVerboseLevel == 0 && (strings.IndexByte(val, '\n') == -1 || strings.IndexByte(val, '\n') == len(val)-1) {
-		fmt.Printf("%s%s %s\n", prefix, color.CyanString("%s:", key), strings.ReplaceAll(val, "\n", ""))
+		fmt.Printf("%s%s %s\n", prefix, labelStyle.Render(fmt.Sprintf("%s:", key)), strings.ReplaceAll(val, "\n", ""))
 	} else {
-		color.Cyan("%s%s:\n", prefix, key)
+		fmt.Printf("%s%s:\n", prefix, labelStyle.Render(key))
 		scanner := bufio.NewScanner(strings.NewReader(val))
 		for scanner.Scan() {
 			fmt.Printf("%s    %s\n", prefix, scanner.Text())
@@ -92,8 +100,8 @@ func (e Executor) ExecuteOperation(hostGroup map[string][]remote.Host, pool *rem
 		defer close(printDone)
 		for res := range execResultsChan {
 			hostStr := fmt.Sprintf("%s%s@%s:%d", e.outputPrefix, res.h.User, res.h.Address, res.h.Port)
-			fmt.Printf("%s  %s\n", color.HiBlueString(hostStr),
-				color.HiBlackString(time.Now().Format("[2006-01-02 15:04:05]")))
+			fmt.Printf("%s  %s\n", hostStyle.Render(hostStr),
+				timestampStyle.Render(time.Now().Format("[2006-01-02 15:04:05]")))
 
 			if res.res != nil {
 				_ = res.res.ForEach(func(key, val string) error {
@@ -173,9 +181,9 @@ func (e Executor) ExecuteOperations(hostGroup map[string][]remote.Host, ops []op
 			delim = strings.Repeat("•", delimLen)
 		}
 		fmt.Printf("%s %s %s\n",
-			color.HiYellowString(op.Name()),
-			color.HiBlackString(delim),
-			color.HiBlackString(time.Now().Format("2006-01-02 15:04:05")),
+			taskStyle.Render(op.Name()),
+			dimStyle.Render(delim),
+			dimStyle.Render(time.Now().Format("2006-01-02 15:04:05")),
 		)
 
 		err := e.ExecuteOperation(hostGroup, pool, op)

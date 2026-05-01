@@ -20,15 +20,17 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/fatih/color"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
+var labelStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("12"))
+
 func RunInfoCmd(cmd *cobra.Command, args []string) {
-	fmt.Printf("    %s  %s\n", color.HiBlueString("%-10s", "Config"), viper.ConfigFileUsed())
-	fmt.Printf("    %s  %d\n", color.HiBlueString("%-10s", "MaxProcs"), flagMaxProcs)
-	fmt.Printf("    %s  %d\n", color.HiBlueString("%-10s", "Verbose"), flagVerboseLevel)
+	fmt.Printf("    %s    %s\n", labelStyle.Render("Config"), viper.ConfigFileUsed())
+	fmt.Printf("    %s  %d\n", labelStyle.Render("MaxProcs"), flagMaxProcs)
+	fmt.Printf("    %s   %d\n", labelStyle.Render("Verbose"), flagVerboseLevel)
 }
 
 func NewInfoCmd() *cobra.Command {

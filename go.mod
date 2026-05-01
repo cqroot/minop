@@ -3,13 +3,10 @@ module github.com/cqroot/minop
 go 1.26.2
 
 require (
-	github.com/adrg/xdg v0.5.3
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/cqroot/gtypes v0.0.3
 	github.com/cqroot/gutils v0.0.1
 	github.com/cqroot/prompt v0.9.4
-	github.com/fatih/color v1.19.0
-	github.com/jedib0t/go-pretty/v6 v6.7.9
 	github.com/pkg/sftp v1.13.10
 	github.com/rs/zerolog v1.35.0
 	github.com/spf13/cobra v1.10.2
