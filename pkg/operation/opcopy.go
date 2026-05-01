@@ -31,8 +31,6 @@ type OpCopy struct {
 	copy   string
 	to     string
 	backup bool
-	mode   string
-	owner  string
 }
 
 func NewOpCopy(in Input) (*OpCopy, error) {
@@ -43,13 +41,11 @@ func NewOpCopy(in Input) (*OpCopy, error) {
 		copy:   in.Copy,
 		to:     in.To,
 		backup: in.Backup,
-		mode:   in.Mode,
-		owner:  in.Owner,
 	}, nil
 }
 
 func (op OpCopy) DefaultName() string {
-	return fmt.Sprintf("COPY: %q -> %q", op.copy, op.to)
+	return fmt.Sprintf("[copy] %s => %s", op.copy, op.to)
 }
 
 func (op OpCopy) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {

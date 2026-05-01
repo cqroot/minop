@@ -34,8 +34,6 @@ type Input struct {
 	Copy   string `yaml:"copy"`
 	To     string `yaml:"to"`
 	Backup bool   `yaml:"backup"`
-	Mode   string `yaml:"mode"`
-	Owner  string `yaml:"owner"`
 }
 
 type Operation interface {
