@@ -55,50 +55,70 @@ Download the binary for your platform from the releases page and add its directo
 
 ## Usage
 
-### Create the Hosts File
+### Create the Config File
 
-Create a file named `hosts.yaml` in YAML format. The file should contain groups of hosts, where each group is a list of host strings in the format `<user>:<password>@<address>:<port>`. Example:
+Create a file named `minop.yaml` in YAML format. This file contains both hosts and tasks.
+
+#### Hosts Section
+
+The file should contain groups of hosts under the `hosts` key, where each group is a list of host strings in the format `<user>:<password>@<address>:<port>`. Example:
 
 ```yaml
-all:
-  - root:asdf@127.0.0.1:8001
+hosts:
+  all:
+    - root:asdf@127.0.0.1:8001
 
-main:
-  - root:asdf@127.0.0.1:8002
-  - root:asdf@127.0.0.1:8003
+  main:
+    - root:asdf@127.0.0.1:8002
+    - root:asdf@127.0.0.1:8003
 ```
 
 Hosts listed under a specific section header (like `main` in the example) will be assigned to that role.
 
-### Interactive CLI
+#### Tasks Section
 
-Running the tool directly will load the `hosts` file from the current directory and start an interactive CLI. Here, you can execute commands you wish to run on the remote hosts.
+Add your tasks under the `tasks` key:
+
+```yaml
+tasks:
+  - name: Copy file to /root on the remote host
+    copy: test.txt
+    to: /root/test.txt
+
+  - name: Copy dir to /root on the remote host
+    copy: testdir
+    to: /root/testdir
+
+  - name: List /root
+    shell: ls /root
+```
+
+### Execute Tasks
+
+Run the following command to execute tasks on the remote hosts:
 
 ```bash
 minop
 ```
 
-### Execute Task Files
-
-To execute predefined tasks non-interactively, first create a YAML file, for example `minop.yaml`:
-
-```yaml
-- name: Copy file to /root on the remote host
-  copy: test.txt
-  to: /root/test.txt
-
-- name: Copy dir to /root on the remote host
-  copy: testdir
-  to: /root/testdir
-
-- name: List /root
-  shell: ls /root
-```
-
-Then, run the following command to load the `hosts` file and the `minop.yaml` file from the current directory, executing the orchestrated tasks on the remote hosts:
+This will load `./minop.yaml` by default. You can specify a different config file:
 
 ```bash
-minop -t minop.yaml
+minop -c /path/to/config.yaml
+```
+
+### Interactive CLI
+
+Start an interactive CLI mode to execute commands on remote hosts:
+
+```bash
+minop cli
+```
+
+You can also specify a different config file:
+
+```bash
+minop cli -c /path/to/config.yaml
 ```
 
 ## Contributing

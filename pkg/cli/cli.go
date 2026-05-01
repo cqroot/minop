@@ -20,12 +20,10 @@ package cli
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/cqroot/gtypes"
-	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/executor"
 	"github.com/cqroot/minop/pkg/operation"
 	"github.com/cqroot/minop/pkg/remote"
@@ -35,7 +33,10 @@ import (
 	"github.com/fatih/color"
 )
 
+const defaultConfigFile = "./minop.yaml"
+
 type Cli struct {
+	configFile      string
 	optVerboseLevel int
 	optMaxProcs     int
 }
@@ -85,12 +86,17 @@ func ShowHelp() {
 }
 
 func (c Cli) Run() error {
-	hostGroup, err := remote.ParseHostsFile(filepath.Join(".", constants.HostFilename))
+	configFile := c.configFile
+	if configFile == "" {
+		configFile = defaultConfigFile
+	}
+
+	e := executor.New(executor.WithMaxProcs(c.optMaxProcs))
+	hostGroup, _, err := e.LoadConfig(configFile)
 	if err != nil {
 		return err
 	}
 	pool := remote.NewHostPool()
-	e := executor.New(executor.WithMaxProcs(c.optMaxProcs))
 
 	for {
 		val, err := prompt.New(prompt.WithTheme(MinopTheme)).Ask("MINOP").

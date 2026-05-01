@@ -19,16 +19,18 @@ package cmd
 
 import (
 	"os"
-	"path/filepath"
 
-	"github.com/cqroot/minop/pkg/constants"
-	"github.com/cqroot/minop/pkg/remote"
+	"github.com/cqroot/minop/pkg/executor"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
 func RunHostCmd(cmd *cobra.Command, args []string) {
-	hostGroup, err := remote.ParseHostsFile(filepath.Join(".", constants.HostFilename))
+	e := executor.New(
+		executor.WithVerboseLevel(flagVerboseLevel),
+		executor.WithMaxProcs(flagMaxProcs))
+
+	hostGroup, _, err := e.LoadConfig(flagConfigFile)
 	CheckErr(err)
 
 	t := table.NewWriter()
@@ -55,7 +57,7 @@ func RunHostCmd(cmd *cobra.Command, args []string) {
 func NewHostCmd() *cobra.Command {
 	c := cobra.Command{
 		Use:   "host",
-		Short: "List all hosts.",
+		Short: "List all hosts",
 		Long:  "List all hosts.",
 		Run:   RunHostCmd,
 	}

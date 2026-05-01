@@ -18,34 +18,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package cmd
 
 import (
-	"fmt"
-
-	"github.com/cqroot/minop/pkg/executor"
-	"github.com/fatih/color"
+	"github.com/cqroot/minop/pkg/cli"
 	"github.com/spf13/cobra"
 )
 
-func RunTaskCmd(cmd *cobra.Command, args []string) {
-	e := executor.New(
-		executor.WithVerboseLevel(flagVerboseLevel),
-		executor.WithMaxProcs(flagMaxProcs))
+var flagCliConfigFile string
 
-	_, ops, err := e.LoadConfig(flagConfigFile)
-	CheckErr(err)
-
-	fmt.Println()
-	for _, op := range ops {
-		fmt.Printf("  %s %s\n", color.HiBlueString("•"), op.DefaultName())
+func RunCliCmd(cmd *cobra.Command, args []string) {
+	if flagCliConfigFile == "" {
+		flagCliConfigFile = "./minop.yaml"
 	}
+
+	c := cli.New(cli.WithConfigFile(flagCliConfigFile), cli.WithMaxProcs(flagMaxProcs))
+	CheckErr(c.Run())
 }
 
-func NewTaskCmd() *cobra.Command {
+func NewCliCmd() *cobra.Command {
 	c := cobra.Command{
-		Use:   "task",
-		Short: "Show task info",
-		Long:  "Show task info.",
-		Run:   RunTaskCmd,
+		Use:   "cli",
+		Short: "Start the interactive CLI mode",
+		Long:  "Start an interactive CLI to execute commands on remote hosts.",
+		Run:   RunCliCmd,
 	}
+	c.Flags().StringVarP(&flagCliConfigFile, "config", "c", "", "Specify config file (default ./minop.yaml)")
 
 	return &c
 }

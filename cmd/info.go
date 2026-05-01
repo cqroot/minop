@@ -34,7 +34,7 @@ func RunInfoCmd(cmd *cobra.Command, args []string) {
 func NewInfoCmd() *cobra.Command {
 	c := cobra.Command{
 		Use:   "info",
-		Short: "Show minop info.",
+		Short: "Show minop info",
 		Long:  "Show minop info.",
 		Run:   RunInfoCmd,
 	}

@@ -19,7 +19,7 @@ package cli
 
 type Option func(c *Cli)
 
-func WithVerboseLeve(verboseLevel int) Option {
+func WithVerboseLevel(verboseLevel int) Option {
 	return func(c *Cli) {
 		c.optVerboseLevel = verboseLevel
 	}
@@ -30,5 +30,11 @@ func WithMaxProcs(maxProcs int) Option {
 		if maxProcs > 0 {
 			c.optMaxProcs = maxProcs
 		}
+	}
+}
+
+func WithConfigFile(configFile string) Option {
+	return func(c *Cli) {
+		c.configFile = configFile
 	}
 }

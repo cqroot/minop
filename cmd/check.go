@@ -30,11 +30,7 @@ func RunCheckCmd(cmd *cobra.Command, args []string) {
 		executor.WithVerboseLevel(flagVerboseLevel),
 		executor.WithMaxProcs(flagMaxProcs))
 
-	if flagTaskFile == "" {
-		flagTaskFile = "./minop.yaml"
-	}
-
-	ops, err := e.LoadOperations(flagTaskFile)
+	_, ops, err := e.LoadConfig(flagConfigFile)
 	CheckErr(err)
 
 	fmt.Println()
@@ -46,7 +42,7 @@ func RunCheckCmd(cmd *cobra.Command, args []string) {
 func NewCheckCmd() *cobra.Command {
 	c := cobra.Command{
 		Use:   "check",
-		Short: "Check and validate task file.",
+		Short: "Check and validate task file",
 		Long:  "Load and validate the specified task file, then print the task information.",
 		Run:   RunCheckCmd,
 	}

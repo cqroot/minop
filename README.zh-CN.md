@@ -55,17 +55,70 @@ go install github.com/cqroot/minop@latest
 
 ## 用法
 
-## 创建主机列表文件
+## 创建配置文件
 
-创建一个名为 `hosts.yaml` 的 YAML 格式文件。该文件应包含主机组，每个组是一个主机字符串列表，格式为 `<user>:<password>@<address>:<port>`。示例如下：
+创建一个名为 `minop.yaml` 的 YAML 格式文件。该文件同时包含主机列表和任务配置。
+
+#### 主机列表
+
+在 `hosts` 键下包含主机组，每个组是一个主机字符串列表，格式为 `<user>:<password>@<address>:<port>`。示例如下：
 
 ```yaml
-all:
-  - root:asdf@127.0.0.1:8001
+hosts:
+  all:
+    - root:asdf@127.0.0.1:8001
 
-main:
-  - root:asdf@127.0.0.1:8002
-  - root:asdf@127.0.0.1:8003
+  main:
+    - root:asdf@127.0.0.1:8002
+    - root:asdf@127.0.0.1:8003
+```
+
+位于特定章节下的主机会归属于指定的角色下（如上述示例中，后两个主机的角色为 `main`）。
+
+#### 任务列表
+
+在 `tasks` 键下添加任务：
+
+```yaml
+tasks:
+  - name: Copy file to /root on the remote host
+    copy: test.txt
+    to: /root/test.txt
+
+  - name: Copy dir to /root on the remote host
+    copy: testdir
+    to: /root/testdir
+
+  - name: List /root
+    shell: ls /root
+```
+
+### 执行任务
+
+运行以下命令在远程主机上执行任务：
+
+```bash
+minop
+```
+
+默认会加载当前目录下的 `./minop.yaml`。你也可以指定其他配置文件：
+
+```bash
+minop -c /path/to/config.yaml
+```
+
+### 交互式 CLI
+
+启动交互式 CLI 模式来在远程主机上执行命令：
+
+```bash
+minop cli
+```
+
+你也可以指定其他配置文件：
+
+```bash
+minop cli -c /path/to/config.yaml
 ```
 
 位于特定章节下的主机，会归属于指定的角色下（如上述示例中，后两个主机的角色为 `main`）。

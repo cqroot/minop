@@ -19,10 +19,7 @@ package cmd
 
 import (
 	"os"
-	"path/filepath"
 
-	"github.com/adrg/xdg"
-	"github.com/cqroot/minop/pkg/cli"
 	"github.com/cqroot/minop/pkg/executor"
 	"github.com/cqroot/minop/pkg/logs"
 	"github.com/cqroot/minop/pkg/version"
@@ -32,8 +29,7 @@ import (
 )
 
 var (
-	configFile       string
-	flagTaskFile     string
+	flagConfigFile   string
 	flagMaxProcs     int
 	flagVerboseLevel int
 )
@@ -45,30 +41,9 @@ func CheckErr(err error) {
 	}
 }
 
-func IsDirExists(path string) bool {
-	info, err := os.Stat(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return false
-		}
-		return false
-	}
-	return info.IsDir()
-}
-
 func initConfig(cmd *cobra.Command) error {
-	configDir := filepath.Join(xdg.ConfigHome, "minop")
-	configFile = filepath.Join(configDir, "minop.toml")
-
-	if !IsDirExists(configDir) {
-		return nil
-	}
-
-	viper.SetConfigFile(configFile)
-	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			return err
-		}
+	if flagConfigFile == "" {
+		flagConfigFile = "./minop.yaml"
 	}
 
 	if err := viper.BindPFlag("max-procs", cmd.Flags().Lookup("max-procs")); err != nil {
@@ -95,7 +70,7 @@ func PersistentPreRunE(cmd *cobra.Command, args []string) error {
 	}
 
 	logs.Logger().Debug().
-		Str("task_file", flagTaskFile).
+		Str("config_file", flagConfigFile).
 		Int("max_procs", flagMaxProcs).
 		Int("verbose_level", flagVerboseLevel).
 		Str("log_level", logs.Logger().GetLevel().String()).
@@ -105,33 +80,26 @@ func PersistentPreRunE(cmd *cobra.Command, args []string) error {
 }
 
 func RunRootCmd(cmd *cobra.Command, args []string) {
-	if flagTaskFile == "" {
-		c := cli.New(cli.WithMaxProcs(flagMaxProcs), cli.WithVerboseLeve(flagVerboseLevel))
-		err := c.Run()
-		CheckErr(err)
-		return
-	}
-
 	e := executor.New(
 		executor.WithVerboseLevel(flagVerboseLevel),
 		executor.WithMaxProcs(flagMaxProcs))
 
-	ops, err := e.LoadOperations(flagTaskFile)
+	hostGroup, ops, err := e.LoadConfig(flagConfigFile)
 	CheckErr(err)
 
-	err = e.ExecuteOperations(ops)
+	err = e.ExecuteOperations(hostGroup, ops)
 	CheckErr(err)
 }
 
 func NewRootCmd() *cobra.Command {
 	c := cobra.Command{
 		Use:               "minop",
-		Short:             "MINOP is a simple tool for remote task orchestration and batch execution.",
+		Short:             "MINOP is a simple tool for remote task orchestration and batch execution",
 		Long:              "MINOP is a simple tool for remote task orchestration and batch execution.",
 		PersistentPreRunE: PersistentPreRunE,
 		Run:               RunRootCmd,
 	}
-	c.PersistentFlags().StringVarP(&flagTaskFile, "task", "t", "", "Specify task file")
+	c.PersistentFlags().StringVarP(&flagConfigFile, "config", "c", "", "Specify config file (default ./minop.yaml)")
 	c.PersistentFlags().IntVarP(&flagMaxProcs, "max-procs", "p", 1, "Maximum number of tasks to execute simultaneously (default 1)")
 	c.PersistentFlags().CountVarP(&flagVerboseLevel, "verbose", "v", "Increase output verbosity. Use multiple v's for more detail, e.g., -v, -vv (default 0)")
 
@@ -139,6 +107,7 @@ func NewRootCmd() *cobra.Command {
 	c.AddCommand(NewTaskCmd())
 	c.AddCommand(NewInfoCmd())
 	c.AddCommand(NewCheckCmd())
+	c.AddCommand(NewCliCmd())
 	c.Version = version.Get().String()
 	return &c
 }

@@ -22,12 +22,10 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/cqroot/gtypes"
-	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/operation"
 	"github.com/cqroot/minop/pkg/remote"
 	"github.com/fatih/color"
@@ -146,12 +144,7 @@ func (e Executor) ExecuteOperation(hostGroup map[string][]remote.Host, pool *rem
 	return firstErr
 }
 
-func (e Executor) ExecuteOperations(ops []operation.Operation) error {
-	hostGroup, err := remote.ParseHostsFile(filepath.Join(".", constants.HostFilename))
-	if err != nil {
-		return err
-	}
-
+func (e Executor) ExecuteOperations(hostGroup map[string][]remote.Host, ops []operation.Operation) error {
 	pool := remote.NewHostPool()
 	e.outputPrefix = "    "
 

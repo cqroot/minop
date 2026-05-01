@@ -23,28 +23,45 @@ import (
 
 	"github.com/cqroot/minop/pkg/logs"
 	"github.com/cqroot/minop/pkg/operation"
+	"github.com/cqroot/minop/pkg/remote"
 	"gopkg.in/yaml.v3"
 )
 
-func (e Executor) LoadOperations(filename string) ([]operation.Operation, error) {
+type Config struct {
+	Hosts map[string][]string `yaml:"hosts"`
+	Tasks []operation.Input   `yaml:"tasks"`
+}
+
+func (e Executor) LoadConfig(filename string) (map[string][]remote.Host, []operation.Operation, error) {
 	content, err := os.ReadFile(filename)
 	if err != nil {
 		logs.Logger().Error().Err(err).Msg("failed to read file")
-		return nil, err
+		return nil, nil, err
 	}
 
-	var ins []operation.Input
-	err = yaml.Unmarshal(content, &ins)
+	var cfg Config
+	err = yaml.Unmarshal(content, &cfg)
 	if err != nil {
 		logs.Logger().Error().Err(err).Msg("failed to unmarshal YAML data")
-		return nil, fmt.Errorf("failed to unmarshal YAML data\n%w", err)
+		return nil, nil, fmt.Errorf("failed to unmarshal YAML data\n%w", err)
 	}
 
-	ops := make([]operation.Operation, len(ins))
-	for idx, in := range ins {
+	hostGroup := make(map[string][]remote.Host)
+	for role, lines := range cfg.Hosts {
+		for _, line := range lines {
+			h, err := remote.ParseHostLine(line)
+			if err != nil {
+				return nil, nil, fmt.Errorf("parse host line for role %q: %w", role, err)
+			}
+			hostGroup[role] = append(hostGroup[role], h)
+		}
+	}
+
+	ops := make([]operation.Operation, len(cfg.Tasks))
+	for idx, in := range cfg.Tasks {
 		op, err := operation.GetOperation(in)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		if in.Name != "" {
@@ -61,5 +78,5 @@ func (e Executor) LoadOperations(filename string) ([]operation.Operation, error)
 
 		ops[idx] = op
 	}
-	return ops, nil
+	return hostGroup, ops, nil
 }
