@@ -25,6 +25,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// RunHostCmd displays all configured hosts in a table.
 func RunHostCmd(cmd *cobra.Command, args []string) {
 	e := executor.New(
 		executor.WithVerboseLevel(flagVerboseLevel),
@@ -54,6 +55,7 @@ func RunHostCmd(cmd *cobra.Command, args []string) {
 	t.Render()
 }
 
+// NewHostCmd creates the host command that lists all configured hosts.
 func NewHostCmd() *cobra.Command {
 	c := cobra.Command{
 		Use:   "host",

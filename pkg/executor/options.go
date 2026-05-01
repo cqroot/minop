@@ -17,14 +17,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package executor
 
+// Option configures an Executor.
 type Option func(e *Executor)
 
+// WithVerboseLevel sets the verbosity level for executor output.
 func WithVerboseLevel(verboseLevel int) Option {
 	return func(e *Executor) {
 		e.optVerboseLevel = verboseLevel
 	}
 }
 
+// WithMaxProcs sets the maximum number of concurrent operations.
+// A value of 0 or negative is ignored and the default (1) is used.
 func WithMaxProcs(maxProcs int) Option {
 	return func(e *Executor) {
 		if maxProcs > 0 {

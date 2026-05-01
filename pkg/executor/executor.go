@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/cqroot/gtypes"
+	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/operation"
 	"github.com/cqroot/minop/pkg/remote"
 	"github.com/fatih/color"
@@ -34,12 +35,14 @@ import (
 	"golang.org/x/term"
 )
 
+// Executor orchestrates remote operations across multiple hosts.
 type Executor struct {
 	optVerboseLevel int
 	optMaxProcs     int
 	outputPrefix    string
 }
 
+// New creates a new Executor with the given options.
 func New(opts ...Option) *Executor {
 	e := Executor{
 		optVerboseLevel: 0,
@@ -53,6 +56,8 @@ func New(opts ...Option) *Executor {
 	return &e
 }
 
+// printValue outputs a key-value pair with the configured prefix.
+// Single-line values are printed inline; multi-line values are printed block-style.
 func (e Executor) printValue(key string, val string) {
 	if val == "" {
 		return
@@ -70,18 +75,22 @@ func (e Executor) printValue(key string, val string) {
 	}
 }
 
+// execResult holds the result of a remote operation execution.
 type execResult struct {
 	h   remote.Host
 	res *gtypes.OrderedMap[string, string]
 }
 
+// ExecuteOperation runs a single operation on all matching hosts in the group.
+// It respects the operation's Role field: if Role is "all", it runs on all hosts;
+// otherwise, it runs only on hosts in the specified role group.
 func (e Executor) ExecuteOperation(hostGroup map[string][]remote.Host, pool *remote.HostPool, op operation.Operation) error {
-	chanExecResults := make(chan execResult)
+	execResultsChan := make(chan execResult)
 
 	printDone := make(chan struct{})
 	go func() {
 		defer close(printDone)
-		for res := range chanExecResults {
+		for res := range execResultsChan {
 			hostStr := fmt.Sprintf("%s%s@%s:%d", e.outputPrefix, res.h.User, res.h.Address, res.h.Port)
 			fmt.Printf("%s  %s\n", color.HiBlueString(hostStr),
 				color.HiBlackString(time.Now().Format("[2006-01-02 15:04:05]")))
@@ -99,12 +108,15 @@ func (e Executor) ExecuteOperation(hostGroup map[string][]remote.Host, pool *rem
 	g, ctx := errgroup.WithContext(context.Background())
 
 	for role, hosts := range hostGroup {
-		if op.Role() != "all" && op.Role() != role {
+		if op.Role() != constants.RoleAll && op.Role() != role {
 			continue
 		}
 
 		for _, h := range hosts {
 			if err := sem.Acquire(ctx, 1); err != nil {
+				if ctx.Err() != nil {
+					return ctx.Err()
+				}
 				continue
 			}
 
@@ -122,7 +134,7 @@ func (e Executor) ExecuteOperation(hostGroup map[string][]remote.Host, pool *rem
 					return err
 				}
 
-				chanExecResults <- execResult{
+				execResultsChan <- execResult{
 					h:   currHost,
 					res: res,
 				}
@@ -131,32 +143,30 @@ func (e Executor) ExecuteOperation(hostGroup map[string][]remote.Host, pool *rem
 		}
 	}
 
-	var firstErr error
+	errCh := make(chan error, 1)
 	go func() {
-		err := g.Wait()
-		if err != nil {
-			firstErr = err
-		}
-		close(chanExecResults)
+		errCh <- g.Wait()
+		close(execResultsChan)
 	}()
 
 	<-printDone
-	return firstErr
+	return <-errCh
 }
 
+// ExecuteOperations runs a sequence of operations on the host group.
+// Each operation is executed on all hosts that match the operation's Role.
 func (e Executor) ExecuteOperations(hostGroup map[string][]remote.Host, ops []operation.Operation) error {
 	pool := remote.NewHostPool()
 	e.outputPrefix = "    "
 
-	for _, op := range ops {
-		termWidth := 500
-		if term.IsTerminal(int(os.Stdout.Fd())) {
-			width, _, err := term.GetSize(int(os.Stdout.Fd()))
-			if err == nil {
-				termWidth = width
-			}
+	termWidth := 500
+	if term.IsTerminal(int(os.Stdout.Fd())) {
+		if w, _, err := term.GetSize(int(os.Stdout.Fd())); err == nil {
+			termWidth = w
 		}
+	}
 
+	for _, op := range ops {
 		delim := ""
 		delimLen := termWidth - len(op.Name()) - 2 - 19
 		if delimLen > 0 {

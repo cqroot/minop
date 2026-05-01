@@ -17,14 +17,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package cli
 
+// Option configures a Cli instance.
 type Option func(c *Cli)
 
+// WithVerboseLevel sets the verbosity level for CLI output.
 func WithVerboseLevel(verboseLevel int) Option {
 	return func(c *Cli) {
 		c.optVerboseLevel = verboseLevel
 	}
 }
 
+// WithMaxProcs sets the maximum number of concurrent operations.
 func WithMaxProcs(maxProcs int) Option {
 	return func(c *Cli) {
 		if maxProcs > 0 {
@@ -33,6 +36,7 @@ func WithMaxProcs(maxProcs int) Option {
 	}
 }
 
+// WithConfigFile sets the path to the configuration file.
 func WithConfigFile(configFile string) Option {
 	return func(c *Cli) {
 		c.configFile = configFile

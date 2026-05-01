@@ -34,6 +34,7 @@ var (
 	flagVerboseLevel int
 )
 
+// CheckErr logs the error and exits if err is not nil.
 func CheckErr(err error) {
 	if err != nil {
 		logs.Logger().Err(err).Msg("")
@@ -41,6 +42,7 @@ func CheckErr(err error) {
 	}
 }
 
+// initConfig initializes the configuration from flags and environment variables.
 func initConfig(cmd *cobra.Command) error {
 	if flagConfigFile == "" {
 		flagConfigFile = "./minop.yaml"
@@ -59,6 +61,7 @@ func initConfig(cmd *cobra.Command) error {
 	return nil
 }
 
+// PersistentPreRunE is the pre-run hook that initializes logging and config.
 func PersistentPreRunE(cmd *cobra.Command, args []string) error {
 	err := initConfig(cmd)
 	if err != nil {
@@ -79,6 +82,7 @@ func PersistentPreRunE(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+// RunRootCmd is the default root command that executes all operations.
 func RunRootCmd(cmd *cobra.Command, args []string) {
 	e := executor.New(
 		executor.WithVerboseLevel(flagVerboseLevel),
@@ -91,6 +95,7 @@ func RunRootCmd(cmd *cobra.Command, args []string) {
 	CheckErr(err)
 }
 
+// NewRootCmd creates and returns the root cobra command.
 func NewRootCmd() *cobra.Command {
 	c := cobra.Command{
 		Use:               "minop",
@@ -112,6 +117,7 @@ func NewRootCmd() *cobra.Command {
 	return &c
 }
 
+// Execute runs the root command.
 func Execute() {
 	CheckErr(NewRootCmd().Execute())
 }

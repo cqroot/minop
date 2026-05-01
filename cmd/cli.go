@@ -24,6 +24,7 @@ import (
 
 var flagCliConfigFile string
 
+// RunCliCmd starts the interactive CLI mode.
 func RunCliCmd(cmd *cobra.Command, args []string) {
 	if flagCliConfigFile == "" {
 		flagCliConfigFile = "./minop.yaml"

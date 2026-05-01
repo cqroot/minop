@@ -25,6 +25,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// RunCheckCmd loads and validates the configuration, then prints task info.
 func RunCheckCmd(cmd *cobra.Command, args []string) {
 	e := executor.New(
 		executor.WithVerboseLevel(flagVerboseLevel),
@@ -39,6 +40,7 @@ func RunCheckCmd(cmd *cobra.Command, args []string) {
 	}
 }
 
+// NewCheckCmd creates the check command that validates the config file.
 func NewCheckCmd() *cobra.Command {
 	c := cobra.Command{
 		Use:   "check",

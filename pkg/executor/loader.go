@@ -21,17 +21,24 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/logs"
 	"github.com/cqroot/minop/pkg/operation"
 	"github.com/cqroot/minop/pkg/remote"
 	"gopkg.in/yaml.v3"
 )
 
-type Config struct {
+// config represents the structure of the minop configuration file.
+type config struct {
+	// Hosts maps role names to lists of host connection strings.
+	// Each host string has the format "<user>:<password>@<address>:<port>".
 	Hosts map[string][]string `yaml:"hosts"`
-	Tasks []operation.Input   `yaml:"tasks"`
+	// Tasks defines the list of operations to execute.
+	Tasks []operation.Input `yaml:"tasks"`
 }
 
+// LoadConfig reads and parses the configuration file, returning the host groups
+// and operation list. The filename can be an absolute or relative path.
 func (e Executor) LoadConfig(filename string) (map[string][]remote.Host, []operation.Operation, error) {
 	content, err := os.ReadFile(filename)
 	if err != nil {
@@ -39,11 +46,11 @@ func (e Executor) LoadConfig(filename string) (map[string][]remote.Host, []opera
 		return nil, nil, err
 	}
 
-	var cfg Config
+	var cfg config
 	err = yaml.Unmarshal(content, &cfg)
 	if err != nil {
 		logs.Logger().Error().Err(err).Msg("failed to unmarshal YAML data")
-		return nil, nil, fmt.Errorf("failed to unmarshal YAML data\n%w", err)
+		return nil, nil, fmt.Errorf("failed to unmarshal YAML data: %w", err)
 	}
 
 	hostGroup := make(map[string][]remote.Host)
@@ -73,7 +80,7 @@ func (e Executor) LoadConfig(filename string) (map[string][]remote.Host, []opera
 		if in.Role != "" {
 			op.SetRole(in.Role)
 		} else {
-			op.SetRole("all")
+			op.SetRole(constants.RoleAll)
 		}
 
 		ops[idx] = op

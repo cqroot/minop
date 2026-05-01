@@ -24,6 +24,7 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/cqroot/gtypes"
+	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/executor"
 	"github.com/cqroot/minop/pkg/operation"
 	"github.com/cqroot/minop/pkg/remote"
@@ -33,27 +34,31 @@ import (
 	"github.com/fatih/color"
 )
 
-const defaultConfigFile = "./minop.yaml"
+// defaultConfigFile is the path used when no config file is explicitly specified.
+const defaultConfigFile = "./" + constants.DefaultConfigFile
 
+// Cli provides an interactive command-line interface for remote operations.
 type Cli struct {
 	configFile      string
 	optVerboseLevel int
 	optMaxProcs     int
 }
 
+// New creates a new Cli instance with the given options.
 func New(opts ...Option) *Cli {
-	e := Cli{
+	c := Cli{
 		optVerboseLevel: 0,
 		optMaxProcs:     1,
 	}
 
 	for _, opt := range opts {
-		opt(&e)
+		opt(&c)
 	}
 
-	return &e
+	return &c
 }
 
+// MinopTheme customizes the prompt appearance.
 func MinopTheme(msg string, state prompt.State, model string) string {
 	s := strings.Builder{}
 
@@ -67,24 +72,25 @@ func MinopTheme(msg string, state prompt.State, model string) string {
 	return s.String()
 }
 
+// ShowHelp displays the available CLI commands.
 func ShowHelp() {
 	color.HiMagenta("\nMINOP CLI COMMANDS\n")
 
-	help := gtypes.NewOrderedMap[string, string]()
-	help.Put("exit", "Quit minop")
-	help.Put("quit", "Quit minop")
-	help.Put("help", "Show help output")
-	err := help.ForEach(func(k, v string) error {
+	helpEntries := gtypes.NewOrderedMap[string, string]()
+	helpEntries.Put("exit", "Quit minop")
+	helpEntries.Put("quit", "Quit minop")
+	helpEntries.Put("help", "Show help output")
+	_ = helpEntries.ForEach(func(k, v string) error {
 		fmt.Printf("    %s    %s\n", color.HiGreenString(k), v)
 		return nil
 	})
-	if err != nil {
-		panic(err)
-	}
 
 	fmt.Println()
 }
 
+// Run starts the interactive CLI loop, reading commands from stdin and
+// executing them on the configured remote hosts. It returns when the user
+// quits or encounters an error.
 func (c Cli) Run() error {
 	configFile := c.configFile
 	if configFile == "" {
@@ -130,7 +136,7 @@ func (c Cli) Run() error {
 		if err != nil {
 			return err
 		}
-		op.SetRole("all")
+		op.SetRole(constants.RoleAll)
 
 		err = e.ExecuteOperation(hostGroup, pool, op)
 		if err != nil {

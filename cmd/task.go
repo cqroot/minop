@@ -25,6 +25,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// RunTaskCmd displays all tasks from the configuration file.
 func RunTaskCmd(cmd *cobra.Command, args []string) {
 	e := executor.New(
 		executor.WithVerboseLevel(flagVerboseLevel),
@@ -39,6 +40,7 @@ func RunTaskCmd(cmd *cobra.Command, args []string) {
 	}
 }
 
+// NewTaskCmd creates the task command that shows task information.
 func NewTaskCmd() *cobra.Command {
 	c := cobra.Command{
 		Use:   "task",
