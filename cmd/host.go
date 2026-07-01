@@ -41,7 +41,7 @@ func RunHostCmd(cmd *cobra.Command, args []string) {
 		executor.WithVerboseLevel(flagVerboseLevel),
 		executor.WithMaxProcs(flagMaxProcs))
 
-	hostGroup, _, err := e.LoadConfig(flagConfigFile)
+	hostGroup, _, err := e.LoadTaskFile(flagTaskFile)
 	CheckErr(err)
 
 	groups := make([]string, 0, len(hostGroup))

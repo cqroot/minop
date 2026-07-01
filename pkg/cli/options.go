@@ -36,9 +36,8 @@ func WithMaxProcs(maxProcs int) Option {
 	}
 }
 
-// WithConfigFile sets the path to the configuration file.
-func WithConfigFile(configFile string) Option {
+func WithTaskFile(taskFile string) Option {
 	return func(c *Cli) {
-		c.configFile = configFile
+		c.taskFile = taskFile
 	}
 }

@@ -28,7 +28,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// config represents the structure of the minop configuration file.
 type config struct {
 	// Hosts maps role names to lists of host connection strings.
 	// Each host string has the format "<user>:<password>@<address>:<port>".
@@ -37,9 +36,7 @@ type config struct {
 	Tasks []operation.Input `yaml:"tasks"`
 }
 
-// LoadConfig reads and parses the configuration file, returning the host groups
-// and operation list. The filename can be an absolute or relative path.
-func (e Executor) LoadConfig(filename string) (map[string][]remote.Host, []operation.Operation, error) {
+func (e Executor) LoadTaskFile(filename string) (map[string][]remote.Host, []operation.Operation, error) {
 	content, err := os.ReadFile(filename)
 	if err != nil {
 		logs.Logger().Error().Err(err).Msg("failed to read file")

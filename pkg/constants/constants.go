@@ -20,5 +20,4 @@ package constants
 // RoleAll is the special role that matches all host groups.
 const RoleAll = "all"
 
-// DefaultConfigFile is the default configuration file name.
-const DefaultConfigFile = "minop.yaml"
+const DefaultTaskFile = "minop.yaml"

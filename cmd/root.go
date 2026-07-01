@@ -20,6 +20,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/executor"
 	"github.com/cqroot/minop/pkg/logs"
 	"github.com/cqroot/minop/pkg/version"
@@ -29,7 +30,7 @@ import (
 )
 
 var (
-	flagConfigFile   string
+	flagTaskFile     string
 	flagMaxProcs     int
 	flagVerboseLevel int
 )
@@ -43,9 +44,9 @@ func CheckErr(err error) {
 }
 
 // initConfig initializes the configuration from flags and environment variables.
-func initConfig(cmd *cobra.Command) error {
-	if flagConfigFile == "" {
-		flagConfigFile = "./minop.yaml"
+func initTask(cmd *cobra.Command) error {
+	if flagTaskFile == "" {
+		flagTaskFile = "./" + constants.DefaultTaskFile
 	}
 
 	if err := viper.BindPFlag("max-procs", cmd.Flags().Lookup("max-procs")); err != nil {
@@ -61,9 +62,9 @@ func initConfig(cmd *cobra.Command) error {
 	return nil
 }
 
-// PersistentPreRunE is the pre-run hook that initializes logging and config.
+// PersistentPreRunE is the pre-run hook that initializes logging and task file.
 func PersistentPreRunE(cmd *cobra.Command, args []string) error {
-	err := initConfig(cmd)
+	err := initTask(cmd)
 	if err != nil {
 		return err
 	}
@@ -73,7 +74,7 @@ func PersistentPreRunE(cmd *cobra.Command, args []string) error {
 	}
 
 	logs.Logger().Debug().
-		Str("config_file", flagConfigFile).
+		Str("task_file", flagTaskFile).
 		Int("max_procs", flagMaxProcs).
 		Int("verbose_level", flagVerboseLevel).
 		Str("log_level", logs.Logger().GetLevel().String()).
@@ -88,7 +89,7 @@ func RunRootCmd(cmd *cobra.Command, args []string) {
 		executor.WithVerboseLevel(flagVerboseLevel),
 		executor.WithMaxProcs(flagMaxProcs))
 
-	hostGroup, ops, err := e.LoadConfig(flagConfigFile)
+	hostGroup, ops, err := e.LoadTaskFile(flagTaskFile)
 	CheckErr(err)
 
 	err = e.ExecuteOperations(hostGroup, ops)
@@ -104,7 +105,7 @@ func NewRootCmd() *cobra.Command {
 		PersistentPreRunE: PersistentPreRunE,
 		Run:               RunRootCmd,
 	}
-	c.PersistentFlags().StringVarP(&flagConfigFile, "config", "c", "", "Specify config file (default ./minop.yaml)")
+	c.PersistentFlags().StringVarP(&flagTaskFile, "task", "t", "", "Specify task file (default ./"+constants.DefaultTaskFile+")")
 	c.PersistentFlags().IntVarP(&flagMaxProcs, "max-procs", "p", 1, "Maximum number of tasks to execute simultaneously (default 1)")
 	c.PersistentFlags().CountVarP(&flagVerboseLevel, "verbose", "v", "Increase output verbosity. Use multiple v's for more detail, e.g., -v, -vv (default 0)")
 

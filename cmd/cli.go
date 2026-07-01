@@ -19,18 +19,19 @@ package cmd
 
 import (
 	"github.com/cqroot/minop/pkg/cli"
+	"github.com/cqroot/minop/pkg/constants"
 	"github.com/spf13/cobra"
 )
 
-var flagCliConfigFile string
+var flagCliTaskFile string
 
 // RunCliCmd starts the interactive CLI mode.
 func RunCliCmd(cmd *cobra.Command, args []string) {
-	if flagCliConfigFile == "" {
-		flagCliConfigFile = "./minop.yaml"
+	if flagCliTaskFile == "" {
+		flagCliTaskFile = "./" + constants.DefaultTaskFile
 	}
 
-	c := cli.New(cli.WithConfigFile(flagCliConfigFile), cli.WithMaxProcs(flagMaxProcs))
+	c := cli.New(cli.WithTaskFile(flagCliTaskFile), cli.WithMaxProcs(flagMaxProcs))
 	CheckErr(c.Run())
 }
 
@@ -41,7 +42,7 @@ func NewCliCmd() *cobra.Command {
 		Long:  "Start an interactive CLI to execute commands on remote hosts.",
 		Run:   RunCliCmd,
 	}
-	c.Flags().StringVarP(&flagCliConfigFile, "config", "c", "", "Specify config file (default ./minop.yaml)")
+	c.Flags().StringVarP(&flagCliTaskFile, "task", "t", "", "Specify task file (default ./"+constants.DefaultTaskFile+")")
 
 	return &c
 }
