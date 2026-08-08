@@ -25,11 +25,15 @@ import (
 	"github.com/cqroot/minop/pkg/remote"
 )
 
-// Input defines the YAML input structure for creating operations.
-// It specifies the operation type (shell or copy) and its parameters.
+const (
+	OpTypeShell = "shell"
+	OpTypeCopy  = "copy"
+)
+
 type Input struct {
 	Name string `yaml:"name"`
 	Role string `yaml:"role"`
+	Type string `yaml:"type"`
 
 	Shell string `yaml:"shell"`
 
@@ -38,31 +42,38 @@ type Input struct {
 	Backup bool   `yaml:"backup"`
 }
 
-// Operation defines the interface for executable remote operations.
 type Operation interface {
 	baseOperation
 	Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error)
 	DefaultName() string
 }
 
-// ErrInvalidOperation is returned when an operation cannot be created from Input.
-var ErrInvalidOperation = errors.New("invalid operation")
+var (
+	ErrInvalidOperation = errors.New("invalid operation")
+	ErrInvalidOpType   = errors.New("invalid operation type")
+)
 
-// MakeErrInvalidOperation creates an error combining ErrInvalidOperation with the Input.
 func MakeErrInvalidOperation(in Input) error {
-	return fmt.Errorf("%w\n%+v", ErrInvalidOperation, in)
+	return fmt.Errorf("%w: %+v", ErrInvalidOperation, in)
 }
 
-// GetOperation creates an Operation from the given Input.
-// It returns an error if the Input is invalid or unsupported.
 func GetOperation(in Input) (Operation, error) {
-	if in.Shell != "" {
+	opType := in.Type
+
+	if opType == "" {
+		if in.Shell != "" {
+			opType = OpTypeShell
+		} else if in.Copy != "" {
+			opType = OpTypeCopy
+		}
+	}
+
+	switch opType {
+	case OpTypeShell:
 		return NewOpShell(in)
-	}
-
-	if in.Copy != "" {
+	case OpTypeCopy:
 		return NewOpCopy(in)
+	default:
+		return nil, fmt.Errorf("%w: %q (expected %q or %q)", ErrInvalidOpType, opType, OpTypeShell, OpTypeCopy)
 	}
-
-	return nil, MakeErrInvalidOperation(in)
 }
