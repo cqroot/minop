@@ -92,7 +92,7 @@ func RunRootCmd(cmd *cobra.Command, args []string) {
 	hostGroup, ops, err := e.LoadTaskFile(flagTaskFile)
 	CheckErr(err)
 
-	err = e.ExecuteOperations(hostGroup, ops)
+	err = e.ExecuteOperations("    ", hostGroup, ops)
 	CheckErr(err)
 }
 

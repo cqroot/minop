@@ -144,7 +144,7 @@ func (c Cli) Run() error {
 		}
 		op.SetRole(constants.RoleAll)
 
-		err = e.ExecuteOperation(hostGroup, pool, op)
+		err = e.ExecuteOnHosts("", hostGroup, pool, op)
 		if err != nil {
 			return err
 		}
