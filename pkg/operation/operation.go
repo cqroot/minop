@@ -28,6 +28,7 @@ import (
 const (
 	OpTypeShell = "shell"
 	OpTypeCopy  = "copy"
+	OpTypeLocal = "local"
 )
 
 type Input struct {
@@ -36,6 +37,7 @@ type Input struct {
 	Type string `yaml:"type"`
 
 	Shell string `yaml:"shell"`
+	Local string `yaml:"local"`
 
 	Copy   string `yaml:"copy"`
 	To     string `yaml:"to"`
@@ -65,6 +67,8 @@ func GetOperation(in Input) (Operation, error) {
 			opType = OpTypeShell
 		} else if in.Copy != "" {
 			opType = OpTypeCopy
+		} else if in.Local != "" {
+			opType = OpTypeLocal
 		}
 	}
 
@@ -73,7 +77,9 @@ func GetOperation(in Input) (Operation, error) {
 		return NewOpShell(in)
 	case OpTypeCopy:
 		return NewOpCopy(in)
+	case OpTypeLocal:
+		return NewOpLocal(in)
 	default:
-		return nil, fmt.Errorf("%w: %q (expected %q or %q)", ErrInvalidOpType, opType, OpTypeShell, OpTypeCopy)
+		return nil, fmt.Errorf("%w: %q (expected %q, %q or %q)", ErrInvalidOpType, opType, OpTypeShell, OpTypeCopy, OpTypeLocal)
 	}
 }

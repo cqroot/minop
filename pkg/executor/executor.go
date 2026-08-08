@@ -53,6 +53,21 @@ type execResult struct {
 }
 
 func (e Executor) ExecuteOnHosts(outputPrefix string, hostGroup map[string][]remote.Host, pool *remote.HostPool, op operation.Operation) error {
+	if localOp, ok := op.(*operation.OpLocal); ok {
+		localOp.SetPrefix(outputPrefix)
+		res, err := localOp.Execute(nil)
+		if err != nil {
+			return err
+		}
+		if res != nil {
+			_ = res.ForEach(func(key, val string) error {
+				printKeyValue(outputPrefix, key, val, e.optVerboseLevel)
+				return nil
+			})
+		}
+		return nil
+	}
+
 	results := make(chan execResult)
 
 	printDone := make(chan struct{})
