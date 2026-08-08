@@ -25,6 +25,7 @@ import (
 	"strconv"
 
 	"github.com/cqroot/gtypes"
+	"github.com/cqroot/minop/pkg/logs"
 	"github.com/cqroot/minop/pkg/remote"
 )
 
@@ -70,18 +71,42 @@ func (op OpLocal) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string],
 	go func() {
 		scanner := bufio.NewScanner(stdoutPipe)
 		for scanner.Scan() {
-			os.Stdout.Write([]byte(op.prefix))
-			os.Stdout.Write(scanner.Bytes())
-			os.Stdout.Write([]byte("\n"))
+			_, err := os.Stdout.Write([]byte(op.prefix))
+			if err != nil {
+				logs.Logger().Warn().Err(err).Msg("failed to write stdout")
+				return
+			}
+			_, err = os.Stdout.Write(scanner.Bytes())
+			if err != nil {
+				logs.Logger().Warn().Err(err).Msg("failed to write stdout")
+				return
+			}
+			_, err = os.Stdout.Write([]byte("\n"))
+			if err != nil {
+				logs.Logger().Warn().Err(err).Msg("failed to write stdout")
+				return
+			}
 		}
 	}()
 
 	go func() {
 		scanner := bufio.NewScanner(stderrPipe)
 		for scanner.Scan() {
-			os.Stderr.Write([]byte(op.prefix))
-			os.Stderr.Write(scanner.Bytes())
-			os.Stderr.Write([]byte("\n"))
+			_, err := os.Stderr.Write([]byte(op.prefix))
+			if err != nil {
+				logs.Logger().Warn().Err(err).Msg("failed to write stderr")
+				return
+			}
+			_, err = os.Stderr.Write(scanner.Bytes())
+			if err != nil {
+				logs.Logger().Warn().Err(err).Msg("failed to write stderr")
+				return
+			}
+			_, err = os.Stderr.Write([]byte("\n"))
+			if err != nil {
+				logs.Logger().Warn().Err(err).Msg("failed to write stderr")
+				return
+			}
 		}
 	}()
 
