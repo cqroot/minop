@@ -20,10 +20,11 @@ package remote
 import (
 	"errors"
 	"fmt"
+	"net"
 	"os"
+	"strconv"
 	"strings"
 
-	"github.com/cqroot/gutils/strutils"
 	"github.com/cqroot/minop/pkg/logs"
 	"github.com/stretchr/testify/assert/yaml"
 )
@@ -45,29 +46,27 @@ var (
 	ErrMissingIPv6Bracket = errors.New("missing closing bracket for IPv6 address")
 )
 
-// ParseHostLine parses a host connection string in the format "<user>:<password>@<address>:<port>".
-// Supports IPv6 addresses in brackets, e.g., "user:pass@[::1]:22".
-// Defaults port to 22 if not specified.
 func ParseHostLine(line string) (Host, error) {
 	h := Host{}
 	s := line
 
-	userDelimiter := strings.IndexByte(s, ':')
-	if userDelimiter == -1 {
+	atIdx := strings.LastIndexByte(s, '@')
+	if atIdx == -1 {
+		return Host{}, ErrEmptyPassword
+	}
+
+	userPart := s[:atIdx]
+	s = s[atIdx+1:]
+
+	colonIdx := strings.IndexByte(userPart, ':')
+	if colonIdx == -1 {
 		return Host{}, ErrEmptyUsername
 	}
-	h.User = s[:userDelimiter]
-	s = s[userDelimiter+1:]
+	h.User = userPart[:colonIdx]
+	h.Password = userPart[colonIdx+1:]
 	if h.User == "" {
 		return Host{}, ErrEmptyUsername
 	}
-
-	passwordDelimiter := strings.LastIndexByte(s, '@')
-	if passwordDelimiter == -1 {
-		return Host{}, ErrEmptyPassword
-	}
-	h.Password = s[:passwordDelimiter]
-	s = s[passwordDelimiter+1:]
 	if h.Password == "" {
 		return Host{}, ErrEmptyPassword
 	}
@@ -77,53 +76,56 @@ func ParseHostLine(line string) (Host, error) {
 	}
 
 	if s[0] == '[' {
-		closeIdx := strings.IndexByte(s, ']')
+		closeIdx := strings.Index(s, "]")
 		if closeIdx == -1 {
 			return Host{}, ErrMissingIPv6Bracket
 		}
-		h.Address = s[:closeIdx+1]
+		hostWithBrackets := s[:closeIdx+1]
 		remaining := s[closeIdx+1:]
 
+		var portStr string
 		if remaining == "" {
-			h.Port = 22
+			portStr = ""
 		} else if remaining[0] == ':' {
-			portStr := remaining[1:]
-			if portStr == "" {
-				h.Port = 22
-			} else {
-				if !strutils.IsInteger64(portStr) {
-					return Host{}, fmt.Errorf("%w: %s", ErrInvalidPort, portStr)
-				}
-				h.Port = int(strutils.ToInteger64(portStr))
-			}
+			portStr = remaining[1:]
 		} else {
 			return Host{}, fmt.Errorf("unexpected characters after IPv6 address: %s", remaining)
 		}
+
+		h.Address = hostWithBrackets
+		if portStr == "" {
+			h.Port = 22
+		} else {
+			port, err := strconv.Atoi(portStr)
+			if err != nil {
+				return Host{}, ErrInvalidPort
+			}
+			h.Port = port
+		}
 	} else {
-		hostnameDelimiter := strings.IndexByte(s, ':')
-		if hostnameDelimiter == -1 {
-			if s != "" {
+		host, portStr, err := net.SplitHostPort(s)
+		if err != nil {
+			if strings.Contains(err.Error(), "missing port") {
 				h.Address = s
-				s = ""
+				h.Port = 22
 			} else {
-				return Host{}, ErrEmptyAddress
+				return Host{}, ErrInvalidPort
 			}
 		} else {
-			h.Address = s[:hostnameDelimiter]
-			s = s[hostnameDelimiter+1:]
+			h.Address = host
+			if h.Address == "" {
+				return Host{}, ErrEmptyAddress
+			}
+			if portStr == "" {
+				h.Port = 22
+			} else {
+				port, err := strconv.Atoi(portStr)
+				if err != nil {
+					return Host{}, ErrInvalidPort
+				}
+				h.Port = port
+			}
 		}
-
-		if s == "" {
-			h.Port = 22
-		} else if !strutils.IsInteger64(s) {
-			return Host{}, ErrInvalidPort
-		} else {
-			h.Port = int(strutils.ToInteger64(s))
-		}
-	}
-
-	if h.Address == "" {
-		return Host{}, ErrEmptyAddress
 	}
 
 	if h.Port < 1 || h.Port > 65535 {
