@@ -28,7 +28,7 @@ func WithVerboseLevel(verboseLevel int) Option {
 }
 
 // WithMaxProcs sets the maximum number of concurrent operations.
-// A value of 0 or negative is ignored and the default (1) is used.
+// A value of 0 or negative is ignored and the default is kept.
 func WithMaxProcs(maxProcs int) Option {
 	return func(e *Executor) {
 		if maxProcs > 0 {

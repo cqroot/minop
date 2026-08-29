@@ -39,7 +39,7 @@ type Executor struct {
 func New(opts ...Option) *Executor {
 	e := Executor{
 		optVerboseLevel: 0,
-		optMaxProcs:     1,
+		optMaxProcs:     constants.DefaultMaxProcs,
 	}
 
 	for _, opt := range opts {

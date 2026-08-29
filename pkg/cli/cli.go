@@ -47,7 +47,7 @@ type Cli struct {
 func New(opts ...Option) *Cli {
 	c := Cli{
 		optVerboseLevel: 0,
-		optMaxProcs:     1,
+		optMaxProcs:     constants.DefaultMaxProcs,
 	}
 
 	for _, opt := range opts {

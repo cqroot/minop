@@ -21,3 +21,9 @@ package constants
 const RoleAll = "all"
 
 const DefaultTaskFile = "minop.yaml"
+
+// DefaultMaxProcs is the default maximum number of operations executed
+// concurrently per task. It is a sensible default for small to medium
+// fleets (10-50 hosts); users with larger fleets or tighter latency
+// budgets can override it via the --max-procs flag.
+const DefaultMaxProcs = 10

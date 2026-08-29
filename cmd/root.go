@@ -106,7 +106,7 @@ func NewRootCmd() *cobra.Command {
 		Run:               RunRootCmd,
 	}
 	c.PersistentFlags().StringVarP(&flagTaskFile, "task", "t", "", "Specify task file (default ./"+constants.DefaultTaskFile+")")
-	c.PersistentFlags().IntVarP(&flagMaxProcs, "max-procs", "p", 1, "Maximum number of tasks to execute simultaneously (default 1)")
+	c.PersistentFlags().IntVarP(&flagMaxProcs, "max-procs", "p", constants.DefaultMaxProcs, "Maximum number of tasks to execute simultaneously")
 	c.PersistentFlags().CountVarP(&flagVerboseLevel, "verbose", "v", "Increase output verbosity. Use multiple v's for more detail, e.g., -v, -vv (default 0)")
 
 	c.AddCommand(NewHostCmd())
