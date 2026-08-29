@@ -70,6 +70,17 @@ func (e Executor) ExecuteOnHosts(outputPrefix string, hostGroup map[string][]rem
 		return nil
 	}
 
+	totalHosts := 0
+	for _, hosts := range hostGroup {
+		totalHosts += len(hosts)
+	}
+	logs.Logger().Debug().
+		Str("op", op.Name()).
+		Str("role", op.Role()).
+		Int("max_procs", e.optMaxProcs).
+		Int("total_hosts", totalHosts).
+		Msg("ExecuteOnHosts start")
+
 	results := make(chan execResult)
 
 	printDone := make(chan struct{})
@@ -97,8 +108,19 @@ func (e Executor) ExecuteOnHosts(outputPrefix string, hostGroup map[string][]rem
 
 	for role, hosts := range hostGroup {
 		if op.Role() != constants.RoleAll && op.Role() != role {
+			logs.Logger().Debug().
+				Str("op", op.Name()).
+				Str("op_role", op.Role()).
+				Str("group_role", role).
+				Msg("skip host group: operation role does not match")
 			continue
 		}
+
+		logs.Logger().Debug().
+			Str("op", op.Name()).
+			Str("role", role).
+			Int("host_count", len(hosts)).
+			Msg("dispatching operation to host group")
 
 		for _, h := range hosts {
 			hostStr := fmt.Sprintf("%s@%s:%d", h.User, h.Address, h.Port)
@@ -137,6 +159,11 @@ func (e Executor) ExecuteOnHosts(outputPrefix string, hostGroup map[string][]rem
 			currHost := h
 			g.Go(func() error {
 				defer sem.Release(1)
+
+				logs.Logger().Debug().
+					Str("op", op.Name()).
+					Str("host", hostStr).
+					Msg("executing operation on host")
 
 				res, err := op.Execute(r)
 				if err != nil {
