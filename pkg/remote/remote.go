@@ -164,7 +164,7 @@ func optimalBufferSize(fileSize int64) int {
 }
 
 // UploadFile uploads a local file to remote path with buffer optimization
-func (r *Remote) UploadFile(localPath, remotePath string) error {
+func (r *Remote) UploadFile(localPath, remotePath string) (err error) {
 	remotePath = ToUnixPath(remotePath)
 
 	startTime := time.Now()
@@ -175,6 +175,15 @@ func (r *Remote) UploadFile(localPath, remotePath string) error {
 
 	defer func() {
 		elapsed := time.Since(startTime)
+		if err != nil {
+			r.Logger.Error().
+				Err(err).
+				Str("local", localPath).
+				Str("remote", remotePath).
+				Dur("elapsed", elapsed).
+				Msg("file upload failed")
+			return
+		}
 		r.Logger.Info().
 			Str("local", localPath).
 			Str("remote", remotePath).
@@ -219,7 +228,6 @@ func (r *Remote) UploadFile(localPath, remotePath string) error {
 		return fmt.Errorf("copy file content error: %w", err)
 	}
 
-	r.Logger.Info().Str("local", localPath).Str("remote", remotePath).Msg("file uploaded successfully")
 	return nil
 }
 
