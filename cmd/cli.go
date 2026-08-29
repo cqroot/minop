@@ -19,19 +19,15 @@ package cmd
 
 import (
 	"github.com/cqroot/minop/pkg/cli"
-	"github.com/cqroot/minop/pkg/constants"
 	"github.com/spf13/cobra"
 )
 
-var flagCliTaskFile string
-
 // RunCliCmd starts the interactive CLI mode.
 func RunCliCmd(cmd *cobra.Command, args []string) {
-	if flagCliTaskFile == "" {
-		flagCliTaskFile = "./" + constants.DefaultTaskFile
-	}
-
-	c := cli.New(cli.WithTaskFile(flagCliTaskFile), cli.WithMaxProcs(flagMaxProcs))
+	c := cli.New(
+		cli.WithTaskFile(flagTaskFile),
+		cli.WithHostsFile(flagHostsFile),
+		cli.WithMaxProcs(flagMaxProcs))
 	CheckErr(c.Run())
 }
 
@@ -42,7 +38,9 @@ func NewCliCmd() *cobra.Command {
 		Long:  "Start an interactive CLI to execute commands on remote hosts.",
 		Run:   RunCliCmd,
 	}
-	c.Flags().StringVarP(&flagCliTaskFile, "task", "t", "", "Specify task file (default ./"+constants.DefaultTaskFile+")")
+
+	// --task and --hosts-file are inherited from the root command as
+	// persistent flags; no local flags need to be declared here.
 
 	return &c
 }

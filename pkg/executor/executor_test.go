@@ -64,9 +64,15 @@ func TestExecutor_Options(t *testing.T) {
 	require.NotNil(t, e)
 }
 
-func TestExecutor_LoadTaskFile_NotFound(t *testing.T) {
+func TestExecutor_LoadHostsFile_NotFound(t *testing.T) {
 	e := executor.New()
-	_, _, err := e.LoadTaskFile("/nonexistent/file.yaml")
+	_, err := e.LoadHostsFile("/nonexistent/hosts.yaml")
+	require.Error(t, err)
+}
+
+func TestExecutor_LoadTasksFile_NotFound(t *testing.T) {
+	e := executor.New()
+	_, err := e.LoadTasksFile("/nonexistent/minop.yaml")
 	require.Error(t, err)
 }
 

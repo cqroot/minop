@@ -35,10 +35,12 @@ import (
 
 // defaultConfigFile is the path used when no config file is explicitly specified.
 const defaultTaskFile = "./" + constants.DefaultTaskFile
+const defaultHostsFile = "./" + constants.DefaultHostsFile
 
 // Cli provides an interactive command-line interface for remote operations.
 type Cli struct {
 	taskFile        string
+	hostsFile       string
 	optVerboseLevel int
 	optMaxProcs     int
 }
@@ -102,9 +104,13 @@ func (c Cli) Run() error {
 	if taskFile == "" {
 		taskFile = defaultTaskFile
 	}
+	hostsFile := c.hostsFile
+	if hostsFile == "" {
+		hostsFile = defaultHostsFile
+	}
 
 	e := executor.New(executor.WithMaxProcs(c.optMaxProcs))
-	hostGroup, _, err := e.LoadTaskFile(taskFile)
+	hostGroup, err := e.LoadHostsFile(hostsFile)
 	if err != nil {
 		return err
 	}

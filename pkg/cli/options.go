@@ -41,3 +41,9 @@ func WithTaskFile(taskFile string) Option {
 		c.taskFile = taskFile
 	}
 }
+
+func WithHostsFile(hostsFile string) Option {
+	return func(c *Cli) {
+		c.hostsFile = hostsFile
+	}
+}

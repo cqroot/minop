@@ -33,7 +33,7 @@ func RunTaskCmd(cmd *cobra.Command, args []string) {
 		executor.WithVerboseLevel(flagVerboseLevel),
 		executor.WithMaxProcs(flagMaxProcs))
 
-	_, ops, err := e.LoadTaskFile(flagTaskFile)
+	ops, err := e.LoadTasksFile(flagTaskFile)
 	CheckErr(err)
 
 	fmt.Println()

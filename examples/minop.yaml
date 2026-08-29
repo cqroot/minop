@@ -1,0 +1,25 @@
+# Sample tasks file for minop.
+#
+# Each entry under "tasks" describes one operation. The supported
+# operation types are:
+#   copy:  <local-path>
+#     to:  <remote-path>
+#   shell: <command>
+#   local: <command>
+#
+# Optional fields:
+#   name: human-readable label; defaults to a generated string.
+#   role: target role from hosts.yaml; defaults to "all".
+#   backup: when copying, keep a copy of any pre-existing remote file.
+
+tasks:
+  - name: Copy a single file to every host
+    copy: ./local.txt
+    to: /tmp/local.txt
+
+  - name: Copy a whole directory to every host
+    copy: ./local-dir
+    to: /tmp/local-dir
+
+  - name: Run a shell command on every host
+    shell: ls -la /tmp

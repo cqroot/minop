@@ -28,44 +28,82 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type config struct {
-	// Hosts maps role names to lists of host connection strings.
-	// Each host string has the format "<user>:<password>@<address>:<port>".
-	Hosts map[string][]string `yaml:"hosts"`
-	// Tasks defines the list of operations to execute.
+// hostsFileSchema is the top-level shape of hosts.yaml: a flat map from
+// role name to a list of host connection strings in the
+// "user:password@address:port" format.
+type hostsFileSchema struct {
+	Roles map[string][]string
+}
+
+// tasksFileSchema is the top-level shape of minop.yaml. Only the
+// "tasks" key is recognised; hosts live in a separate file.
+type tasksFileSchema struct {
 	Tasks []operation.Input `yaml:"tasks"`
 }
 
-func (e Executor) LoadTaskFile(filename string) (map[string][]remote.Host, []operation.Operation, error) {
+// LoadHostsFile reads a hosts file and returns a map from role name to
+// parsed Host structs. The file is expected to be a flat YAML map
+// keyed by role, for example:
+//
+//	all:
+//	  - ops:PASSWORD@127.0.0.1:9001
+//	main:
+//	  - ops:PASSWORD@127.0.0.1:9002
+//
+// The outer "hosts:" wrapper that the legacy combined format used is
+// intentionally not accepted; hosts.yaml is dedicated to host entries.
+func (e Executor) LoadHostsFile(filename string) (map[string][]remote.Host, error) {
+	logs.Logger().Debug().Str("filename", filename).Msg("loading hosts file")
+
 	content, err := os.ReadFile(filename)
 	if err != nil {
-		logs.Logger().Error().Err(err).Msg("failed to read file")
-		return nil, nil, err
+		logs.Logger().Error().Err(err).Msg("failed to read hosts file")
+		return nil, err
 	}
 
-	var cfg config
-	err = yaml.Unmarshal(content, &cfg)
-	if err != nil {
-		logs.Logger().Error().Err(err).Msg("failed to unmarshal YAML data")
-		return nil, nil, fmt.Errorf("failed to unmarshal YAML data: %w", err)
+	raw := make(map[string][]string)
+	if err := yaml.Unmarshal(content, &raw); err != nil {
+		logs.Logger().Error().Err(err).Msg("failed to unmarshal hosts YAML")
+		return nil, fmt.Errorf("failed to unmarshal hosts YAML: %w", err)
 	}
 
-	hostGroup := make(map[string][]remote.Host)
-	for role, lines := range cfg.Hosts {
+	hostGroup := make(map[string][]remote.Host, len(raw))
+	for role, lines := range raw {
 		for _, line := range lines {
 			h, err := remote.ParseHostLine(line)
 			if err != nil {
-				return nil, nil, fmt.Errorf("parse host line for role %q: %w", role, err)
+				return nil, fmt.Errorf("parse host line for role %q: %w", role, err)
 			}
 			hostGroup[role] = append(hostGroup[role], h)
 		}
+	}
+
+	return hostGroup, nil
+}
+
+// LoadTasksFile reads a task file and returns the list of operations
+// to execute. Each entry's name defaults to DefaultName() and its role
+// defaults to RoleAll when the corresponding YAML field is empty.
+func (e Executor) LoadTasksFile(filename string) ([]operation.Operation, error) {
+	logs.Logger().Debug().Str("filename", filename).Msg("loading tasks file")
+
+	content, err := os.ReadFile(filename)
+	if err != nil {
+		logs.Logger().Error().Err(err).Msg("failed to read tasks file")
+		return nil, err
+	}
+
+	var cfg tasksFileSchema
+	if err := yaml.Unmarshal(content, &cfg); err != nil {
+		logs.Logger().Error().Err(err).Msg("failed to unmarshal tasks YAML")
+		return nil, fmt.Errorf("failed to unmarshal tasks YAML: %w", err)
 	}
 
 	ops := make([]operation.Operation, len(cfg.Tasks))
 	for idx, in := range cfg.Tasks {
 		op, err := operation.GetOperation(in)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
 		if in.Name != "" {
@@ -82,5 +120,5 @@ func (e Executor) LoadTaskFile(filename string) (map[string][]remote.Host, []ope
 
 		ops[idx] = op
 	}
-	return hostGroup, ops, nil
+	return ops, nil
 }

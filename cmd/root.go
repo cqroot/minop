@@ -31,6 +31,7 @@ import (
 
 var (
 	flagTaskFile     string
+	flagHostsFile    string
 	flagMaxProcs     int
 	flagVerboseLevel int
 )
@@ -47,6 +48,9 @@ func CheckErr(err error) {
 func initTask(cmd *cobra.Command) error {
 	if flagTaskFile == "" {
 		flagTaskFile = "./" + constants.DefaultTaskFile
+	}
+	if flagHostsFile == "" {
+		flagHostsFile = "./" + constants.DefaultHostsFile
 	}
 
 	if err := viper.BindPFlag("max-procs", cmd.Flags().Lookup("max-procs")); err != nil {
@@ -75,6 +79,7 @@ func PersistentPreRunE(cmd *cobra.Command, args []string) error {
 
 	logs.Logger().Debug().
 		Str("task_file", flagTaskFile).
+		Str("hosts_file", flagHostsFile).
 		Int("max_procs", flagMaxProcs).
 		Int("verbose_level", flagVerboseLevel).
 		Str("log_level", logs.Logger().GetLevel().String()).
@@ -89,7 +94,10 @@ func RunRootCmd(cmd *cobra.Command, args []string) {
 		executor.WithVerboseLevel(flagVerboseLevel),
 		executor.WithMaxProcs(flagMaxProcs))
 
-	hostGroup, ops, err := e.LoadTaskFile(flagTaskFile)
+	hostGroup, err := e.LoadHostsFile(flagHostsFile)
+	CheckErr(err)
+
+	ops, err := e.LoadTasksFile(flagTaskFile)
 	CheckErr(err)
 
 	err = e.ExecuteOperations("    ", hostGroup, ops)
@@ -106,6 +114,7 @@ func NewRootCmd() *cobra.Command {
 		Run:               RunRootCmd,
 	}
 	c.PersistentFlags().StringVarP(&flagTaskFile, "task", "t", "", "Specify task file (default ./"+constants.DefaultTaskFile+")")
+	c.PersistentFlags().StringVarP(&flagHostsFile, "hosts-file", "H", "", "Specify hosts file (default ./"+constants.DefaultHostsFile+")")
 	c.PersistentFlags().IntVarP(&flagMaxProcs, "max-procs", "p", constants.DefaultMaxProcs, "Maximum number of tasks to execute simultaneously")
 	c.PersistentFlags().CountVarP(&flagVerboseLevel, "verbose", "v", "Increase output verbosity. Use multiple v's for more detail, e.g., -v, -vv (default 0)")
 

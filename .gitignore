@@ -1,6 +1,7 @@
 /dist/
 /coverage.out
-hosts
+/hosts.yaml
+/minop.yaml
 test.txt
 test.dir/
 bin/

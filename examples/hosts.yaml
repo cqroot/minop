@@ -1,0 +1,22 @@
+# Sample hosts file for minop.
+#
+# The top-level keys are role names. Each value is a list of host
+# strings in the format <user>:<password>@<address>:<port>.
+# A role named "all" is special: every operation applies to hosts
+# in it unless the task specifies a more specific role.
+#
+# Replace PASSWORD with your real credentials before running minop.
+
+all:
+  - root:PASSWORD@192.168.0.11:22
+  - root:PASSWORD@192.168.0.12:22
+  - root:PASSWORD@192.168.0.13:22
+  - root:PASSWORD@192.168.0.14:22
+  - root:PASSWORD@192.168.0.15:22
+
+agent:
+  - root:PASSWORD@192.168.0.21:22
+  - root:PASSWORD@192.168.0.22:22
+  - root:PASSWORD@192.168.0.23:22
+  - root:PASSWORD@192.168.0.24:22
+  - root:PASSWORD@192.168.0.25:22

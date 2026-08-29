@@ -15,7 +15,7 @@
       <img src="https://codecov.io/gh/cqroot/minop/branch/main/graph/badge.svg" alt="Codecov" />
     </a>
     <a href="https://goreportcard.com/report/github.com/cqroot/minop">
-      <img src="https://goreportcard.com/badge/github.com/cqroot/minop" alt="Go Report Card" />
+      <img src="https://goreportcard.com/badge/github.com/cqroot/minop.svg" alt="Go Report Card" />
     </a>
     <a href="https://pkg.go.dev/github.com/cqroot/minop">
       <img src="https://pkg.go.dev/badge/github.com/cqroot/minop.svg" alt="Go Reference" />
@@ -55,71 +55,75 @@ Download the binary for your platform from the releases page and add its directo
 
 ## Usage
 
-### Create the Config File
+minop reads two configuration files:
 
-Create a file named `minop.yaml` in YAML format. This file contains both hosts and tasks.
+| File          | Flag              | Purpose                                                                  |
+| ------------- | ----------------- | ------------------------------------------------------------------------ |
+| `hosts.yaml`  | `-H` / `--hosts-file` | Hosts grouped by role. Stable across runs; usually version-controlled. |
+| `minop.yaml`  | `-t` / `--task`       | Tasks to execute. Changes from run to run.                             |
 
-#### Hosts Section
+Both files are looked up in the current working directory by default.
 
-The file should contain groups of hosts under the `hosts` key, where each group is a list of host strings in the format `<user>:<password>@<address>:<port>`. Example:
+### Hosts File (`hosts.yaml`)
+
+A flat YAML map from role name to a list of host strings in the
+format `<user>:<password>@<address>:<port>`. The role named `all` is
+special: every task targets it unless the task specifies a different
+role.
 
 ```yaml
-hosts:
-  all:
-    - root:asdf@127.0.0.1:8001
+all:
+  - root:PASSWORD@127.0.0.1:8001
 
-  main:
-    - root:asdf@127.0.0.1:8002
-    - root:asdf@127.0.0.1:8003
+main:
+  - root:PASSWORD@127.0.0.1:8002
+  - root:PASSWORD@127.0.0.1:8003
 ```
 
-Hosts listed under a specific section header (like `main` in the example) will be assigned to that role.
+### Tasks File (`minop.yaml`)
 
-#### Tasks Section
-
-Add your tasks under the `tasks` key:
+A list of tasks under the `tasks` key. Each task supports one of three
+operation types: `copy`, `shell`, or `local`.
 
 ```yaml
 tasks:
-  - name: Copy file to /root on the remote host
+  - name: Copy file to the remote host
     copy: test.txt
-    to: /root/test.txt
+    to: /tmp/test.txt
 
-  - name: Copy dir to /root on the remote host
+  - name: Copy directory to the remote host
     copy: testdir
-    to: /root/testdir
+    to: /tmp/testdir
 
-  - name: List /root
-    shell: ls /root
+  - name: List /tmp on the remote host
+    shell: ls /tmp
 ```
 
-### Execute Tasks
-
-Run the following command to execute tasks on the remote hosts:
+### Run Tasks
 
 ```bash
-minop
+minop                       # use ./hosts.yaml and ./minop.yaml
+minop -H ./prod-hosts.yaml  # custom hosts file
+minop -t ./deploy.yaml      # custom tasks file
+minop -p 20                 # run with concurrency 20 (default 10)
 ```
 
-This will load `./minop.yaml` by default. You can specify a different config file:
+### Inspect Configuration
 
 ```bash
-minop -c /path/to/config.yaml
+minop host                  # show the parsed hosts as a tree
+minop task                  # list the tasks defined in minop.yaml
+minop check                 # validate minop.yaml and list its tasks
 ```
 
 ### Interactive CLI
 
-Start an interactive CLI mode to execute commands on remote hosts:
-
 ```bash
-minop cli
+minop cli                   # REPL: type a command, hit Enter, run on every host
 ```
 
-You can also specify a different config file:
-
-```bash
-minop cli -c /path/to/config.yaml
-```
+Type `exit` (or `quit`) to leave the CLI, and `help` to see built-in
+shortcuts.
 
 ## Contributing
 

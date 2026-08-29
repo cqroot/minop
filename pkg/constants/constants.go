@@ -22,6 +22,12 @@ const RoleAll = "all"
 
 const DefaultTaskFile = "minop.yaml"
 
+// DefaultHostsFile is the conventional name of the file that lists
+// hosts grouped by role. Hosts live separately from tasks so they can
+// be reused across task files and edited independently of the task
+// orchestration logic.
+const DefaultHostsFile = "hosts.yaml"
+
 // DefaultMaxProcs is the default maximum number of operations executed
 // concurrently per task. It is a sensible default for small to medium
 // fleets (10-50 hosts); users with larger fleets or tighter latency

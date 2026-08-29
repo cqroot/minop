@@ -15,7 +15,7 @@
       <img src="https://codecov.io/gh/cqroot/minop/branch/main/graph/badge.svg" alt="Codecov" />
     </a>
     <a href="https://goreportcard.com/report/github.com/cqroot/minop">
-      <img src="https://goreportcard.com/badge/github.com/cqroot/minop" alt="Go Report Card" />
+      <img src="https://goreportcard.com/badge/github.com/cqroot/minop.svg" alt="Go Report Card" />
     </a>
     <a href="https://pkg.go.dev/github.com/cqroot/minop">
       <img src="https://pkg.go.dev/badge/github.com/cqroot/minop.svg" alt="Go Reference" />
@@ -43,7 +43,7 @@
 
 ### 从源码安装
 
-要从源码安装 `minop`，请确保你已经安装了 Go 然后执行：
+要安装 `minop`，请确保你已经安装了 Go 然后执行：
 
 ```bash
 go install github.com/cqroot/minop@latest
@@ -55,106 +55,76 @@ go install github.com/cqroot/minop@latest
 
 ## 用法
 
-## 创建配置文件
+minop 读取两个配置文件：
 
-创建一个名为 `minop.yaml` 的 YAML 格式文件。该文件同时包含主机列表和任务配置。
+| 文件          | 参数                | 作用                                                                 |
+| ------------- | ------------------- | -------------------------------------------------------------------- |
+| `hosts.yaml`  | `-H` / `--hosts-file` | 按角色分组的机器清单。跨多次运行基本不变，通常纳入版本控制。       |
+| `minop.yaml`  | `-t` / `--task`       | 任务编排。每次运行可能不一样。                                       |
 
-#### 主机列表
+默认在当前工作目录下查找这两个文件。
 
-在 `hosts` 键下包含主机组，每个组是一个主机字符串列表，格式为 `<user>:<password>@<address>:<port>`。示例如下：
+### 主机文件（`hosts.yaml`）
+
+扁平的 YAML，键为角色名，值为该角色下的主机字符串列表，格式为
+`<user>:<password>@<address>:<port>`。`all` 是特殊角色：所有未指定
+`role` 的任务都会作用于它。
 
 ```yaml
-hosts:
-  all:
-    - root:asdf@127.0.0.1:8001
+all:
+  - root:PASSWORD@127.0.0.1:8001
 
-  main:
-    - root:asdf@127.0.0.1:8002
-    - root:asdf@127.0.0.1:8003
+main:
+  - root:PASSWORD@127.0.0.1:8002
+  - root:PASSWORD@127.0.0.1:8003
 ```
 
-位于特定章节下的主机会归属于指定的角色下（如上述示例中，后两个主机的角色为 `main`）。
+### 任务文件（`minop.yaml`）
 
-#### 任务列表
-
-在 `tasks` 键下添加任务：
+`tasks` 键下是一个任务列表，每个任务支持三种操作类型之一：
+`copy`、`shell` 或 `local`。
 
 ```yaml
 tasks:
-  - name: Copy file to /root on the remote host
+  - name: Copy file to /tmp on the remote host
     copy: test.txt
-    to: /root/test.txt
+    to: /tmp/test.txt
 
-  - name: Copy dir to /root on the remote host
+  - name: Copy dir to /tmp on the remote host
     copy: testdir
-    to: /root/testdir
+    to: /tmp/testdir
 
-  - name: List /root
-    shell: ls /root
+  - name: List /tmp on the remote host
+    shell: ls /tmp
 ```
 
 ### 执行任务
 
-运行以下命令在远程主机上执行任务：
-
 ```bash
-minop
+minop                       # 使用 ./hosts.yaml 和 ./minop.yaml
+minop -H ./prod-hosts.yaml  # 自定义主机文件
+minop -t ./deploy.yaml      # 自定义任务文件
+minop -p 20                 # 并发度调到 20（默认 10）
 ```
 
-默认会加载当前目录下的 `./minop.yaml`。你也可以指定其他配置文件：
+### 检查配置
 
 ```bash
-minop -c /path/to/config.yaml
+minop host                  # 以树状形式展示解析后的主机
+minop task                  # 列出 minop.yaml 中定义的任务
+minop check                 # 校验 minop.yaml 并列出任务
 ```
 
 ### 交互式 CLI
 
-启动交互式 CLI 模式来在远程主机上执行命令：
-
 ```bash
-minop cli
+minop cli                   # 进入交互式命令行：输入一条命令，回车即可在所有机器上执行
 ```
 
-你也可以指定其他配置文件：
-
-```bash
-minop cli -c /path/to/config.yaml
-```
-
-位于特定章节下的主机，会归属于指定的角色下（如上述示例中，后两个主机的角色为 `main`）。
-
-### 交互式 CLI
-
-直接执行工具会加载当前路径下的 `hosts` 文件，然后进入交互式 CLI 界面。你可以在此执行你想要在远程主机执行的命令。
-
-```bash
-minop
-```
-
-### 执行任务文件
-
-如果你想通过非交互式方式执行预设好的任务，你可以先创建一个 yaml 文件。比如 `minop.yaml`
-
-```yaml
-- name: Copy file to /root on the remote host
-  copy: test.txt
-  to: /root/test.txt
-
-- name: Copy dir to /root on the remote host
-  copy: testdir
-  to: /root/testdir
-
-- name: List /root
-  shell: ls /root
-```
-
-然后执行以下命令来加载当前路径下的 `hosts` 文件和 `minop.yaml` 文件，在远程主机执行我们编排好的任务：
-
-```bash
-minop -t minop.yaml
-```
+输入 `exit`（或 `quit`）退出，输入 `help` 查看内置快捷键。
 
 ## 贡献指南
+
 欢迎贡献！您可以随时提交问题（issue）来报告错误、提出新功能建议，或提交拉取请求（pull request）。
 
 ## 许可证
