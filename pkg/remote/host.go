@@ -21,12 +21,8 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"os"
 	"strconv"
 	"strings"
-
-	"github.com/cqroot/minop/pkg/logs"
-	"github.com/stretchr/testify/assert/yaml"
 )
 
 // Host represents a remote server connection with authentication details.
@@ -133,40 +129,4 @@ func ParseHostLine(line string) (Host, error) {
 	}
 
 	return h, nil
-}
-
-// ParseHostsFile reads a YAML hosts file and parses it into a map of role to hosts.
-// The YAML format is: <role>: ["user:pass@host:port", ...]
-func ParseHostsFile(filename string) (map[string][]Host, error) {
-	logs.Logger().Debug().Str("filename", filename).Msg("Parsing hosts file")
-	content, err := os.ReadFile(filename)
-	if err != nil {
-		logs.Logger().Err(err).Msg("")
-		return nil, err
-	}
-
-	yamlContent := make(map[string][]string)
-	err = yaml.Unmarshal(content, &yamlContent)
-	if err != nil {
-		logs.Logger().Err(err).Msg("Failed to parse hosts file as YAML")
-		return nil, fmt.Errorf("failed to parse hosts file as YAML: %w", err)
-	}
-
-	hostGroup := make(map[string][]Host)
-	for role, lines := range yamlContent {
-		for _, line := range lines {
-			line = strings.TrimSpace(line)
-			if line == "" {
-				continue
-			}
-
-			h, err := ParseHostLine(line)
-			if err != nil {
-				return nil, fmt.Errorf("parse host line for role %q: %w", role, err)
-			}
-			hostGroup[role] = append(hostGroup[role], h)
-		}
-	}
-
-	return hostGroup, nil
 }
