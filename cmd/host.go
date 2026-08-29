@@ -22,6 +22,7 @@ import (
 	"io"
 	"os"
 	"sort"
+	"strconv"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/cqroot/minop/pkg/executor"
@@ -33,10 +34,25 @@ import (
 var treeStyle = lipgloss.NewStyle().
 	Foreground(lipgloss.Color("212"))
 
-var hostStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("255"))
-
 var groupStyle = lipgloss.NewStyle().
 	Bold(true).Faint(false).Foreground(lipgloss.Color("12"))
+
+var (
+	hostUserStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("14"))
+	hostAddrStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("10"))
+	hostPortStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("11"))
+	hostSepStyle  = lipgloss.NewStyle().Faint(true)
+)
+
+// renderHost formats a host as 'user@addr:port' with each segment in a
+// distinct color so the three pieces are visually separable.
+func renderHost(h remote.Host) string {
+	return hostUserStyle.Render(h.User) +
+		hostSepStyle.Render("@") +
+		hostAddrStyle.Render(h.Address) +
+		hostSepStyle.Render(":") +
+		hostPortStyle.Render(strconv.Itoa(h.Port))
+}
 
 // RunHostCmd displays all configured hosts in a tree format.
 func RunHostCmd(cmd *cobra.Command, args []string) {
@@ -103,7 +119,7 @@ func printHostGroup(w io.Writer, hosts []remote.Host, name string) {
 		_, _ = fmt.Fprintf(w, "%s%s %s\n",
 			indent,
 			branch,
-			hostStyle.Render(fmt.Sprintf("%s@%s:%d", host.User, host.Address, host.Port)))
+			renderHost(host))
 	}
 }
 
