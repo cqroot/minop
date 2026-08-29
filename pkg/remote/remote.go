@@ -88,6 +88,22 @@ func ToUnixPath(pathStr string) string {
 	return path.Clean(filepath.ToSlash(pathStr))
 }
 
+// NewForTesting builds a *Remote without establishing an SSH connection.
+// Intended for unit tests that need a non-nil Remote to thread through
+// an Operation while mocking Execute to never touch the underlying SSH
+// or SFTP clients. Production code must use New.
+func NewForTesting(h Host) *Remote {
+	return &Remote{
+		Hostname: h.Address,
+		Port:     h.Port,
+		Username: h.User,
+		Password: h.Password,
+		Logger: logs.Logger().With().
+			Str("host", fmt.Sprintf("%s@%s:%d", h.User, h.Address, h.Port)).
+			Logger(),
+	}
+}
+
 // Close closes the SSH and SFTP connections
 func (r *Remote) Close() error {
 	var errs []error

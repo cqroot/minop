@@ -45,3 +45,11 @@ func (p *HostPool) GetRemote(host Host) (*Remote, error) {
 	}
 	return r, nil
 }
+
+// Put inserts a pre-built *Remote into the pool so subsequent
+// GetRemote calls for the same host return it without dialing SSH.
+// Intended for tests; production code should let GetRemote build the
+// connection itself.
+func (p *HostPool) Put(host Host, r *Remote) {
+	p.hosts[host] = r
+}
