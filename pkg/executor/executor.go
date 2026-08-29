@@ -20,9 +20,11 @@ package executor
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/cqroot/gtypes"
 	"github.com/cqroot/minop/pkg/constants"
+	"github.com/cqroot/minop/pkg/logs"
 	"github.com/cqroot/minop/pkg/operation"
 	"github.com/cqroot/minop/pkg/remote"
 	"golang.org/x/sync/errgroup"
@@ -81,22 +83,55 @@ func (e Executor) ExecuteOnHosts(outputPrefix string, hostGroup map[string][]rem
 	sem := semaphore.NewWeighted(int64(e.optMaxProcs))
 	g, ctx := errgroup.WithContext(context.Background())
 
+	var (
+		firstErr   error
+		firstErrMu sync.Mutex
+	)
+	recordFirstErr := func(hostStr string, err error) {
+		firstErrMu.Lock()
+		if firstErr == nil {
+			firstErr = fmt.Errorf("host %s: %w", hostStr, err)
+		}
+		firstErrMu.Unlock()
+	}
+
 	for role, hosts := range hostGroup {
 		if op.Role() != constants.RoleAll && op.Role() != role {
 			continue
 		}
 
 		for _, h := range hosts {
+			hostStr := fmt.Sprintf("%s@%s:%d", h.User, h.Address, h.Port)
+
 			if err := sem.Acquire(ctx, 1); err != nil {
+				logs.Logger().Error().
+					Err(err).
+					Str("op", op.Name()).
+					Str("host", hostStr).
+					Msg("semaphore acquire failed")
 				if ctx.Err() != nil {
-					return ctx.Err()
+					if firstErr != nil {
+						logs.Logger().Error().
+							Err(firstErr).
+							Str("op", op.Name()).
+							Str("host", hostStr).
+							Msg("context canceled due to an earlier host failure")
+						return firstErr
+					}
+					return fmt.Errorf("context canceled while waiting for host %s: %w", hostStr, err)
 				}
 				continue
 			}
 
 			r, err := pool.GetRemote(h)
 			if err != nil {
-				return err
+				sem.Release(1)
+				logs.Logger().Error().
+					Err(err).
+					Str("op", op.Name()).
+					Str("host", hostStr).
+					Msg("get remote connection failed")
+				return fmt.Errorf("get remote for host %s: %w", hostStr, err)
 			}
 
 			currHost := h
@@ -105,6 +140,12 @@ func (e Executor) ExecuteOnHosts(outputPrefix string, hostGroup map[string][]rem
 
 				res, err := op.Execute(r)
 				if err != nil {
+					recordFirstErr(hostStr, err)
+					logs.Logger().Error().
+						Err(err).
+						Str("op", op.Name()).
+						Str("host", hostStr).
+						Msg("operation execution failed")
 					return err
 				}
 
@@ -124,7 +165,13 @@ func (e Executor) ExecuteOnHosts(outputPrefix string, hostGroup map[string][]rem
 	}()
 
 	<-printDone
-	return <-errCh
+	if err := <-errCh; err != nil {
+		if firstErr != nil {
+			return firstErr
+		}
+		return err
+	}
+	return nil
 }
 
 func (e Executor) ExecuteOperations(outputPrefix string, hostGroup map[string][]remote.Host, ops []operation.Operation) error {
