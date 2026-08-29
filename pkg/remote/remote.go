@@ -76,7 +76,9 @@ func New(h Host) (*Remote, error) {
 	sftpClient, err := sftp.NewClient(conn)
 	if err != nil {
 		r.Logger.Error().Err(err).Msg("SFTP client error")
-		_ = conn.Close() // Close SSH connection if SFTP fails
+		if cerr := conn.Close(); cerr != nil {
+			r.Logger.Debug().Err(cerr).Msg("SSH close error after SFTP failure")
+		}
 		return nil, fmt.Errorf("SFTP client error: %w", err)
 	}
 	r.sftp = sftpClient
@@ -137,7 +139,11 @@ func (r *Remote) ExecuteCommand(cmd string) (int, string, string, error) {
 		r.Logger.Error().Err(err).Msg("create session error")
 		return 0, "", "", fmt.Errorf("create session error: %w", err)
 	}
-	defer func() { _ = session.Close() }()
+	defer func() {
+		if err := session.Close(); err != nil {
+			r.Logger.Debug().Err(err).Msg("SSH session close error")
+		}
+	}()
 
 	var (
 		exitStatus = 0
@@ -213,7 +219,11 @@ func (r *Remote) UploadFile(localPath, remotePath string) (err error) {
 		r.Logger.Error().Err(err).Msg("open local file error")
 		return fmt.Errorf("open local file error: %w", err)
 	}
-	defer func() { _ = localFile.Close() }()
+	defer func() {
+		if err := localFile.Close(); err != nil {
+			r.Logger.Debug().Err(err).Str("path", localPath).Msg("close local file error")
+		}
+	}()
 
 	// Get file info to check size
 	fileInfo, err := localFile.Stat()
@@ -234,7 +244,11 @@ func (r *Remote) UploadFile(localPath, remotePath string) (err error) {
 		r.Logger.Error().Err(err).Msg("create remote file error")
 		return fmt.Errorf("create remote file error: %w", err)
 	}
-	defer func() { _ = remoteFile.Close() }()
+	defer func() {
+		if err := remoteFile.Close(); err != nil {
+			r.Logger.Debug().Err(err).Str("path", remotePath).Msg("close remote file error")
+		}
+	}()
 
 	// Use buffered copy with optimal buffer size
 	bufferSize := optimalBufferSize(fileInfo.Size())
@@ -346,11 +360,16 @@ func (r *Remote) UploadDir(localDir, remoteDir string) error {
 
 	// Report errors if any occurred during upload
 	if len(uploadErrors) > 0 {
+		const maxLoggedErrors = 5
 		r.Logger.Error().Int("err_count", len(uploadErrors)).Msg("directory upload completed with errors")
-		for i, err := range uploadErrors {
-			if i < 5 {
-				r.Logger.Error().Int("index", i).Err(err).Msg("")
-			}
+		logged := min(len(uploadErrors), maxLoggedErrors)
+		for i := 0; i < logged; i++ {
+			r.Logger.Error().Int("index", i).Err(uploadErrors[i]).Msg("")
+		}
+		if dropped := len(uploadErrors) - logged; dropped > 0 {
+			r.Logger.Error().
+				Int("dropped", dropped).
+				Msg("additional upload errors suppressed from log; only the first 5 are shown")
 		}
 		return fmt.Errorf("directory upload completed with %d errors", len(uploadErrors))
 	}

@@ -101,7 +101,8 @@ func ParseHostLine(line string) (Host, error) {
 	} else {
 		host, portStr, err := net.SplitHostPort(s)
 		if err != nil {
-			if strings.Contains(err.Error(), "missing port") {
+			var addrErr *net.AddrError
+			if errors.As(err, &addrErr) && addrErr.Err == "missing port in address" {
 				h.Address = s
 				h.Port = 22
 			} else {
