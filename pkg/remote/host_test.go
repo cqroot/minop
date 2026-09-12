@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package remote_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/cqroot/minop/pkg/remote"
@@ -79,13 +78,13 @@ func TestParseHostLine(t *testing.T) {
 			name:     "unexpected characters after IPv6 address",
 			line:     "user:password@[2001:db8::1]extra:22",
 			expected: remote.Host{},
-			err:      fmt.Errorf("unexpected characters after IPv6 address: extra:22"),
+			err:      remote.ErrUnexpectedIPv6Suffix,
 		},
 		{
 			name:     "port out of range",
 			line:     "user:password@hostname:70000",
 			expected: remote.Host{},
-			err:      fmt.Errorf("port 70000 not in 1-65535 range"),
+			err:      remote.ErrPortOutOfRange,
 		},
 		{
 			name: "IPv6 address with port",
@@ -147,7 +146,11 @@ func TestParseHostLine(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual, err := remote.ParseHostLine(tt.line)
-			require.Equal(t, tt.err, err)
+			if tt.err == nil {
+				require.NoError(t, err)
+			} else {
+				require.ErrorIs(t, err, tt.err)
+			}
 			require.Equal(t, tt.expected, actual)
 		})
 	}
