@@ -58,7 +58,8 @@ func renderHost(h remote.Host) string {
 func RunHostCmd(cmd *cobra.Command, args []string) {
 	e := executor.New(
 		executor.WithVerboseLevel(flagVerboseLevel),
-		executor.WithMaxProcs(flagMaxProcs))
+		executor.WithMaxProcs(flagMaxProcs),
+	)
 
 	hostGroup, err := e.LoadHostsFile(flagHostsFile)
 	CheckErr(err)

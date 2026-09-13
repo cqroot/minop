@@ -25,9 +25,9 @@ import (
 // RunCliCmd starts the interactive CLI mode.
 func RunCliCmd(cmd *cobra.Command, args []string) {
 	c := cli.New(
-		cli.WithTaskFile(flagTaskFile),
 		cli.WithHostsFile(flagHostsFile),
-		cli.WithMaxProcs(flagMaxProcs))
+		cli.WithMaxProcs(flagMaxProcs),
+	)
 	CheckErr(c.Run())
 }
 

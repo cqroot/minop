@@ -31,7 +31,8 @@ var taskBulletStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("12"))
 func RunTaskCmd(cmd *cobra.Command, args []string) {
 	e := executor.New(
 		executor.WithVerboseLevel(flagVerboseLevel),
-		executor.WithMaxProcs(flagMaxProcs))
+		executor.WithMaxProcs(flagMaxProcs),
+	)
 
 	ops, err := e.LoadTasksFile(flagTaskFile)
 	CheckErr(err)

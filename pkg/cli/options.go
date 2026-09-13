@@ -36,12 +36,6 @@ func WithMaxProcs(maxProcs int) Option {
 	}
 }
 
-func WithTaskFile(taskFile string) Option {
-	return func(c *Cli) {
-		c.taskFile = taskFile
-	}
-}
-
 func WithHostsFile(hostsFile string) Option {
 	return func(c *Cli) {
 		c.hostsFile = hostsFile

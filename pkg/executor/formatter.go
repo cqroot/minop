@@ -57,7 +57,8 @@ func printTaskHeader(opName string, termWidth int) {
 	if delimLen > 0 {
 		delim = strings.Repeat("•", delimLen)
 	}
-	fmt.Printf("%s %s %s\n",
+	fmt.Printf(
+		"%s %s %s\n",
 		taskStyle.Render(opName),
 		dimStyle.Render(delim),
 		dimStyle.Render(time.Now().Format("2006-01-02 15:04:05")),

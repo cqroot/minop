@@ -27,8 +27,8 @@ import (
 
 func TestGetOperation(t *testing.T) {
 	tests := []struct {
-		name    string
-		input   operation.Input
+		name     string
+		input    operation.Input
 		wantType string
 		wantErr  error
 	}{
@@ -94,8 +94,8 @@ func TestGetOperation(t *testing.T) {
 			wantErr:  operation.ErrInvalidOpType,
 		},
 		{
-			name:    "empty input",
-			input:   operation.Input{},
+			name:     "empty input",
+			input:    operation.Input{},
 			wantType: "",
 			wantErr:  operation.ErrInvalidOpType,
 		},

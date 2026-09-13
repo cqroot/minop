@@ -92,7 +92,8 @@ func PersistentPreRunE(cmd *cobra.Command, args []string) error {
 func RunRootCmd(cmd *cobra.Command, args []string) {
 	e := executor.New(
 		executor.WithVerboseLevel(flagVerboseLevel),
-		executor.WithMaxProcs(flagMaxProcs))
+		executor.WithMaxProcs(flagMaxProcs),
+	)
 
 	hostGroup, err := e.LoadHostsFile(flagHostsFile)
 	CheckErr(err)

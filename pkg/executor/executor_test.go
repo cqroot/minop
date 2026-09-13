@@ -47,6 +47,7 @@ func (o *failingOperation) SetRole(r string) { o.role = r }
 func (o *failingOperation) DefaultName() string {
 	return "failing"
 }
+
 func (o *failingOperation) Execute(_ *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
 	return nil, o.err
 }

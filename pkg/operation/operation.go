@@ -52,7 +52,7 @@ type Operation interface {
 
 var (
 	ErrInvalidOperation = errors.New("invalid operation")
-	ErrInvalidOpType   = errors.New("invalid operation type")
+	ErrInvalidOpType    = errors.New("invalid operation type")
 )
 
 func MakeErrInvalidOperation(in Input) error {

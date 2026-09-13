@@ -28,13 +28,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// hostsFileSchema is the top-level shape of hosts.yaml: a flat map from
-// role name to a list of host connection strings in the
-// "user:password@address:port" format.
-type hostsFileSchema struct {
-	Roles map[string][]string
-}
-
 // tasksFileSchema is the top-level shape of minop.yaml. Only the
 // "tasks" key is recognised; hosts live in a separate file.
 type tasksFileSchema struct {
