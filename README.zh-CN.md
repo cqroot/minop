@@ -101,10 +101,10 @@ tasks:
 ### 执行任务
 
 ```bash
-minop                       # 使用 ./hosts.yaml 和 ./minop.yaml
-minop -H ./prod-hosts.yaml  # 自定义主机文件
-minop -t ./deploy.yaml      # 自定义任务文件
-minop -p 20                 # 并发度调到 20（默认 10）
+minop run                       # 使用 ./hosts.yaml 和 ./minop.yaml
+minop run -H ./prod-hosts.yaml  # 自定义主机文件
+minop run -t ./deploy.yaml      # 自定义任务文件
+minop run -p 20                 # 并发度调到 20（默认 10）
 ```
 
 ### 检查配置

@@ -21,7 +21,6 @@ import (
 	"os"
 
 	"github.com/cqroot/minop/pkg/constants"
-	"github.com/cqroot/minop/pkg/executor"
 	"github.com/cqroot/minop/pkg/logs"
 	"github.com/cqroot/minop/pkg/version"
 	"github.com/rs/zerolog"
@@ -88,37 +87,22 @@ func PersistentPreRunE(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-// RunRootCmd is the default root command that executes all operations.
-func RunRootCmd(cmd *cobra.Command, args []string) {
-	e := executor.New(
-		executor.WithVerboseLevel(flagVerboseLevel),
-		executor.WithMaxProcs(flagMaxProcs),
-	)
-
-	hostGroup, err := e.LoadHostsFile(flagHostsFile)
-	CheckErr(err)
-
-	ops, err := e.LoadTasksFile(flagTaskFile)
-	CheckErr(err)
-
-	err = e.ExecuteOperations("    ", hostGroup, ops)
-	CheckErr(err)
-}
-
-// NewRootCmd creates and returns the root cobra command.
+// NewRootCmd creates and returns the root cobra command. Running the
+// root command without a subcommand prints help; use "minop run" to
+// execute tasks.
 func NewRootCmd() *cobra.Command {
 	c := cobra.Command{
 		Use:               "minop",
 		Short:             "MINOP is a simple tool for remote task orchestration and batch execution",
-		Long:              "MINOP is a simple tool for remote task orchestration and batch execution.",
+		Long:              "MINOP is a simple tool for remote task orchestration and batch execution.\n\nRun 'minop run' to execute tasks defined in the task file. Use 'minop task' to list them.",
 		PersistentPreRunE: PersistentPreRunE,
-		Run:               RunRootCmd,
 	}
 	c.PersistentFlags().StringVarP(&flagTaskFile, "task", "t", "", "Specify task file (default ./"+constants.DefaultTaskFile+")")
 	c.PersistentFlags().StringVarP(&flagHostsFile, "hosts-file", "H", "", "Specify hosts file (default ./"+constants.DefaultHostsFile+")")
 	c.PersistentFlags().IntVarP(&flagMaxProcs, "max-procs", "p", constants.DefaultMaxProcs, "Maximum number of tasks to execute simultaneously")
 	c.PersistentFlags().CountVarP(&flagVerboseLevel, "verbose", "v", "Increase output verbosity. Use multiple v's for more detail, e.g., -v, -vv (default 0)")
 
+	c.AddCommand(NewRunCmd())
 	c.AddCommand(NewHostCmd())
 	c.AddCommand(NewTaskCmd())
 	c.AddCommand(NewInfoCmd())

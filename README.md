@@ -102,10 +102,10 @@ tasks:
 ### Run Tasks
 
 ```bash
-minop                       # use ./hosts.yaml and ./minop.yaml
-minop -H ./prod-hosts.yaml  # custom hosts file
-minop -t ./deploy.yaml      # custom tasks file
-minop -p 20                 # run with concurrency 20 (default 10)
+minop run                   # use ./hosts.yaml and ./minop.yaml
+minop run -H ./prod-hosts.yaml  # custom hosts file
+minop run -t ./deploy.yaml      # custom tasks file
+minop run -p 20                 # run with concurrency 20 (default 10)
 ```
 
 ### Inspect Configuration
