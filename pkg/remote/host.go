@@ -47,6 +47,7 @@ var (
 	ErrEmptyUsername        = errors.New("empty username")
 	ErrEmptyPassword        = errors.New("empty password")
 	ErrEmptyAddress         = errors.New("empty hostname")
+	ErrInvalidAddress       = errors.New("invalid address")
 	ErrInvalidPort          = errors.New("invalid port")
 	ErrMissingIPv6Bracket   = errors.New("missing closing bracket for IPv6 address")
 	ErrUnexpectedIPv6Suffix = errors.New("unexpected characters after IPv6 address")
@@ -77,9 +78,9 @@ func ParseHostLine(line string) (Host, error) {
 
 	h := Host{User: user, Password: password}
 	if hostPort[0] == '[' {
-		h.Address, h.Port, err = parseIPv6(hostPort)
+		h.Address, h.Port, err = parseBracketedHost(hostPort)
 	} else {
-		h.Address, h.Port, err = parseHostPort(hostPort)
+		h.Address, h.Port, err = parsePlainHost(hostPort)
 	}
 	if err != nil {
 		return Host{}, err
@@ -120,25 +121,25 @@ func parseUserInfo(s string) (user, password, hostPort string, err error) {
 	return user, password, hostPort, nil
 }
 
-// parseIPv6 parses a "[ipv6]" or "[ipv6]:port" address. The returned
-// address retains its surrounding brackets so it is usable as-is in
-// SSH "user@[ipv6]:port" syntax.
-func parseIPv6(s string) (address string, port int, err error) {
+// parseBracketedHost parses a "[host]" or "[host]:port" address where
+// the bracketed portion must be a valid IPv4 or IPv6 literal. The
+// returned address retains its surrounding brackets so it is usable
+// as-is in SSH "user@[host]:port" syntax.
+func parseBracketedHost(s string) (address string, port int, err error) {
 	closeIdx := strings.Index(s, "]")
 	if closeIdx == -1 {
 		return "", 0, ErrMissingIPv6Bracket
 	}
+	if net.ParseIP(s[1:closeIdx]) == nil {
+		return "", 0, ErrInvalidAddress
+	}
 	hostWithBrackets := s[:closeIdx+1]
 	remaining := s[closeIdx+1:]
 
-	var portStr string
-	if remaining == "" {
-		portStr = ""
-	} else if remaining[0] == ':' {
-		portStr = remaining[1:]
-	} else {
+	if remaining != "" && remaining[0] != ':' {
 		return "", 0, fmt.Errorf("%w: %s", ErrUnexpectedIPv6Suffix, remaining)
 	}
+	portStr := strings.TrimPrefix(remaining, ":")
 
 	port, err = parsePort(portStr)
 	if err != nil {
@@ -147,16 +148,16 @@ func parseIPv6(s string) (address string, port int, err error) {
 	return hostWithBrackets, port, nil
 }
 
-// parseHostPort parses a "host:port" address. A bare "host" without a
+// parsePlainHost parses a "host:port" address. A bare "host" without a
 // colon is accepted and port defaults to defaultPort; all other split
 // failures are reported as ErrInvalidPort.
-func parseHostPort(s string) (address string, port int, err error) {
+func parsePlainHost(s string) (address string, port int, err error) {
+	if !strings.Contains(s, ":") {
+		return s, defaultPort, nil
+	}
+
 	host, portStr, err := net.SplitHostPort(s)
 	if err != nil {
-		var addrErr *net.AddrError
-		if errors.As(err, &addrErr) && addrErr.Err == "missing port in address" {
-			return s, defaultPort, nil
-		}
 		return "", 0, ErrInvalidPort
 	}
 

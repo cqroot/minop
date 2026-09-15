@@ -141,6 +141,12 @@ func TestParseHostLine(t *testing.T) {
 			},
 			err: nil,
 		},
+		{
+			name:     "bracketed but not a valid IP",
+			line:     "user:password@[not-an-ip]:22",
+			expected: remote.Host{},
+			err:      remote.ErrInvalidAddress,
+		},
 	}
 
 	for _, tt := range tests {
