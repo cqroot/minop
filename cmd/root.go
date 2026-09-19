@@ -78,15 +78,30 @@ func configureLogger(_ *cobra.Command, _ []string) error {
 // execute tasks.
 func NewRootCmd() *cobra.Command {
 	c := cobra.Command{
-		Use:               "minop",
-		Short:             "MINOP is a simple tool for remote task orchestration and batch execution",
-		Long:              "MINOP is a simple tool for remote task orchestration and batch execution.\n\nRun 'minop run' to execute tasks defined in the task file. Use 'minop task' to list them.",
+		Use:   "minop",
+		Short: "MINOP is a simple tool for remote task orchestration and batch execution",
+		Long: "MINOP is a simple tool for remote task orchestration and " +
+			"batch execution.\n\n" +
+			"Run 'minop run' to execute tasks defined in the task file. " +
+			"Use 'minop task' to list them.",
 		PersistentPreRunE: configureLogger,
 	}
-	c.PersistentFlags().StringVarP(&flagTaskFile, "task", "t", "./"+constants.DefaultTaskFile, "Specify task file")
-	c.PersistentFlags().StringVarP(&flagHostsFile, "hosts-file", "H", "./"+constants.DefaultHostsFile, "Specify hosts file")
-	c.PersistentFlags().IntVarP(&flagMaxProcs, "max-procs", "p", constants.DefaultMaxProcs, "Maximum number of tasks to execute simultaneously")
-	c.PersistentFlags().CountVarP(&flagVerboseLevel, "verbose", "v", "Increase output verbosity (use -vv for debug)")
+	c.PersistentFlags().StringVarP(
+		&flagTaskFile, "task", "t", "./"+constants.DefaultTaskFile,
+		"Specify task file",
+	)
+	c.PersistentFlags().StringVarP(
+		&flagHostsFile, "hosts-file", "H", "./"+constants.DefaultHostsFile,
+		"Specify hosts file",
+	)
+	c.PersistentFlags().IntVarP(
+		&flagMaxProcs, "max-procs", "p", constants.DefaultMaxProcs,
+		"Maximum number of tasks to execute simultaneously",
+	)
+	c.PersistentFlags().CountVarP(
+		&flagVerboseLevel, "verbose", "v",
+		"Increase output verbosity (use -vv for debug)",
+	)
 
 	c.AddCommand(NewRunCmd())
 	c.AddCommand(NewHostCmd())

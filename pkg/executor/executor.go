@@ -54,7 +54,12 @@ type execResult struct {
 	res *gtypes.OrderedMap[string, string]
 }
 
-func (e Executor) ExecuteOnHosts(outputPrefix string, hostGroup map[string][]remote.Host, pool *remote.HostPool, op module.Module) error {
+func (e Executor) ExecuteOnHosts(
+	outputPrefix string,
+	hostGroup map[string][]remote.Host,
+	pool *remote.HostPool,
+	op module.Module,
+) error {
 	if localOp, ok := op.(*module.Local); ok {
 		localOp.SetPrefix(outputPrefix)
 		res, err := localOp.Execute(nil)
@@ -201,7 +206,11 @@ func (e Executor) ExecuteOnHosts(outputPrefix string, hostGroup map[string][]rem
 	return nil
 }
 
-func (e Executor) ExecuteOperations(outputPrefix string, hostGroup map[string][]remote.Host, ops []module.Module) error {
+func (e Executor) ExecuteOperations(
+	outputPrefix string,
+	hostGroup map[string][]remote.Host,
+	ops []module.Module,
+) error {
 	termWidth := getTerminalWidth()
 	pool := remote.NewHostPool()
 

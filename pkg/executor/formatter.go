@@ -82,7 +82,8 @@ func printKeyValue(prefix string, key string, val string, verboseLevel int) {
 
 	indent := fmt.Sprintf("%s    ", prefix)
 	if verboseLevel == 0 && (strings.IndexByte(val, '\n') == -1 || strings.IndexByte(val, '\n') == len(val)-1) {
-		fmt.Printf("%s%s %s\n", indent, theme.ResultLabel().Render(fmt.Sprintf("%s:", key)), strings.ReplaceAll(val, "\n", ""))
+		keyLabel := theme.ResultLabel().Render(fmt.Sprintf("%s:", key))
+		fmt.Printf("%s%s %s\n", indent, keyLabel, strings.ReplaceAll(val, "\n", ""))
 	} else {
 		fmt.Printf("%s%s:\n", indent, theme.ResultLabel().Render(key))
 		scanner := bufio.NewScanner(strings.NewReader(val))
