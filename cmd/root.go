@@ -25,12 +25,11 @@ import (
 	"github.com/cqroot/minop/pkg/version"
 	"github.com/rs/zerolog"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // Package-wide flag values bound by cobra to the root command's
-// persistent flags. They are populated by PersistentPreRunE and
-// consumed by every subcommand's Run function.
+// persistent flags. They are populated by cobra from the command line
+// and consumed by every subcommand's Run function.
 var (
 	// flagTaskFile is the path to the YAML file describing the tasks
 	// to execute. Defaults to ./minop.yaml when empty.
@@ -55,37 +54,10 @@ func CheckErr(err error) {
 	}
 }
 
-// initTask applies default paths to the empty flag values and binds
-// the counted/int flags through viper so they can also be sourced
-// from config files or environment variables in the future.
-func initTask(cmd *cobra.Command) error {
-	if flagTaskFile == "" {
-		flagTaskFile = "./" + constants.DefaultTaskFile
-	}
-	if flagHostsFile == "" {
-		flagHostsFile = "./" + constants.DefaultHostsFile
-	}
-
-	if err := viper.BindPFlag("max-procs", cmd.Flags().Lookup("max-procs")); err != nil {
-		return err
-	}
-	flagMaxProcs = viper.GetInt("max-procs")
-
-	if err := viper.BindPFlag("verbose", cmd.Flags().Lookup("verbose")); err != nil {
-		return err
-	}
-	flagVerboseLevel = viper.GetInt("verbose")
-
-	return nil
-}
-
-// PersistentPreRunE is the pre-run hook that initializes logging and task file.
-func PersistentPreRunE(cmd *cobra.Command, args []string) error {
-	err := initTask(cmd)
-	if err != nil {
-		return err
-	}
-
+// configureLogger raises the log level to debug when the verbose flag
+// is set to two or more (-vv). The cobra debug log line records the
+// effective configuration for the current invocation.
+func configureLogger(_ *cobra.Command, _ []string) error {
 	if flagVerboseLevel >= 2 {
 		logs.SetLogger(logs.Logger().Level(zerolog.DebugLevel))
 	}
@@ -109,12 +81,12 @@ func NewRootCmd() *cobra.Command {
 		Use:               "minop",
 		Short:             "MINOP is a simple tool for remote task orchestration and batch execution",
 		Long:              "MINOP is a simple tool for remote task orchestration and batch execution.\n\nRun 'minop run' to execute tasks defined in the task file. Use 'minop task' to list them.",
-		PersistentPreRunE: PersistentPreRunE,
+		PersistentPreRunE: configureLogger,
 	}
-	c.PersistentFlags().StringVarP(&flagTaskFile, "task", "t", "", "Specify task file (default ./"+constants.DefaultTaskFile+")")
-	c.PersistentFlags().StringVarP(&flagHostsFile, "hosts-file", "H", "", "Specify hosts file (default ./"+constants.DefaultHostsFile+")")
+	c.PersistentFlags().StringVarP(&flagTaskFile, "task", "t", "./"+constants.DefaultTaskFile, "Specify task file")
+	c.PersistentFlags().StringVarP(&flagHostsFile, "hosts-file", "H", "./"+constants.DefaultHostsFile, "Specify hosts file")
 	c.PersistentFlags().IntVarP(&flagMaxProcs, "max-procs", "p", constants.DefaultMaxProcs, "Maximum number of tasks to execute simultaneously")
-	c.PersistentFlags().CountVarP(&flagVerboseLevel, "verbose", "v", "Increase output verbosity. Use multiple v's for more detail, e.g., -v, -vv (default 0)")
+	c.PersistentFlags().CountVarP(&flagVerboseLevel, "verbose", "v", "Increase output verbosity (use -vv for debug)")
 
 	c.AddCommand(NewRunCmd())
 	c.AddCommand(NewHostCmd())
