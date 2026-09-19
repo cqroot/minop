@@ -20,13 +20,6 @@ package cli
 // Option configures a Cli instance.
 type Option func(c *Cli)
 
-// WithVerboseLevel sets the verbosity level for CLI output.
-func WithVerboseLevel(verboseLevel int) Option {
-	return func(c *Cli) {
-		c.optVerboseLevel = verboseLevel
-	}
-}
-
 // WithMaxProcs sets the maximum number of concurrent operations.
 func WithMaxProcs(maxProcs int) Option {
 	return func(c *Cli) {

@@ -27,9 +27,9 @@ import (
 )
 
 // ErrInvalidModuleSpec signals that a task entry does not match any
-// supported operation kind, either because no action was declared or
+// supported module kind, either because no action was declared or
 // because more than one action was declared on the same task.
-var ErrInvalidModuleSpec = errors.New("invalid operation")
+var ErrInvalidModuleSpec = errors.New("invalid module spec")
 
 // Task is the YAML schema for a single task entry in minop.yaml.
 // A task declares exactly one action: a "shell" string, a "local"
@@ -70,7 +70,7 @@ type Module interface {
 // This is the second-line guard: GetModule picks the action, and
 // the per-op constructor uses ErrInvalidModule to refuse a
 // half-filled action (e.g. copy with src but no dest).
-var ErrInvalidModule = errors.New("invalid operation")
+var ErrInvalidModule = errors.New("invalid module fields")
 
 func MakeErrInvalidModule(in Task) error {
 	// Report the task name and the missing field for the action the

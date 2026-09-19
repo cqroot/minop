@@ -40,16 +40,14 @@ const (
 
 // Cli provides an interactive command-line interface for remote operations.
 type Cli struct {
-	hostsFile       string
-	optVerboseLevel int
-	optMaxProcs     int
+	hostsFile   string
+	optMaxProcs int
 }
 
 // New creates a new Cli instance with the given options.
 func New(opts ...Option) *Cli {
 	c := Cli{
-		optVerboseLevel: 0,
-		optMaxProcs:     constants.DefaultMaxProcs,
+		optMaxProcs: constants.DefaultMaxProcs,
 	}
 
 	for _, opt := range opts {

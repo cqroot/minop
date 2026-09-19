@@ -32,6 +32,11 @@ import (
 
 const (
 	timestampWidth = 19
+	// fallbackTerminalWidth is used when stdout is not a tty (e.g.
+	// output is piped to a file or another process). 500 is wide
+	// enough to keep task headers on one line for most terminal
+	// widths while still being sensible for non-tty output.
+	fallbackTerminalWidth = 500
 )
 
 func getTerminalWidth() int {
@@ -40,7 +45,7 @@ func getTerminalWidth() int {
 			return w
 		}
 	}
-	return 500
+	return fallbackTerminalWidth
 }
 
 func printTaskHeader(opName string, termWidth int) {
