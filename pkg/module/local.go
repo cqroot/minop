@@ -30,7 +30,7 @@ import (
 )
 
 type Local struct {
-	baseModuleImpl
+	commonModule
 	cmd    string
 	prefix string
 }

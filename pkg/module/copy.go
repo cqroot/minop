@@ -38,7 +38,7 @@ type CopySpec struct {
 
 // Copy copies files or directories to remote hosts via SFTP.
 type Copy struct {
-	baseModuleImpl
+	commonModule
 	src    string
 	dest   string
 	backup bool

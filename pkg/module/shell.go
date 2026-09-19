@@ -27,7 +27,7 @@ import (
 
 // Shell executes shell commands on remote hosts.
 type Shell struct {
-	baseModuleImpl
+	commonModule
 	cmd string
 }
 

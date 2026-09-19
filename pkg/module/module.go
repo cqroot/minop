@@ -47,8 +47,21 @@ type Task struct {
 }
 
 type Module interface {
-	baseModule
+	// Name and Role identify the module inside the task list and
+	// determine which host group it targets. SetName / SetRole are
+	// setters so the YAML loader and other code paths can populate
+	// them after construction.
+	Name() string
+	SetName(name string)
+	Role() string
+	SetRole(role string)
+
+	// Execute runs the module against a single remote host and
+	// returns a structured result map for downstream rendering.
 	Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error)
+
+	// DefaultName returns the auto-generated label used when the
+	// task entry has no explicit name in minop.yaml.
 	DefaultName() string
 }
 

@@ -17,36 +17,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package module
 
-// baseModule defines the interface for common operation properties.
-type baseModule interface {
-	Name() string
-	SetName(string)
-	Role() string
-	SetRole(string)
-}
-
-// baseModuleImpl provides a base implementation for operations.
-type baseModuleImpl struct {
+// commonModule holds the Name and Role fields that every module
+// shares, plus the trivial getter/setter pair that the Module
+// interface requires. Concrete module types (Shell, Local, Copy)
+// embed it to inherit the common surface area.
+type commonModule struct {
 	name string
 	role string
 }
 
-// Name returns the operation's name.
-func (op baseModuleImpl) Name() string {
-	return op.name
-}
+// Name returns the module's display name.
+func (m commonModule) Name() string { return m.name }
 
-// SetName sets the operation's name.
-func (op *baseModuleImpl) SetName(name string) {
-	op.name = name
-}
+// SetName replaces the module's display name.
+func (m *commonModule) SetName(name string) { m.name = name }
 
-// Role returns the operation's target role.
-func (op baseModuleImpl) Role() string {
-	return op.role
-}
+// Role returns the host role this module targets.
+func (m commonModule) Role() string { return m.role }
 
-// SetRole sets the operation's target role.
-func (op *baseModuleImpl) SetRole(role string) {
-	op.role = role
-}
+// SetRole replaces the target host role.
+func (m *commonModule) SetRole(role string) { m.role = role }
