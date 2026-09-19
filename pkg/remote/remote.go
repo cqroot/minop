@@ -106,7 +106,9 @@ func NewForTesting(h Host) *Remote {
 	}
 }
 
-// Close closes the SSH and SFTP connections
+// Close closes the SSH and SFTP connections. If either close fails,
+// all underlying errors are joined so callers can inspect them with
+// errors.Is / errors.As.
 func (r *Remote) Close() error {
 	var errs []error
 
@@ -124,12 +126,7 @@ func (r *Remote) Close() error {
 		}
 	}
 
-	// Return combined errors if any occurred
-	if len(errs) > 0 {
-		return fmt.Errorf("multiple errors closing connections: %v", errs)
-	}
-
-	return nil
+	return errors.Join(errs...)
 }
 
 // ExecuteCommand executes a command on the remote host via SSH.
