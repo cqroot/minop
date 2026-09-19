@@ -28,10 +28,22 @@ import (
 	"github.com/spf13/viper"
 )
 
+// Package-wide flag values bound by cobra to the root command's
+// persistent flags. They are populated by PersistentPreRunE and
+// consumed by every subcommand's Run function.
 var (
-	flagTaskFile     string
-	flagHostsFile    string
-	flagMaxProcs     int
+	// flagTaskFile is the path to the YAML file describing the tasks
+	// to execute. Defaults to ./minop.yaml when empty.
+	flagTaskFile string
+	// flagHostsFile is the path to the YAML file mapping host roles
+	// to remote connection strings. Defaults to ./hosts.yaml when
+	// empty.
+	flagHostsFile string
+	// flagMaxProcs is the maximum number of operations executed
+	// concurrently. Defaults to constants.DefaultMaxProcs.
+	flagMaxProcs int
+	// flagVerboseLevel is the verbosity counter (-v, -vv, -vvv)
+	// controlling the zerolog level.
 	flagVerboseLevel int
 )
 
@@ -43,7 +55,9 @@ func CheckErr(err error) {
 	}
 }
 
-// initConfig initializes the configuration from flags and environment variables.
+// initTask applies default paths to the empty flag values and binds
+// the counted/int flags through viper so they can also be sourced
+// from config files or environment variables in the future.
 func initTask(cmd *cobra.Command) error {
 	if flagTaskFile == "" {
 		flagTaskFile = "./" + constants.DefaultTaskFile
@@ -110,7 +124,9 @@ func NewRootCmd() *cobra.Command {
 	return &c
 }
 
-// Execute runs the root command.
+// Execute builds the root command tree and runs it. It is the single
+// entry point invoked by main; any error returned by cobra is surfaced
+// via CheckErr which logs and exits non-zero.
 func Execute() {
 	CheckErr(NewRootCmd().Execute())
 }

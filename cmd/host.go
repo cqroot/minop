@@ -30,22 +30,31 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Output styling for host tree display
-var treeStyle = lipgloss.NewStyle().
-	Foreground(lipgloss.Color("212"))
-
-var groupStyle = lipgloss.NewStyle().
-	Bold(true).Faint(false).Foreground(lipgloss.Color("12"))
-
+// Output styling for the host tree display produced by `minop host`.
 var (
+	// treeStyle is the colour of the tree branch characters (├──, └──).
+	treeStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("212"))
+
+	// groupStyle is the colour of the role-name headers
+	// ("• all", "• main", ...).
+	groupStyle = lipgloss.NewStyle().
+			Bold(true).Faint(false).Foreground(lipgloss.Color("12"))
+
+	// Per-segment colours used by renderHost so that user, address
+	// and port are visually distinct in the tree output.
 	hostUserStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("14"))
 	hostAddrStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("10"))
 	hostPortStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("11"))
-	hostSepStyle  = lipgloss.NewStyle().Faint(true)
+	// hostSepStyle is the dim colour for the "@" and ":" separators
+	// between user, address and port.
+	hostSepStyle = lipgloss.NewStyle().Faint(true)
 )
 
-// renderHost formats a host as 'user@addr:port' with each segment in a
-// distinct color so the three pieces are visually separable.
+// renderHost formats a host as 'user@addr:port' with each segment
+// in a distinct color (user bold-cyan, address green, port blue,
+// separators dim) so the three pieces are visually separable at a
+// glance.
 func renderHost(h remote.Host) string {
 	return hostUserStyle.Render(h.User) +
 		hostSepStyle.Render("@") +
@@ -67,9 +76,12 @@ func RunHostCmd(cmd *cobra.Command, args []string) {
 	printHostTree(os.Stdout, hostGroup)
 }
 
-// printHostTree renders hostGroup as an indented tree to w. Groups other
-// than "all" are rendered with an extra indent level so they visually
-// nest under the top-level "all" group.
+// printHostTree renders hostGroup as an indented tree to w. Groups
+// are written in the order returned by that helper — the "all" role
+// first, then any remaining groups alphabetically — with a blank
+// line between groups for readability. Groups other than "all" are
+// rendered with an extra indent level so they visually nest under
+// the top-level "all" group.
 func printHostTree(w io.Writer, hostGroup map[string][]remote.Host) {
 	groups := sortedGroupNames(hostGroup)
 
@@ -83,8 +95,8 @@ func printHostTree(w io.Writer, hostGroup map[string][]remote.Host) {
 }
 
 // sortedGroupNames returns the keys of hostGroup. The special "all"
-// group is placed first; the remaining groups are sorted alphabetically
-// for stable, deterministic output.
+// group is placed first; the remaining groups are sorted
+// alphabetically for stable, deterministic output.
 func sortedGroupNames(hostGroup map[string][]remote.Host) []string {
 	names := make([]string, 0, len(hostGroup))
 	for name := range hostGroup {
@@ -102,9 +114,11 @@ func sortedGroupNames(hostGroup map[string][]remote.Host) []string {
 	return names
 }
 
-// printHostGroup renders a single group header followed by its hosts as
-// tree branches. The "all" group sits at the base indent; any other
-// group is rendered with an extra indent level.
+// printHostGroup renders a single group header followed by its
+// hosts as tree branches. The "all" group sits at the base indent;
+// any other group is rendered with an extra indent level so they
+// visually nest under "all". The last host in a group uses └──
+// instead of ├── to close the branch.
 func printHostGroup(w io.Writer, hosts []remote.Host, name string) {
 	indent := "  "
 	if name != "all" {

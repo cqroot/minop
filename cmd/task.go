@@ -25,9 +25,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// taskBulletStyle is the bullet rendered in front of each task name
+// in the `minop task` listing.
 var taskBulletStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("12"))
 
-// RunTaskCmd displays all tasks from the configuration file.
+// RunTaskCmd loads the task file and lists each operation's default
+// name as a bullet list, without executing anything.
 func RunTaskCmd(cmd *cobra.Command, args []string) {
 	e := executor.New(
 		executor.WithVerboseLevel(flagVerboseLevel),

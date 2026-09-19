@@ -22,8 +22,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// RunRunCmd executes every operation defined in the task file on the
-// configured remote hosts.
+// RunRunCmd executes every operation defined in the task file on
+// every host in the hosts file, in declaration order. Output for
+// each host line is prefixed with four spaces so it nests visually
+// under the operation header.
 func RunRunCmd(cmd *cobra.Command, args []string) {
 	e := executor.New(
 		executor.WithVerboseLevel(flagVerboseLevel),

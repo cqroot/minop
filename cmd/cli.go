@@ -22,7 +22,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// RunCliCmd starts the interactive CLI mode.
+// RunCliCmd starts the interactive CLI mode, where the user types
+// shell commands that are executed on every host in the loaded
+// hosts file.
 func RunCliCmd(cmd *cobra.Command, args []string) {
 	c := cli.New(
 		cli.WithHostsFile(flagHostsFile),
@@ -31,6 +33,7 @@ func RunCliCmd(cmd *cobra.Command, args []string) {
 	CheckErr(c.Run())
 }
 
+// NewCliCmd creates the "cli" subcommand.
 func NewCliCmd() *cobra.Command {
 	c := cobra.Command{
 		Use:   "cli",
