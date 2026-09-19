@@ -31,7 +31,7 @@ import (
 
 type Local struct {
 	baseModuleImpl
-	local  string
+	cmd    string
 	prefix string
 }
 
@@ -40,12 +40,12 @@ func NewLocal(in Task) (*Local, error) {
 		return nil, MakeErrInvalidModule(in)
 	}
 	return &Local{
-		local: in.Local,
+		cmd: in.Local,
 	}, nil
 }
 
 func (op Local) DefaultName() string {
-	return fmt.Sprintf("[local] %s", op.local)
+	return fmt.Sprintf("[local] %s", op.cmd)
 }
 
 func (op *Local) SetPrefix(prefix string) {
@@ -53,7 +53,7 @@ func (op *Local) SetPrefix(prefix string) {
 }
 
 func (op Local) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
-	cmd := exec.Command("sh", "-c", op.local)
+	cmd := exec.Command("sh", "-c", op.cmd)
 
 	stdoutPipe, err := cmd.StdoutPipe()
 	if err != nil {

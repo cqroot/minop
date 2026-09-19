@@ -28,7 +28,7 @@ import (
 // Shell executes shell commands on remote hosts.
 type Shell struct {
 	baseModuleImpl
-	shell string
+	cmd string
 }
 
 // NewShell creates a new Shell operation from the given Task.
@@ -38,18 +38,18 @@ func NewShell(in Task) (*Shell, error) {
 		return nil, MakeErrInvalidModule(in)
 	}
 	return &Shell{
-		shell: in.Shell,
+		cmd: in.Shell,
 	}, nil
 }
 
 // DefaultName returns the default name for shell operations.
 func (op Shell) DefaultName() string {
-	return fmt.Sprintf("[shell] %s", op.shell)
+	return fmt.Sprintf("[shell] %s", op.cmd)
 }
 
 // Execute runs the shell command on the remote host and returns the results.
 func (op Shell) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
-	exitStatus, stdout, stderr, err := r.ExecuteCommand(op.shell)
+	exitStatus, stdout, stderr, err := r.ExecuteCommand(op.cmd)
 	if err != nil {
 		return nil, err
 	}

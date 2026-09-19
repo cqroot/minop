@@ -39,8 +39,8 @@ type CopySpec struct {
 // Copy copies files or directories to remote hosts via SFTP.
 type Copy struct {
 	baseModuleImpl
-	copy   string
-	to     string
+	src    string
+	dest   string
 	backup bool
 }
 
@@ -51,23 +51,23 @@ func NewCopy(in Task) (*Copy, error) {
 		return nil, MakeErrInvalidModule(in)
 	}
 	return &Copy{
-		copy:   in.Copy.Src,
-		to:     in.Copy.Dest,
+		src:    in.Copy.Src,
+		dest:   in.Copy.Dest,
 		backup: in.Copy.Backup,
 	}, nil
 }
 
 // DefaultName returns the default name for copy operations.
 func (op Copy) DefaultName() string {
-	return fmt.Sprintf("[copy] %s => %s", op.copy, op.to)
+	return fmt.Sprintf("[copy] %s => %s", op.src, op.dest)
 }
 
 // Execute uploads the local file or directory to the remote host.
 func (op Copy) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
 	if op.backup {
-		logs.Logger().Debug().Str("Dst", op.to).Msg("backup file")
+		logs.Logger().Debug().Str("Dst", op.dest).Msg("backup file")
 		ret, stdout, stderr, err := r.ExecuteCommand(fmt.Sprintf(
-			"if [ ! -e '%[1]s.minop_bak' ] && [ -f '%[1]s' ]; then cp -a -- '%[1]s' '%[1]s.minop_bak'; else exit 0; fi", op.to,
+			"if [ ! -e '%[1]s.minop_bak' ] && [ -f '%[1]s' ]; then cp -a -- '%[1]s' '%[1]s.minop_bak'; else exit 0; fi", op.dest,
 		))
 		if err != nil {
 			logs.Logger().Err(err).Msg("failed to back up source file")
@@ -80,29 +80,29 @@ func (op Copy) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], er
 		}
 	}
 
-	fileInfo, err := os.Lstat(op.copy)
+	fileInfo, err := os.Lstat(op.src)
 	if err != nil {
-		logs.Logger().Err(err).Str("src", op.copy).Msg("stat source failed")
+		logs.Logger().Err(err).Str("src", op.src).Msg("stat source failed")
 		return nil, err
 	}
 
 	if fileInfo.Mode()&os.ModeSymlink != 0 {
-		err = fmt.Errorf("source %s is a symbolic link", op.copy)
-		logs.Logger().Err(err).Str("src", op.copy).Msg("refusing to upload symlink")
+		err = fmt.Errorf("source %s is a symbolic link", op.src)
+		logs.Logger().Err(err).Str("src", op.src).Msg("refusing to upload symlink")
 		return nil, err
 	}
 
 	switch {
 	case fileInfo.IsDir():
-		err = r.UploadDir(op.copy, op.to)
+		err = r.UploadDir(op.src, op.dest)
 	default:
-		err = r.UploadFile(op.copy, op.to)
+		err = r.UploadFile(op.src, op.dest)
 	}
 	if err != nil {
 		return nil, err
 	}
 
 	res := gtypes.NewOrderedMap[string, string]()
-	res.Put("Result", fmt.Sprintf("%s -> %s", op.copy, op.to))
+	res.Put("Result", fmt.Sprintf("%s -> %s", op.src, op.dest))
 	return res, nil
 }
