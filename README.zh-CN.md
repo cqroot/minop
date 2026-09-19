@@ -112,7 +112,6 @@ minop run -p 20                 # 并发度调到 20（默认 10）
 ```bash
 minop host                  # 以树状形式展示解析后的主机
 minop task                  # 列出 minop.yaml 中定义的任务
-minop check                 # 校验 minop.yaml 并列出任务
 ```
 
 ### 交互式 CLI

@@ -105,7 +105,6 @@ func NewRootCmd() *cobra.Command {
 	c.AddCommand(NewRunCmd())
 	c.AddCommand(NewHostCmd())
 	c.AddCommand(NewTaskCmd())
-	c.AddCommand(NewCheckCmd())
 	c.AddCommand(NewCliCmd())
 	c.Version = version.Get().String()
 	return &c

@@ -113,7 +113,6 @@ minop run -p 20                 # run with concurrency 20 (default 10)
 ```bash
 minop host                  # show the parsed hosts as a tree
 minop task                  # list the tasks defined in minop.yaml
-minop check                 # validate minop.yaml and list its tasks
 ```
 
 ### Interactive CLI
