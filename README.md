@@ -91,9 +91,9 @@ main:
 
 ### Tasks File (`minop.yaml`)
 
-A list of tasks under the `tasks` key. Each task declares exactly one
-action — the action key itself picks the operation type, no separate
-`type:` field is needed.
+The top level of the file is a YAML sequence of tasks. Each task
+declares exactly one action — the action key itself picks the
+operation type, no separate `type:` field is needed.
 
 | Action key | Operation | Body |
 |---|---|---|
@@ -102,19 +102,18 @@ action — the action key itself picks the operation type, no separate
 | `copy: {...}` | upload a file or directory | nested object |
 
 ```yaml
-tasks:
-  - name: Copy a file to the remote host
-    copy:
-      src: test.txt
-      dest: /tmp/test.txt
+- name: Copy a file to the remote host
+  copy:
+    src: test.txt
+    dest: /tmp/test.txt
 
-  - name: Copy a directory to the remote host
-    copy:
-      src: testdir
-      dest: /tmp/testdir
+- name: Copy a directory to the remote host
+  copy:
+    src: testdir
+    dest: /tmp/testdir
 
-  - name: List /tmp on the remote host
-    shell: ls /tmp
+- name: List /tmp on the remote host
+  shell: ls /tmp
 ```
 
 `copy` accepts an optional `backup: true` flag — when set, any pre-existing

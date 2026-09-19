@@ -1,8 +1,9 @@
 # Sample tasks file for minop.
 #
-# Each entry under "tasks" describes one operation. The action key
-# determines the operation type, mirroring ansible's task module
-# convention — exactly one of these keys must be present per task:
+# The top level is a YAML sequence — each entry describes one
+# operation. The action key determines the operation type, mirroring
+# ansible's task module convention — exactly one of these keys must
+# be present per task:
 #
 #   - name: human-readable label (recommended)
 #     role: target role from hosts.yaml (optional, default: all)
@@ -14,19 +15,18 @@
 #     dest: <remote-path>
 #     backup: true|false             # optional, default false
 
-tasks:
-  - name: Copy a single file to every host
-    copy:
-      src: ./local.txt
-      dest: /tmp/local.txt
+- name: Copy a single file to every host
+  copy:
+    src: ./local.txt
+    dest: /tmp/local.txt
 
-  - name: Copy a whole directory to every host
-    copy:
-      src: ./local-dir
-      dest: /tmp/local-dir
+- name: Copy a whole directory to every host
+  copy:
+    src: ./local-dir
+    dest: /tmp/local-dir
 
-  - name: Run a shell command on every host
-    shell: ls -la /tmp
+- name: Run a shell command on every host
+  shell: ls -la /tmp
 
-  - name: Run a command on the minop host (no SSH)
-    local: echo "running locally, not on the targets"
+- name: Run a command on the minop host (no SSH)
+  local: echo "running locally, not on the targets"

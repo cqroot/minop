@@ -90,8 +90,8 @@ main:
 
 ### 任务文件（`minop.yaml`）
 
-`tasks` 键下是一个任务列表，每个任务声明**恰好一个**动作 —— 动作
-key 本身决定操作类型，不需要额外的 `type:` 字段。
+文件顶层就是一个任务列表（YAML sequence），每个任务声明**恰好一个**动作
+—— 动作 key 本身决定操作类型，不需要额外的 `type:` 字段。
 
 | 动作 key | 操作 | 值 |
 |---|---|---|
@@ -100,19 +100,18 @@ key 本身决定操作类型，不需要额外的 `type:` 字段。
 | `copy: {...}` | 上传文件或目录 | 嵌套对象 |
 
 ```yaml
-tasks:
-  - name: Copy a file to the remote host
-    copy:
-      src: test.txt
-      dest: /tmp/test.txt
+- name: Copy a file to the remote host
+  copy:
+    src: test.txt
+    dest: /tmp/test.txt
 
-  - name: Copy a directory to the remote host
-    copy:
-      src: testdir
-      dest: /tmp/testdir
+- name: Copy a directory to the remote host
+  copy:
+    src: testdir
+    dest: /tmp/testdir
 
-  - name: List /tmp on the remote host
-    shell: ls /tmp
+- name: List /tmp on the remote host
+  shell: ls /tmp
 ```
 
 `copy` 可选 `backup: true`——上传前将远端已存在的文件重命名为
