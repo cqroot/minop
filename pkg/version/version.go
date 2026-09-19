@@ -22,7 +22,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
+	"github.com/cqroot/minop/pkg/theme"
 )
 
 // Version info variables
@@ -51,25 +51,23 @@ func Get() Info {
 	}
 }
 
-var labelStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("12"))
-
 // String returns a formatted version info string.
 func (i Info) String() string {
 	sb := strings.Builder{}
 	sb.WriteString("\n  ")
-	sb.WriteString(labelStyle.Render("• Version:      "))
+	sb.WriteString(theme.Label().Render("• Version:      "))
 	sb.WriteString(i.Version)
 
 	sb.WriteString("\n  ")
-	sb.WriteString(labelStyle.Render("• Commit:       "))
+	sb.WriteString(theme.Label().Render("• Commit:       "))
 	sb.WriteString(i.Commit)
 
 	sb.WriteString("\n  ")
-	sb.WriteString(labelStyle.Render("• Built at:     "))
+	sb.WriteString(theme.Label().Render("• Built at:     "))
 	sb.WriteString(i.Date)
 
 	sb.WriteString("\n  ")
-	sb.WriteString(labelStyle.Render("• Built with:   "))
+	sb.WriteString(theme.Label().Render("• Built with:   "))
 	sb.WriteString(i.BuiltWith)
 	return sb.String()
 }

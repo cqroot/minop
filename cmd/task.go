@@ -20,14 +20,10 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/cqroot/minop/pkg/executor"
+	"github.com/cqroot/minop/pkg/theme"
 	"github.com/spf13/cobra"
 )
-
-// taskBulletStyle is the bullet rendered in front of each task name
-// in the `minop task` listing.
-var taskBulletStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("12"))
 
 // RunTaskCmd loads the task file and lists each operation's default
 // name as a bullet list, without executing anything.
@@ -42,7 +38,7 @@ func RunTaskCmd(cmd *cobra.Command, args []string) {
 
 	fmt.Println()
 	for _, op := range ops {
-		fmt.Printf("  %s %s\n", taskBulletStyle.Render("•"), op.DefaultName())
+		fmt.Printf("  %s %s\n", theme.Label().Render("•"), op.DefaultName())
 	}
 }
 

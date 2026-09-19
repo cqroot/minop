@@ -24,22 +24,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/cqroot/gtypes"
 	"github.com/cqroot/minop/pkg/remote"
+	"github.com/cqroot/minop/pkg/theme"
 	"golang.org/x/term"
 )
 
 const (
 	timestampWidth = 19
-)
-
-var (
-	labelStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("14"))
-	taskStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("10"))
-	dimStyle       = lipgloss.NewStyle().Faint(true)
-	hostStyle      = lipgloss.NewStyle().Foreground(lipgloss.Color("12"))
-	timestampStyle = lipgloss.NewStyle().Faint(true)
 )
 
 func getTerminalWidth() int {
@@ -59,16 +51,16 @@ func printTaskHeader(opName string, termWidth int) {
 	}
 	fmt.Printf(
 		"%s %s %s\n",
-		taskStyle.Render(opName),
-		dimStyle.Render(delim),
-		dimStyle.Render(time.Now().Format("2006-01-02 15:04:05")),
+		theme.Task().Render(opName),
+		theme.Dim().Render(delim),
+		theme.Dim().Render(time.Now().Format("2006-01-02 15:04:05")),
 	)
 }
 
 func printHostResult(prefix string, h remote.Host, res *gtypes.OrderedMap[string, string], verboseLevel int) {
 	hostStr := fmt.Sprintf("%s%s@%s:%d", prefix, h.Username, h.Address, h.Port)
-	fmt.Printf("%s  %s\n", hostStyle.Render(hostStr),
-		timestampStyle.Render(time.Now().Format("[2006-01-02 15:04:05]")))
+	fmt.Printf("%s  %s\n", theme.HostLine().Render(hostStr),
+		theme.Timestamp().Render(time.Now().Format("[2006-01-02 15:04:05]")))
 
 	if res != nil {
 		_ = res.ForEach(func(key, val string) error {
@@ -85,9 +77,9 @@ func printKeyValue(prefix string, key string, val string, verboseLevel int) {
 
 	indent := fmt.Sprintf("%s    ", prefix)
 	if verboseLevel == 0 && (strings.IndexByte(val, '\n') == -1 || strings.IndexByte(val, '\n') == len(val)-1) {
-		fmt.Printf("%s%s %s\n", indent, labelStyle.Render(fmt.Sprintf("%s:", key)), strings.ReplaceAll(val, "\n", ""))
+		fmt.Printf("%s%s %s\n", indent, theme.ResultLabel().Render(fmt.Sprintf("%s:", key)), strings.ReplaceAll(val, "\n", ""))
 	} else {
-		fmt.Printf("%s%s:\n", indent, labelStyle.Render(key))
+		fmt.Printf("%s%s:\n", indent, theme.ResultLabel().Render(key))
 		scanner := bufio.NewScanner(strings.NewReader(val))
 		for scanner.Scan() {
 			fmt.Printf("%s    %s\n", indent, scanner.Text())

@@ -24,31 +24,10 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/cqroot/minop/pkg/executor"
 	"github.com/cqroot/minop/pkg/remote"
+	"github.com/cqroot/minop/pkg/theme"
 	"github.com/spf13/cobra"
-)
-
-// Output styling for the host tree display produced by `minop host`.
-var (
-	// treeStyle is the colour of the tree branch characters (├──, └──).
-	treeStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("212"))
-
-	// groupStyle is the colour of the role-name headers
-	// ("• all", "• main", ...).
-	groupStyle = lipgloss.NewStyle().
-			Bold(true).Faint(false).Foreground(lipgloss.Color("12"))
-
-	// Per-segment colours used by renderHost so that user, address
-	// and port are visually distinct in the tree output.
-	hostUserStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("14"))
-	hostAddrStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("10"))
-	hostPortStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("11"))
-	// hostSepStyle is the dim colour for the "@" and ":" separators
-	// between user, address and port.
-	hostSepStyle = lipgloss.NewStyle().Faint(true)
 )
 
 // renderHost formats a host as 'user@addr:port' with each segment
@@ -56,11 +35,11 @@ var (
 // separators dim) so the three pieces are visually separable at a
 // glance.
 func renderHost(h remote.Host) string {
-	return hostUserStyle.Render(h.Username) +
-		hostSepStyle.Render("@") +
-		hostAddrStyle.Render(h.Address) +
-		hostSepStyle.Render(":") +
-		hostPortStyle.Render(strconv.Itoa(h.Port))
+	return theme.HostUser().Render(h.Username) +
+		theme.HostSep().Render("@") +
+		theme.HostAddr().Render(h.Address) +
+		theme.HostSep().Render(":") +
+		theme.HostPort().Render(strconv.Itoa(h.Port))
 }
 
 // RunHostCmd displays all configured hosts in a tree format.
@@ -125,11 +104,11 @@ func printHostGroup(w io.Writer, hosts []remote.Host, name string) {
 		indent = "    "
 	}
 
-	_, _ = fmt.Fprintf(w, "%s%s\n", indent, groupStyle.Render("• "+name))
+	_, _ = fmt.Fprintf(w, "%s%s\n", indent, theme.HostHeader().Render("• "+name))
 	for i, host := range hosts {
-		branch := treeStyle.Render("├──")
+		branch := theme.TreeBranch().Render("├──")
 		if i == len(hosts)-1 {
-			branch = treeStyle.Render("└──")
+			branch = theme.TreeBranch().Render("└──")
 		}
 		_, _ = fmt.Fprintf(w, "%s%s %s\n",
 			indent,

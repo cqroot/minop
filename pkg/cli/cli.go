@@ -22,12 +22,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/cqroot/gtypes"
 	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/executor"
 	"github.com/cqroot/minop/pkg/module"
 	"github.com/cqroot/minop/pkg/remote"
+	"github.com/cqroot/minop/pkg/theme"
 	"github.com/cqroot/prompt"
 	promptconstants "github.com/cqroot/prompt/constants"
 	"github.com/cqroot/prompt/input"
@@ -64,7 +64,7 @@ func MinopTheme(msg string, state prompt.State, model string) string {
 	s := strings.Builder{}
 
 	s.WriteString(promptconstants.DefaultNormalPromptSuffixStyle.Render(msg))
-	s.WriteString(lipgloss.NewStyle().Foreground(lipgloss.Color("5")).Render(" › "))
+	s.WriteString(theme.PromptArrow().Render(" › "))
 	s.WriteString(model)
 	if state != prompt.StateNormal {
 		s.WriteString("\n")
@@ -73,23 +73,16 @@ func MinopTheme(msg string, state prompt.State, model string) string {
 	return s.String()
 }
 
-// Output styling for help display
-var (
-	helpTitleStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("5")).Bold(true)
-	helpKeyStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("10"))
-	helpValStyle   = lipgloss.NewStyle().Faint(true)
-)
-
 // ShowHelp displays the available CLI commands.
 func ShowHelp() {
-	fmt.Print(helpTitleStyle.Render("\nMINOP CLI COMMANDS\n"))
+	fmt.Print(theme.Title().Render("\nMINOP CLI COMMANDS\n"))
 
 	helpEntries := gtypes.NewOrderedMap[string, string]()
 	helpEntries.Put("exit", "Quit minop")
 	helpEntries.Put("quit", "Quit minop")
 	helpEntries.Put("help", "Show help output")
 	_ = helpEntries.ForEach(func(k, v string) error {
-		fmt.Printf("    %s    %s\n", helpKeyStyle.Render(k), helpValStyle.Render(v))
+		fmt.Printf("    %s    %s\n", theme.HelpKey().Render(k), theme.Dim().Render(v))
 		return nil
 	})
 
