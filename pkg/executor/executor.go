@@ -123,7 +123,7 @@ func (e Executor) ExecuteOnHosts(outputPrefix string, hostGroup map[string][]rem
 			Msg("dispatching operation to host group")
 
 		for _, h := range hosts {
-			hostStr := fmt.Sprintf("%s@%s:%d", h.User, h.Address, h.Port)
+			hostStr := fmt.Sprintf("%s@%s:%d", h.Username, h.Address, h.Port)
 
 			if err := sem.Acquire(ctx, 1); err != nil {
 				logs.Logger().Error().

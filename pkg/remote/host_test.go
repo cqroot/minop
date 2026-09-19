@@ -37,7 +37,7 @@ func TestParseHostLine(t *testing.T) {
 			name: "valid host line",
 			line: "user:password@hostname:22",
 			expected: remote.Host{
-				User:     "user",
+				Username: "user",
 				Password: "password",
 				Address:  "hostname",
 				Port:     22,
@@ -90,7 +90,7 @@ func TestParseHostLine(t *testing.T) {
 			name: "IPv6 address with port",
 			line: "user:password@[2001:db8::1]:22",
 			expected: remote.Host{
-				User:     "user",
+				Username: "user",
 				Password: "password",
 				Address:  "[2001:db8::1]",
 				Port:     22,
@@ -101,7 +101,7 @@ func TestParseHostLine(t *testing.T) {
 			name: "IPv6 address without port",
 			line: "user:password@[2001:db8::1]",
 			expected: remote.Host{
-				User:     "user",
+				Username: "user",
 				Password: "password",
 				Address:  "[2001:db8::1]",
 				Port:     22,
@@ -112,7 +112,7 @@ func TestParseHostLine(t *testing.T) {
 			name: "hostname without port",
 			line: "user:password@hostname",
 			expected: remote.Host{
-				User:     "user",
+				Username: "user",
 				Password: "password",
 				Address:  "hostname",
 				Port:     22,
@@ -123,7 +123,7 @@ func TestParseHostLine(t *testing.T) {
 			name: "hostname with empty port",
 			line: "user:password@hostname:",
 			expected: remote.Host{
-				User:     "user",
+				Username: "user",
 				Password: "password",
 				Address:  "hostname",
 				Port:     22,
@@ -134,7 +134,7 @@ func TestParseHostLine(t *testing.T) {
 			name: "IPv6 address with empty port",
 			line: "user:password@[2001:db8::1]:",
 			expected: remote.Host{
-				User:     "user",
+				Username: "user",
 				Password: "password",
 				Address:  "[2001:db8::1]",
 				Port:     22,

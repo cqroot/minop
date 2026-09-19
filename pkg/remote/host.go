@@ -27,8 +27,8 @@ import (
 
 // Host represents a remote server connection with authentication details.
 type Host struct {
-	// User is the login username for SSH authentication.
-	User string
+	// Username is the login username for SSH authentication.
+	Username string
 	// Password is the login password for SSH authentication.
 	Password string
 	// Address is the hostname or IP of the remote server. For IPv6, it
@@ -76,7 +76,7 @@ func ParseHostLine(line string) (Host, error) {
 		return Host{}, ErrEmptyAddress
 	}
 
-	h := Host{User: user, Password: password}
+	h := Host{Username: user, Password: password}
 	if hostPort[0] == '[' {
 		h.Address, h.Port, err = parseBracketedHost(hostPort)
 	} else {

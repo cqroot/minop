@@ -35,7 +35,7 @@ import (
 
 // Remote represents a SSH/SFTP client for remote server operations
 type Remote struct {
-	Hostname string
+	Address  string
 	Port     int
 	Username string
 	Password string
@@ -47,16 +47,16 @@ type Remote struct {
 // New creates a new Remote instance and establishes connections
 func New(h Host) (*Remote, error) {
 	r := &Remote{
-		Hostname: h.Address,
+		Address:  h.Address,
 		Port:     h.Port,
-		Username: h.User,
+		Username: h.Username,
 		Password: h.Password,
-		Logger:   logs.Logger().With().Str("host", fmt.Sprintf("%s@%s:%d", h.User, h.Address, h.Port)).Logger(),
+		Logger:   logs.Logger().With().Str("host", fmt.Sprintf("%s@%s:%d", h.Username, h.Address, h.Port)).Logger(),
 	}
 
 	// Establish SSH connection
 	sshConfig := &ssh.ClientConfig{
-		User: h.User,
+		User: h.Username,
 		Auth: []ssh.AuthMethod{
 			ssh.Password(h.Password),
 		},
@@ -96,12 +96,12 @@ func ToUnixPath(pathStr string) string {
 // or SFTP clients. Production code must use New.
 func NewForTesting(h Host) *Remote {
 	return &Remote{
-		Hostname: h.Address,
+		Address:  h.Address,
 		Port:     h.Port,
-		Username: h.User,
+		Username: h.Username,
 		Password: h.Password,
 		Logger: logs.Logger().With().
-			Str("host", fmt.Sprintf("%s@%s:%d", h.User, h.Address, h.Port)).
+			Str("host", fmt.Sprintf("%s@%s:%d", h.Username, h.Address, h.Port)).
 			Logger(),
 	}
 }

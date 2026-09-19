@@ -56,7 +56,7 @@ var (
 // separators dim) so the three pieces are visually separable at a
 // glance.
 func renderHost(h remote.Host) string {
-	return hostUserStyle.Render(h.User) +
+	return hostUserStyle.Render(h.Username) +
 		hostSepStyle.Render("@") +
 		hostAddrStyle.Render(h.Address) +
 		hostSepStyle.Render(":") +
