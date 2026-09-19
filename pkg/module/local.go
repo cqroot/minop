@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-package operation
+package module
 
 import (
 	"bufio"
@@ -29,30 +29,30 @@ import (
 	"github.com/cqroot/minop/pkg/remote"
 )
 
-type OpLocal struct {
-	baseOperationImpl
+type Local struct {
+	baseModuleImpl
 	local  string
 	prefix string
 }
 
-func NewOpLocal(in Input) (*OpLocal, error) {
+func NewLocal(in Task) (*Local, error) {
 	if in.Local == "" {
-		return nil, MakeErrInvalidOperation(in)
+		return nil, MakeErrInvalidModule(in)
 	}
-	return &OpLocal{
+	return &Local{
 		local: in.Local,
 	}, nil
 }
 
-func (op OpLocal) DefaultName() string {
+func (op Local) DefaultName() string {
 	return fmt.Sprintf("[local] %s", op.local)
 }
 
-func (op *OpLocal) SetPrefix(prefix string) {
+func (op *Local) SetPrefix(prefix string) {
 	op.prefix = prefix
 }
 
-func (op OpLocal) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
+func (op Local) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
 	cmd := exec.Command("sh", "-c", op.local)
 
 	stdoutPipe, err := cmd.StdoutPipe()

@@ -1,25 +1,32 @@
 # Sample tasks file for minop.
 #
-# Each entry under "tasks" describes one operation. The supported
-# operation types are:
-#   copy:  <local-path>
-#     to:  <remote-path>
-#   shell: <command>
-#   local: <command>
+# Each entry under "tasks" describes one operation. The action key
+# determines the operation type, mirroring ansible's task module
+# convention — exactly one of these keys must be present per task:
 #
-# Optional fields:
-#   name: human-readable label; defaults to a generated string.
-#   role: target role from hosts.yaml; defaults to "all".
-#   backup: when copying, keep a copy of any pre-existing remote file.
+#   - name: human-readable label (recommended)
+#     role: target role from hosts.yaml (optional, default: all)
+#
+#   shell: <command>                 # run on every host
+#   local: <command>                 # run on the minop host
+#   copy:                            # upload a file or directory
+#     src: <local-path>
+#     dest: <remote-path>
+#     backup: true|false             # optional, default false
 
 tasks:
   - name: Copy a single file to every host
-    copy: ./local.txt
-    to: /tmp/local.txt
+    copy:
+      src: ./local.txt
+      dest: /tmp/local.txt
 
   - name: Copy a whole directory to every host
-    copy: ./local-dir
-    to: /tmp/local-dir
+    copy:
+      src: ./local-dir
+      dest: /tmp/local-dir
 
   - name: Run a shell command on every host
     shell: ls -la /tmp
+
+  - name: Run a command on the minop host (no SSH)
+    local: echo "running locally, not on the targets"

@@ -26,7 +26,7 @@ import (
 	"github.com/cqroot/gtypes"
 	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/executor"
-	"github.com/cqroot/minop/pkg/operation"
+	"github.com/cqroot/minop/pkg/module"
 	"github.com/cqroot/minop/pkg/remote"
 	"github.com/cqroot/prompt"
 	promptconstants "github.com/cqroot/prompt/constants"
@@ -138,7 +138,7 @@ func (c Cli) Run() error {
 			continue
 		}
 
-		op, err := operation.NewOpShell(operation.Input{
+		op, err := module.NewShell(module.Task{
 			Shell: val,
 		})
 		if err != nil {

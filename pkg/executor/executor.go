@@ -25,7 +25,7 @@ import (
 	"github.com/cqroot/gtypes"
 	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/logs"
-	"github.com/cqroot/minop/pkg/operation"
+	"github.com/cqroot/minop/pkg/module"
 	"github.com/cqroot/minop/pkg/remote"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
@@ -54,8 +54,8 @@ type execResult struct {
 	res *gtypes.OrderedMap[string, string]
 }
 
-func (e Executor) ExecuteOnHosts(outputPrefix string, hostGroup map[string][]remote.Host, pool *remote.HostPool, op operation.Operation) error {
-	if localOp, ok := op.(*operation.OpLocal); ok {
+func (e Executor) ExecuteOnHosts(outputPrefix string, hostGroup map[string][]remote.Host, pool *remote.HostPool, op module.Module) error {
+	if localOp, ok := op.(*module.Local); ok {
 		localOp.SetPrefix(outputPrefix)
 		res, err := localOp.Execute(nil)
 		if err != nil {
@@ -201,7 +201,7 @@ func (e Executor) ExecuteOnHosts(outputPrefix string, hostGroup map[string][]rem
 	return nil
 }
 
-func (e Executor) ExecuteOperations(outputPrefix string, hostGroup map[string][]remote.Host, ops []operation.Operation) error {
+func (e Executor) ExecuteOperations(outputPrefix string, hostGroup map[string][]remote.Host, ops []module.Module) error {
 	termWidth := getTerminalWidth()
 	pool := remote.NewHostPool()
 

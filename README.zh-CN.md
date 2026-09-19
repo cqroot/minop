@@ -53,6 +53,15 @@ go install github.com/cqroot/minop@latest
 
 从 release 界面下载对应平台的二进制文件，并将其所在路径加入到环境变量中。
 
+## 特性
+
+- **批量 SSH 执行** — 在 `hosts.yaml` 的每台主机上并发运行 shell 命令（默认并发 10，可通过 `--max-procs` 调整）。
+- **文件与目录上传** — 内置 `copy` 任务，可选 `backup: true` 自动保留远端已存在的文件。
+- **本地命令** — 在 minop 主机自身执行 shell 片段，适合编排胶水代码。
+- **交互式 REPL** — `minop cli` 启动 TUI，输入回车即分发到所有目标；输出区在上方独立滚动，输入框固定在底部，并显示快捷键提示。
+- **兼容 ansible 任务语法** — `minop.yaml` 采用 ansible 用户熟悉的"动作 key 即类型"约定：`shell:`、`local:`、`copy:` 各自的动作 key 即决定操作类型，不需要显式 `type:` 字段。
+- **检查命令** — `minop host` 以树状结构展示已解析的主机；`minop task` 列出 `minop.yaml` 中的所有任务但不执行。
+
 ## 用法
 
 minop 读取两个配置文件：
@@ -81,22 +90,33 @@ main:
 
 ### 任务文件（`minop.yaml`）
 
-`tasks` 键下是一个任务列表，每个任务支持三种操作类型之一：
-`copy`、`shell` 或 `local`。
+`tasks` 键下是一个任务列表，每个任务声明**恰好一个**动作 —— 动作
+key 本身决定操作类型，不需要额外的 `type:` 字段。
+
+| 动作 key | 操作 | 值 |
+|---|---|---|
+| `shell: <cmd>` | 在每台目标主机上执行 | 命令字符串 |
+| `local: <cmd>` | 在 minop 主机上执行 | 命令字符串 |
+| `copy: {...}` | 上传文件或目录 | 嵌套对象 |
 
 ```yaml
 tasks:
-  - name: Copy file to /tmp on the remote host
-    copy: test.txt
-    to: /tmp/test.txt
+  - name: Copy a file to the remote host
+    copy:
+      src: test.txt
+      dest: /tmp/test.txt
 
-  - name: Copy dir to /tmp on the remote host
-    copy: testdir
-    to: /tmp/testdir
+  - name: Copy a directory to the remote host
+    copy:
+      src: testdir
+      dest: /tmp/testdir
 
   - name: List /tmp on the remote host
     shell: ls /tmp
 ```
+
+`copy` 可选 `backup: true`——上传前将远端已存在的文件重命名为
+`dest.minop_bak`。
 
 ### 执行任务
 

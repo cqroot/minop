@@ -15,32 +15,47 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-package operation_test
+package module_test
 
 import (
 	"testing"
 
-	"github.com/cqroot/minop/pkg/operation"
+	"github.com/cqroot/minop/pkg/module"
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewOpShell(t *testing.T) {
+func TestNewCopy(t *testing.T) {
 	tests := []struct {
 		name    string
-		input   operation.Input
+		input   module.Task
 		wantErr bool
 	}{
 		{
-			name: "valid shell input",
-			input: operation.Input{
-				Shell: "echo hello",
+			name: "valid copy input",
+			input: module.Task{
+				Copy: &module.CopySpec{
+					Src:  "/local/file",
+					Dest: "/remote/file",
+				},
 			},
 			wantErr: false,
 		},
 		{
-			name: "empty shell",
-			input: operation.Input{
-				Shell: "",
+			name:    "missing copy body",
+			input:   module.Task{},
+			wantErr: true,
+		},
+		{
+			name: "missing dest",
+			input: module.Task{
+				Copy: &module.CopySpec{Src: "/local/file"},
+			},
+			wantErr: true,
+		},
+		{
+			name: "missing src",
+			input: module.Task{
+				Copy: &module.CopySpec{Dest: "/remote/file"},
 			},
 			wantErr: true,
 		},
@@ -48,7 +63,7 @@ func TestNewOpShell(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			op, err := operation.NewOpShell(tt.input)
+			op, err := module.NewCopy(tt.input)
 			if tt.wantErr {
 				require.Error(t, err)
 				require.Nil(t, op)
@@ -60,25 +75,31 @@ func TestNewOpShell(t *testing.T) {
 	}
 }
 
-func TestOpShell_Name(t *testing.T) {
-	op, err := operation.NewOpShell(operation.Input{Shell: "echo hello"})
+func TestCopy_Name(t *testing.T) {
+	op, err := module.NewCopy(module.Task{
+		Copy: &module.CopySpec{Src: "/local/path", Dest: "/remote/path"},
+	})
 	require.NoError(t, err)
 
 	op.SetName("custom name")
 	require.Equal(t, "custom name", op.Name())
 }
 
-func TestOpShell_DefaultName(t *testing.T) {
-	op, err := operation.NewOpShell(operation.Input{Shell: "ls -la"})
+func TestCopy_DefaultName(t *testing.T) {
+	op, err := module.NewCopy(module.Task{
+		Copy: &module.CopySpec{Src: "/local/file.txt", Dest: "/remote/file.txt"},
+	})
 	require.NoError(t, err)
 
-	require.Equal(t, "[shell] ls -la", op.DefaultName())
+	require.Equal(t, "[copy] /local/file.txt => /remote/file.txt", op.DefaultName())
 }
 
-func TestOpShell_Role(t *testing.T) {
-	op, err := operation.NewOpShell(operation.Input{Shell: "echo hello"})
+func TestCopy_Role(t *testing.T) {
+	op, err := module.NewCopy(module.Task{
+		Copy: &module.CopySpec{Src: "/local/file", Dest: "/remote/file"},
+	})
 	require.NoError(t, err)
 
-	op.SetRole("web")
-	require.Equal(t, "web", op.Role())
+	op.SetRole("storage")
+	require.Equal(t, "storage", op.Role())
 }

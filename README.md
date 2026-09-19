@@ -53,6 +53,15 @@ go install github.com/cqroot/minop@latest
 
 Download the binary for your platform from the releases page and add its directory to your system's PATH.
 
+## Features
+
+- **Batch SSH execution** — run shell commands on every host in `hosts.yaml` concurrently (default 10, tunable via `--max-procs`).
+- **File & directory uploads** — built-in `copy` task with optional `backup: true` that preserves any pre-existing remote file.
+- **Local commands** — run shell snippets on the minop host itself, useful for orchestration glue.
+- **Interactive REPL** — `minop cli` opens a TUI where every input line is dispatched to all targets; output scrolls above a pinned input box with hint shortcuts.
+- **Ansible-style task syntax** — `minop.yaml` follows the "action key as type" convention familiar to ansible users: `shell:`, `local:`, and `copy:` each pick the operation type by their key, no explicit `type:` field required.
+- **Inspection commands** — `minop host` prints the parsed host tree; `minop task` lists every task in `minop.yaml` without executing.
+
 ## Usage
 
 minop reads two configuration files:
@@ -82,22 +91,34 @@ main:
 
 ### Tasks File (`minop.yaml`)
 
-A list of tasks under the `tasks` key. Each task supports one of three
-operation types: `copy`, `shell`, or `local`.
+A list of tasks under the `tasks` key. Each task declares exactly one
+action — the action key itself picks the operation type, no separate
+`type:` field is needed.
+
+| Action key | Operation | Body |
+|---|---|---|
+| `shell: <cmd>` | run on every target host | command string |
+| `local: <cmd>` | run on the minop host | command string |
+| `copy: {...}` | upload a file or directory | nested object |
 
 ```yaml
 tasks:
-  - name: Copy file to the remote host
-    copy: test.txt
-    to: /tmp/test.txt
+  - name: Copy a file to the remote host
+    copy:
+      src: test.txt
+      dest: /tmp/test.txt
 
-  - name: Copy directory to the remote host
-    copy: testdir
-    to: /tmp/testdir
+  - name: Copy a directory to the remote host
+    copy:
+      src: testdir
+      dest: /tmp/testdir
 
   - name: List /tmp on the remote host
     shell: ls /tmp
 ```
+
+`copy` accepts an optional `backup: true` flag — when set, any pre-existing
+remote file at `dest` is renamed to `dest.minop_bak` before the upload.
 
 ### Run Tasks
 

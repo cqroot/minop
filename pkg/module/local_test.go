@@ -15,31 +15,31 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-package operation_test
+package module_test
 
 import (
 	"testing"
 
-	"github.com/cqroot/minop/pkg/operation"
+	"github.com/cqroot/minop/pkg/module"
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewOpLocal(t *testing.T) {
+func TestNewLocal(t *testing.T) {
 	tests := []struct {
 		name    string
-		input   operation.Input
+		input   module.Task
 		wantErr bool
 	}{
 		{
 			name: "valid local input",
-			input: operation.Input{
+			input: module.Task{
 				Local: "echo hello",
 			},
 			wantErr: false,
 		},
 		{
 			name: "empty local",
-			input: operation.Input{
+			input: module.Task{
 				Local: "",
 			},
 			wantErr: true,
@@ -48,7 +48,7 @@ func TestNewOpLocal(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			op, err := operation.NewOpLocal(tt.input)
+			op, err := module.NewLocal(tt.input)
 			if tt.wantErr {
 				require.Error(t, err)
 				require.Nil(t, op)
@@ -60,40 +60,40 @@ func TestNewOpLocal(t *testing.T) {
 	}
 }
 
-func TestOpLocal_Name(t *testing.T) {
-	op, err := operation.NewOpLocal(operation.Input{Local: "echo hello"})
+func TestLocal_Name(t *testing.T) {
+	op, err := module.NewLocal(module.Task{Local: "echo hello"})
 	require.NoError(t, err)
 
 	op.SetName("custom name")
 	require.Equal(t, "custom name", op.Name())
 }
 
-func TestOpLocal_DefaultName(t *testing.T) {
-	op, err := operation.NewOpLocal(operation.Input{Local: "ls -la"})
+func TestLocal_DefaultName(t *testing.T) {
+	op, err := module.NewLocal(module.Task{Local: "ls -la"})
 	require.NoError(t, err)
 
 	require.Equal(t, "[local] ls -la", op.DefaultName())
 }
 
-func TestOpLocal_Role(t *testing.T) {
-	op, err := operation.NewOpLocal(operation.Input{Local: "echo hello"})
+func TestLocal_Role(t *testing.T) {
+	op, err := module.NewLocal(module.Task{Local: "echo hello"})
 	require.NoError(t, err)
 
 	op.SetRole("local")
 	require.Equal(t, "local", op.Role())
 }
 
-func TestOpLocal_SetPrefix(t *testing.T) {
-	op, err := operation.NewOpLocal(operation.Input{Local: "echo hello"})
+func TestLocal_SetPrefix(t *testing.T) {
+	op, err := module.NewLocal(module.Task{Local: "echo hello"})
 	require.NoError(t, err)
 
 	op.SetPrefix("    ")
 	require.NotNil(t, op)
 }
 
-func TestOpLocal_Execute(t *testing.T) {
+func TestLocal_Execute(t *testing.T) {
 	t.Run("successful command", func(t *testing.T) {
-		op, err := operation.NewOpLocal(operation.Input{Local: "echo hello"})
+		op, err := module.NewLocal(module.Task{Local: "echo hello"})
 		require.NoError(t, err)
 
 		res, err := op.Execute(nil)
@@ -106,7 +106,7 @@ func TestOpLocal_Execute(t *testing.T) {
 	})
 
 	t.Run("failing command", func(t *testing.T) {
-		op, err := operation.NewOpLocal(operation.Input{Local: "exit 1"})
+		op, err := module.NewLocal(module.Task{Local: "exit 1"})
 		require.NoError(t, err)
 
 		res, err := op.Execute(nil)
@@ -119,7 +119,7 @@ func TestOpLocal_Execute(t *testing.T) {
 	})
 
 	t.Run("command not found", func(t *testing.T) {
-		op, err := operation.NewOpLocal(operation.Input{Local: "nonexistent_command_12345"})
+		op, err := module.NewLocal(module.Task{Local: "nonexistent_command_12345"})
 		require.NoError(t, err)
 
 		res, err := op.Execute(nil)

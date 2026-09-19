@@ -23,7 +23,7 @@ import (
 
 	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/logs"
-	"github.com/cqroot/minop/pkg/operation"
+	"github.com/cqroot/minop/pkg/module"
 	"github.com/cqroot/minop/pkg/remote"
 	"gopkg.in/yaml.v3"
 )
@@ -31,7 +31,7 @@ import (
 // tasksFileSchema is the top-level shape of minop.yaml. Only the
 // "tasks" key is recognised; hosts live in a separate file.
 type tasksFileSchema struct {
-	Tasks []operation.Input `yaml:"tasks"`
+	Tasks []module.Task `yaml:"tasks"`
 }
 
 // LoadHostsFile reads a hosts file and returns a map from role name to
@@ -77,7 +77,7 @@ func (e Executor) LoadHostsFile(filename string) (map[string][]remote.Host, erro
 // LoadTasksFile reads a task file and returns the list of operations
 // to execute. Each entry's name defaults to DefaultName() and its role
 // defaults to RoleAll when the corresponding YAML field is empty.
-func (e Executor) LoadTasksFile(filename string) ([]operation.Operation, error) {
+func (e Executor) LoadTasksFile(filename string) ([]module.Module, error) {
 	logs.Logger().Debug().Str("filename", filename).Msg("loading tasks file")
 
 	content, err := os.ReadFile(filename)
@@ -92,9 +92,9 @@ func (e Executor) LoadTasksFile(filename string) ([]operation.Operation, error) 
 		return nil, fmt.Errorf("failed to unmarshal tasks YAML: %w", err)
 	}
 
-	ops := make([]operation.Operation, len(cfg.Tasks))
+	ops := make([]module.Module, len(cfg.Tasks))
 	for idx, in := range cfg.Tasks {
-		op, err := operation.GetOperation(in)
+		op, err := module.GetModule(in)
 		if err != nil {
 			return nil, err
 		}

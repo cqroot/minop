@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-package operation
+package module
 
 import (
 	"fmt"
@@ -25,30 +25,30 @@ import (
 	"github.com/cqroot/minop/pkg/remote"
 )
 
-// OpShell executes shell commands on remote hosts.
-type OpShell struct {
-	baseOperationImpl
+// Shell executes shell commands on remote hosts.
+type Shell struct {
+	baseModuleImpl
 	shell string
 }
 
-// NewOpShell creates a new OpShell operation from the given Input.
-// Returns ErrInvalidOperation if Shell field is empty.
-func NewOpShell(in Input) (*OpShell, error) {
+// NewShell creates a new Shell operation from the given Task.
+// Returns ErrInvalidModule if Shell field is empty.
+func NewShell(in Task) (*Shell, error) {
 	if in.Shell == "" {
-		return nil, MakeErrInvalidOperation(in)
+		return nil, MakeErrInvalidModule(in)
 	}
-	return &OpShell{
+	return &Shell{
 		shell: in.Shell,
 	}, nil
 }
 
 // DefaultName returns the default name for shell operations.
-func (op OpShell) DefaultName() string {
+func (op Shell) DefaultName() string {
 	return fmt.Sprintf("[shell] %s", op.shell)
 }
 
 // Execute runs the shell command on the remote host and returns the results.
-func (op OpShell) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
+func (op Shell) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
 	exitStatus, stdout, stderr, err := r.ExecuteCommand(op.shell)
 	if err != nil {
 		return nil, err

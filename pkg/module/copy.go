@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-package operation
+package module
 
 import (
 	"fmt"
@@ -26,34 +26,44 @@ import (
 	"github.com/cqroot/minop/pkg/remote"
 )
 
-// OpCopy copies files or directories to remote hosts via SFTP.
-type OpCopy struct {
-	baseOperationImpl
+// CopySpec is the nested body of a "copy" task. Src is the local
+// path; Dest is the absolute remote path. When Backup is true,
+// any pre-existing file at Dest is renamed to "Dest.minop_bak"
+// before the upload, mirroring ansible's backup: yes option.
+type CopySpec struct {
+	Src    string `yaml:"src"`
+	Dest   string `yaml:"dest"`
+	Backup bool   `yaml:"backup"`
+}
+
+// Copy copies files or directories to remote hosts via SFTP.
+type Copy struct {
+	baseModuleImpl
 	copy   string
 	to     string
 	backup bool
 }
 
-// NewOpCopy creates a new OpCopy operation from the given Input.
-// Returns ErrInvalidOperation if the To field is empty.
-func NewOpCopy(in Input) (*OpCopy, error) {
-	if in.To == "" {
-		return nil, MakeErrInvalidOperation(in)
+// NewCopy creates a new Copy operation from the given Task.
+// Returns ErrInvalidModule if the copy body, src or dest is missing.
+func NewCopy(in Task) (*Copy, error) {
+	if in.Copy == nil || in.Copy.Src == "" || in.Copy.Dest == "" {
+		return nil, MakeErrInvalidModule(in)
 	}
-	return &OpCopy{
-		copy:   in.Copy,
-		to:     in.To,
-		backup: in.Backup,
+	return &Copy{
+		copy:   in.Copy.Src,
+		to:     in.Copy.Dest,
+		backup: in.Copy.Backup,
 	}, nil
 }
 
 // DefaultName returns the default name for copy operations.
-func (op OpCopy) DefaultName() string {
+func (op Copy) DefaultName() string {
 	return fmt.Sprintf("[copy] %s => %s", op.copy, op.to)
 }
 
 // Execute uploads the local file or directory to the remote host.
-func (op OpCopy) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
+func (op Copy) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
 	if op.backup {
 		logs.Logger().Debug().Str("Dst", op.to).Msg("backup file")
 		ret, stdout, stderr, err := r.ExecuteCommand(fmt.Sprintf(
@@ -72,20 +82,22 @@ func (op OpCopy) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], 
 
 	fileInfo, err := os.Lstat(op.copy)
 	if err != nil {
-		logs.Logger().Err(err).Msg("")
+		logs.Logger().Err(err).Str("src", op.copy).Msg("stat source failed")
 		return nil, err
 	}
 
 	if fileInfo.Mode()&os.ModeSymlink != 0 {
-		err = fmt.Errorf("%s is a symbolic link", op.copy)
-		logs.Logger().Err(err).Msg("")
+		err = fmt.Errorf("source %s is a symbolic link", op.copy)
+		logs.Logger().Err(err).Str("src", op.copy).Msg("refusing to upload symlink")
 		return nil, err
-	} else if fileInfo.IsDir() {
-		err = r.UploadDir(op.copy, op.to)
-	} else {
-		err = r.UploadFile(op.copy, op.to)
 	}
 
+	switch {
+	case fileInfo.IsDir():
+		err = r.UploadDir(op.copy, op.to)
+	default:
+		err = r.UploadFile(op.copy, op.to)
+	}
 	if err != nil {
 		return nil, err
 	}

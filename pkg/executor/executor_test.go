@@ -25,13 +25,13 @@ import (
 	"github.com/cqroot/gtypes"
 	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/executor"
-	"github.com/cqroot/minop/pkg/operation"
+	"github.com/cqroot/minop/pkg/module"
 	"github.com/cqroot/minop/pkg/remote"
 	"github.com/stretchr/testify/require"
 )
 
 // failingOperation is a mock that always returns the configured error from
-// Execute. It satisfies operation.Operation structurally; the unexported
+// Execute. It satisfies module.Module structurally; the unexported
 // baseOperation embedded in the interface is matched by name, not by
 // declaration site, so this works from a test package.
 type failingOperation struct {
@@ -80,9 +80,9 @@ func TestExecutor_LoadTasksFile_NotFound(t *testing.T) {
 func TestOpLocal_ExecuteWithExecutor(t *testing.T) {
 	e := executor.New()
 
-	ops := []operation.Operation{
-		func() operation.Operation {
-			op, _ := operation.NewOpLocal(operation.Input{Local: "echo hello"})
+	ops := []module.Module{
+		func() module.Module {
+			op, _ := module.NewLocal(module.Task{Local: "echo hello"})
 			op.SetRole(constants.RoleAll)
 			return op
 		}(),
