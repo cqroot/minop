@@ -44,12 +44,7 @@ func renderHost(h remote.Host) string {
 
 // RunHostCmd displays all configured hosts in a tree format.
 func RunHostCmd(cmd *cobra.Command, args []string) {
-	e := executor.New(
-		executor.WithVerboseLevel(flagVerboseLevel),
-		executor.WithMaxProcs(flagMaxProcs),
-	)
-
-	hostGroup, err := e.LoadHostsFile(flagHostsFile)
+	hostGroup, err := executor.LoadHostsFile(flagHostsFile)
 	CheckErr(err)
 
 	printHostTree(os.Stdout, hostGroup)

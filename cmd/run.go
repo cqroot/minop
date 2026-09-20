@@ -32,10 +32,10 @@ func RunRunCmd(cmd *cobra.Command, args []string) {
 		executor.WithMaxProcs(flagMaxProcs),
 	)
 
-	hostGroup, err := e.LoadHostsFile(flagHostsFile)
+	hostGroup, err := executor.LoadHostsFile(flagHostsFile)
 	CheckErr(err)
 
-	modules, err := e.LoadTasksFile(flagTaskFile)
+	modules, err := executor.LoadTasksFile(flagTaskFile)
 	CheckErr(err)
 
 	err = e.ExecuteModules("    ", hostGroup, modules)

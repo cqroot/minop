@@ -39,7 +39,7 @@ import (
 //
 // The outer "hosts:" wrapper that the legacy combined format used is
 // intentionally not accepted; hosts.yaml is dedicated to host entries.
-func (e Executor) LoadHostsFile(filename string) (map[string][]remote.Host, error) {
+func LoadHostsFile(filename string) (map[string][]remote.Host, error) {
 	logs.Logger().Debug().Str("filename", filename).Msg("loading hosts file")
 
 	content, err := os.ReadFile(filename)
@@ -73,7 +73,7 @@ func (e Executor) LoadHostsFile(filename string) (map[string][]remote.Host, erro
 // task list — there is no wrapping "tasks:" key. Each entry's name
 // defaults to DefaultName() and its role defaults to RoleAll when
 // the corresponding YAML field is empty.
-func (e Executor) LoadTasksFile(filename string) ([]module.Module, error) {
+func LoadTasksFile(filename string) ([]module.Module, error) {
 	logs.Logger().Debug().Str("filename", filename).Msg("loading tasks file")
 
 	content, err := os.ReadFile(filename)

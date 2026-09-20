@@ -26,8 +26,8 @@ import (
 
 // TestRemoteClose_NilWhenNothingToClose verifies that calling Close
 // on a *Remote built via NewForTesting (no real SSH/SFTP clients)
-// returns nil without panicking. This guards the early-exit path
-// inside Close after the refactor to errors.Join.
+// returns nil without panicking. Close must tolerate a nil client
+// and nil sftp because NewForTesting leaves them unset.
 func TestRemoteClose_NilWhenNothingToClose(t *testing.T) {
 	h, err := remote.ParseHostLine("user:pw@127.0.0.1:22")
 	require.NoError(t, err)

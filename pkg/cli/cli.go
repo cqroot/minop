@@ -33,7 +33,8 @@ import (
 	"github.com/cqroot/prompt/input"
 )
 
-// defaultConfigFile is the path used when no config file is explicitly specified.
+// defaultHostsFile is the path used when no hosts file is explicitly
+// specified via WithHostsFile.
 const (
 	defaultHostsFile = "./" + constants.DefaultHostsFile
 )
@@ -98,7 +99,7 @@ func (c Cli) Run() error {
 	}
 
 	e := executor.New(executor.WithMaxProcs(c.optMaxProcs))
-	hostGroup, err := e.LoadHostsFile(hostsFile)
+	hostGroup, err := executor.LoadHostsFile(hostsFile)
 	if err != nil {
 		return err
 	}

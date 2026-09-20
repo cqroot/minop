@@ -28,12 +28,7 @@ import (
 // RunTaskCmd loads the task file and lists each module's default
 // name as a bullet list, without executing anything.
 func RunTaskCmd(cmd *cobra.Command, args []string) {
-	e := executor.New(
-		executor.WithVerboseLevel(flagVerboseLevel),
-		executor.WithMaxProcs(flagMaxProcs),
-	)
-
-	modules, err := e.LoadTasksFile(flagTaskFile)
+	modules, err := executor.LoadTasksFile(flagTaskFile)
 	CheckErr(err)
 
 	fmt.Println()

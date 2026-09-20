@@ -66,14 +66,12 @@ func TestExecutor_Options(t *testing.T) {
 }
 
 func TestExecutor_LoadHostsFile_NotFound(t *testing.T) {
-	e := executor.New()
-	_, err := e.LoadHostsFile("/nonexistent/hosts.yaml")
+	_, err := executor.LoadHostsFile("/nonexistent/hosts.yaml")
 	require.Error(t, err)
 }
 
 func TestExecutor_LoadTasksFile_NotFound(t *testing.T) {
-	e := executor.New()
-	_, err := e.LoadTasksFile("/nonexistent/minop.yaml")
+	_, err := executor.LoadTasksFile("/nonexistent/minop.yaml")
 	require.Error(t, err)
 }
 
@@ -92,17 +90,14 @@ func TestLocal_ExecuteWithExecutor(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// TestExecuteOnHosts_PreservesFirstError is a regression test for the
-// "context canceled" bug: when one host fails while others are queued
-// behind a maxProcs=1 semaphore, the queued hosts' sem.Acquire returns
-// ctx.Err(), and ExecuteOnHosts used to surface that as "context
-// canceled", hiding the real failure. The fix records the first real
-// error from a per-host goroutine and prefers it over ctx.Err() at both
-// the sem.Acquire and g.Wait() exit points.
-//
-// Without the fix this test is racy (sometimes passes because the
-// semaphore wakes the waiter on the resource-ready channel instead of
-// the ctx.Done() channel). With the fix it must pass deterministically.
+// TestExecuteOnHosts_PreservesFirstError verifies that when one host
+// fails under a maxProcs=1 semaphore, the returned error reflects the
+// real host failure rather than context.Canceled. With maxProcs=1, the
+// failure of the first host cancels the errgroup context, which would
+// make the second host's sem.Acquire return ctx.Err() and surface a
+// misleading "context canceled" error. ExecuteOnHosts records the first
+// real per-host error and prefers it at both the sem.Acquire and
+// g.Wait() exit points.
 func TestExecuteOnHosts_PreservesFirstError(t *testing.T) {
 	sentinel := errors.New("real failure from host A")
 
