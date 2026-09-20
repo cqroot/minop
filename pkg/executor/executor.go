@@ -34,16 +34,22 @@ import (
 type Executor struct {
 	optVerboseLevel int
 	optMaxProcs     int
+	optPrinter      *Printer
 }
 
 func New(opts ...Option) *Executor {
 	e := Executor{
-		optVerboseLevel: 0,
-		optMaxProcs:     constants.DefaultMaxProcs,
+		optMaxProcs: constants.DefaultMaxProcs,
 	}
 
 	for _, opt := range opts {
 		opt(&e)
+	}
+
+	// Build the default Printer after the option loop so it sees the
+	// final verbosity level. WithPrinter overrides this.
+	if e.optPrinter == nil {
+		e.optPrinter = defaultPrinter(e.optVerboseLevel)
 	}
 
 	return &e
@@ -68,7 +74,7 @@ func (e Executor) ExecuteOnHosts(
 		}
 		if res != nil {
 			_ = res.ForEach(func(key, val string) error {
-				printKeyValue(outputPrefix, key, val, e.optVerboseLevel)
+				e.optPrinter.PrintKeyValue(outputPrefix, key, val)
 				return nil
 			})
 		}
@@ -92,7 +98,7 @@ func (e Executor) ExecuteOnHosts(
 	go func() {
 		defer close(printDone)
 		for res := range results {
-			printHostResult(outputPrefix, res.h, res.res, e.optVerboseLevel)
+			e.optPrinter.PrintHostResult(outputPrefix, res.h, res.res)
 		}
 	}()
 
@@ -211,16 +217,15 @@ func (e Executor) ExecuteModules(
 	hostGroup map[string][]remote.Host,
 	modules []module.Module,
 ) error {
-	termWidth := getTerminalWidth()
 	pool := remote.NewHostPool()
 
 	for _, m := range modules {
-		printTaskHeader(m.Name(), termWidth)
+		e.optPrinter.PrintTaskHeader(m.Name())
 
 		if err := e.ExecuteOnHosts(outputPrefix, hostGroup, pool, m); err != nil {
 			return err
 		}
-		fmt.Println()
+		e.optPrinter.PrintTaskSeparator()
 	}
 	return nil
 }

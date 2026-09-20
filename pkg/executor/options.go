@@ -17,7 +17,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package executor
 
-import "github.com/cqroot/minop/pkg/logs"
+import (
+	"os"
+
+	"github.com/cqroot/minop/pkg/logs"
+)
 
 // Option configures an Executor.
 type Option func(e *Executor)
@@ -27,6 +31,23 @@ func WithVerboseLevel(verboseLevel int) Option {
 	return func(e *Executor) {
 		e.optVerboseLevel = verboseLevel
 	}
+}
+
+// WithPrinter sets a custom Printer for rendering task, host, and
+// key/value output. When not supplied, New builds a Printer that
+// writes to os.Stdout using the verbosity level set by
+// WithVerboseLevel on the same Executor (or zero if none was set).
+func WithPrinter(p *Printer) Option {
+	return func(e *Executor) {
+		e.optPrinter = p
+	}
+}
+
+// defaultPrinter builds the Printer used when WithPrinter is not
+// supplied. It writes to os.Stdout and uses the verbose level already
+// stored on the Executor.
+func defaultPrinter(verboseLevel int) *Printer {
+	return NewPrinter(os.Stdout, verboseLevel)
 }
 
 // WithMaxProcs sets the maximum number of concurrent modules. A
