@@ -34,7 +34,7 @@ var ErrInvalidModuleSpec = errors.New("invalid module spec")
 // Task is the YAML schema for a single task entry in minop.yaml.
 // A task declares exactly one action: a "shell" string, a "local"
 // string, or a nested "copy" object. Which key is present determines
-// the operation type — mirroring ansible's task module convention.
+// the module kind — mirroring ansible's task module convention.
 // Name should be set so that `minop task` shows a human-readable
 // label; Role defaults to "all".
 type Task struct {
@@ -68,7 +68,7 @@ type Module interface {
 // ErrInvalidModule signals that a task declared an action but is
 // missing the per-action required fields (e.g. copy without src).
 // This is the second-line guard: GetModule picks the action, and
-// the per-op constructor uses ErrInvalidModule to refuse a
+// the per-module constructor uses ErrInvalidModule to refuse a
 // half-filled action (e.g. copy with src but no dest).
 var ErrInvalidModule = errors.New("invalid module fields")
 

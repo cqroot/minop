@@ -31,7 +31,7 @@ type Shell struct {
 	cmd string
 }
 
-// NewShell creates a new Shell operation from the given Task.
+// NewShell creates a new Shell module from the given Task.
 // Returns ErrInvalidModule if Shell field is empty.
 func NewShell(in Task) (*Shell, error) {
 	if in.Shell == "" {
@@ -42,14 +42,14 @@ func NewShell(in Task) (*Shell, error) {
 	}, nil
 }
 
-// DefaultName returns the default name for shell operations.
-func (op Shell) DefaultName() string {
-	return fmt.Sprintf("[shell] %s", op.cmd)
+// DefaultName returns the default name for shell modules.
+func (m Shell) DefaultName() string {
+	return fmt.Sprintf("[shell] %s", m.cmd)
 }
 
 // Execute runs the shell command on the remote host and returns the results.
-func (op Shell) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
-	exitStatus, stdout, stderr, err := r.ExecuteCommand(op.cmd)
+func (m Shell) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
+	exitStatus, stdout, stderr, err := r.ExecuteCommand(m.cmd)
 	if err != nil {
 		return nil, err
 	}

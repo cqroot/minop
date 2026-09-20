@@ -68,7 +68,7 @@ func (e Executor) LoadHostsFile(filename string) (map[string][]remote.Host, erro
 	return hostGroup, nil
 }
 
-// LoadTasksFile reads a task file and returns the list of operations
+// LoadTasksFile reads a task file and returns the list of modules
 // to execute. The file is a YAML sequence whose top level is the
 // task list — there is no wrapping "tasks:" key. Each entry's name
 // defaults to DefaultName() and its role defaults to RoleAll when
@@ -88,26 +88,26 @@ func (e Executor) LoadTasksFile(filename string) ([]module.Module, error) {
 		return nil, fmt.Errorf("failed to unmarshal tasks YAML: %w", err)
 	}
 
-	ops := make([]module.Module, len(inputs))
+	modules := make([]module.Module, len(inputs))
 	for idx, in := range inputs {
-		op, err := module.GetModule(in)
+		m, err := module.GetModule(in)
 		if err != nil {
 			return nil, err
 		}
 
 		if in.Name != "" {
-			op.SetName(in.Name)
+			m.SetName(in.Name)
 		} else {
-			op.SetName(op.DefaultName())
+			m.SetName(m.DefaultName())
 		}
 
 		if in.Role != "" {
-			op.SetRole(in.Role)
+			m.SetRole(in.Role)
 		} else {
-			op.SetRole(constants.RoleAll)
+			m.SetRole(constants.RoleAll)
 		}
 
-		ops[idx] = op
+		modules[idx] = m
 	}
-	return ops, nil
+	return modules, nil
 }

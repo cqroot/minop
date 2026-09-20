@@ -22,10 +22,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// RunRunCmd executes every operation defined in the task file on
-// every host in the hosts file, in declaration order. Output for
-// each host line is prefixed with four spaces so it nests visually
-// under the operation header.
+// RunRunCmd executes every module defined in the task file on every
+// host in the hosts file, in declaration order. Output for each host
+// line is prefixed with four spaces so it nests visually under the
+// module header.
 func RunRunCmd(cmd *cobra.Command, args []string) {
 	e := executor.New(
 		executor.WithVerboseLevel(flagVerboseLevel),
@@ -35,10 +35,10 @@ func RunRunCmd(cmd *cobra.Command, args []string) {
 	hostGroup, err := e.LoadHostsFile(flagHostsFile)
 	CheckErr(err)
 
-	ops, err := e.LoadTasksFile(flagTaskFile)
+	modules, err := e.LoadTasksFile(flagTaskFile)
 	CheckErr(err)
 
-	err = e.ExecuteOperations("    ", hostGroup, ops)
+	err = e.ExecuteModules("    ", hostGroup, modules)
 	CheckErr(err)
 }
 

@@ -38,7 +38,8 @@ const (
 	defaultHostsFile = "./" + constants.DefaultHostsFile
 )
 
-// Cli provides an interactive command-line interface for remote operations.
+// Cli provides an interactive command-line interface for running
+// shell commands across remote hosts.
 type Cli struct {
 	hostsFile   string
 	optMaxProcs int
@@ -129,15 +130,15 @@ func (c Cli) Run() error {
 			continue
 		}
 
-		op, err := module.NewShell(module.Task{
+		m, err := module.NewShell(module.Task{
 			Shell: val,
 		})
 		if err != nil {
 			return err
 		}
-		op.SetRole(constants.RoleAll)
+		m.SetRole(constants.RoleAll)
 
-		err = e.ExecuteOnHosts("", hostGroup, pool, op)
+		err = e.ExecuteOnHosts("", hostGroup, pool, m)
 		if err != nil {
 			return err
 		}

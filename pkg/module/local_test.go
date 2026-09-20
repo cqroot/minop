@@ -48,55 +48,55 @@ func TestNewLocal(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			op, err := module.NewLocal(tt.input)
+			m, err := module.NewLocal(tt.input)
 			if tt.wantErr {
 				require.Error(t, err)
-				require.Nil(t, op)
+				require.Nil(t, m)
 			} else {
 				require.NoError(t, err)
-				require.NotNil(t, op)
+				require.NotNil(t, m)
 			}
 		})
 	}
 }
 
 func TestLocal_Name(t *testing.T) {
-	op, err := module.NewLocal(module.Task{Local: "echo hello"})
+	m, err := module.NewLocal(module.Task{Local: "echo hello"})
 	require.NoError(t, err)
 
-	op.SetName("custom name")
-	require.Equal(t, "custom name", op.Name())
+	m.SetName("custom name")
+	require.Equal(t, "custom name", m.Name())
 }
 
 func TestLocal_DefaultName(t *testing.T) {
-	op, err := module.NewLocal(module.Task{Local: "ls -la"})
+	m, err := module.NewLocal(module.Task{Local: "ls -la"})
 	require.NoError(t, err)
 
-	require.Equal(t, "[local] ls -la", op.DefaultName())
+	require.Equal(t, "[local] ls -la", m.DefaultName())
 }
 
 func TestLocal_Role(t *testing.T) {
-	op, err := module.NewLocal(module.Task{Local: "echo hello"})
+	m, err := module.NewLocal(module.Task{Local: "echo hello"})
 	require.NoError(t, err)
 
-	op.SetRole("local")
-	require.Equal(t, "local", op.Role())
+	m.SetRole("local")
+	require.Equal(t, "local", m.Role())
 }
 
 func TestLocal_SetPrefix(t *testing.T) {
-	op, err := module.NewLocal(module.Task{Local: "echo hello"})
+	m, err := module.NewLocal(module.Task{Local: "echo hello"})
 	require.NoError(t, err)
 
-	op.SetPrefix("    ")
-	require.NotNil(t, op)
+	m.SetPrefix("    ")
+	require.NotNil(t, m)
 }
 
 func TestLocal_Execute(t *testing.T) {
 	t.Run("successful command", func(t *testing.T) {
-		op, err := module.NewLocal(module.Task{Local: "echo hello"})
+		m, err := module.NewLocal(module.Task{Local: "echo hello"})
 		require.NoError(t, err)
 
-		res, err := op.Execute(nil)
+		res, err := m.Execute(nil)
 		require.NoError(t, err)
 		require.NotNil(t, res)
 
@@ -106,10 +106,10 @@ func TestLocal_Execute(t *testing.T) {
 	})
 
 	t.Run("failing command", func(t *testing.T) {
-		op, err := module.NewLocal(module.Task{Local: "exit 1"})
+		m, err := module.NewLocal(module.Task{Local: "exit 1"})
 		require.NoError(t, err)
 
-		res, err := op.Execute(nil)
+		res, err := m.Execute(nil)
 		require.NoError(t, err)
 		require.NotNil(t, res)
 
@@ -119,10 +119,10 @@ func TestLocal_Execute(t *testing.T) {
 	})
 
 	t.Run("command not found", func(t *testing.T) {
-		op, err := module.NewLocal(module.Task{Local: "nonexistent_command_12345"})
+		m, err := module.NewLocal(module.Task{Local: "nonexistent_command_12345"})
 		require.NoError(t, err)
 
-		res, err := op.Execute(nil)
+		res, err := m.Execute(nil)
 		require.NoError(t, err)
 		require.NotNil(t, res)
 

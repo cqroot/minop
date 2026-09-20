@@ -38,7 +38,7 @@ var (
 	// to remote connection strings. Defaults to ./hosts.yaml when
 	// empty.
 	flagHostsFile string
-	// flagMaxProcs is the maximum number of operations executed
+	// flagMaxProcs is the maximum number of modules executed
 	// concurrently. Defaults to constants.DefaultMaxProcs.
 	flagMaxProcs int
 	// flagVerboseLevel is the verbosity counter (-v, -vv, -vvv)

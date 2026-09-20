@@ -30,25 +30,25 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// failingOperation is a mock that always returns the configured error from
+// failingModule is a mock that always returns the configured error from
 // Execute. It satisfies module.Module structurally; the unexported
-// baseOperation embedded in the interface is matched by name, not by
+// commonModule embedded in the interface is matched by name, not by
 // declaration site, so this works from a test package.
-type failingOperation struct {
+type failingModule struct {
 	name string
 	role string
 	err  error
 }
 
-func (o *failingOperation) Name() string     { return o.name }
-func (o *failingOperation) SetName(s string) { o.name = s }
-func (o *failingOperation) Role() string     { return o.role }
-func (o *failingOperation) SetRole(r string) { o.role = r }
-func (o *failingOperation) DefaultName() string {
+func (o *failingModule) Name() string     { return o.name }
+func (o *failingModule) SetName(s string) { o.name = s }
+func (o *failingModule) Role() string     { return o.role }
+func (o *failingModule) SetRole(r string) { o.role = r }
+func (o *failingModule) DefaultName() string {
 	return "failing"
 }
 
-func (o *failingOperation) Execute(_ *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
+func (o *failingModule) Execute(_ *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
 	return nil, o.err
 }
 
@@ -77,18 +77,18 @@ func TestExecutor_LoadTasksFile_NotFound(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestOpLocal_ExecuteWithExecutor(t *testing.T) {
+func TestLocal_ExecuteWithExecutor(t *testing.T) {
 	e := executor.New()
 
-	ops := []module.Module{
+	modules := []module.Module{
 		func() module.Module {
-			op, _ := module.NewLocal(module.Task{Local: "echo hello"})
-			op.SetRole(constants.RoleAll)
-			return op
+			m, _ := module.NewLocal(module.Task{Local: "echo hello"})
+			m.SetRole(constants.RoleAll)
+			return m
 		}(),
 	}
 
-	err := e.ExecuteOperations("", nil, ops)
+	err := e.ExecuteModules("", nil, modules)
 	require.NoError(t, err)
 }
 
@@ -115,12 +115,12 @@ func TestExecuteOnHosts_PreservesFirstError(t *testing.T) {
 	pool.Put(h1, remote.NewForTesting(h1))
 	pool.Put(h2, remote.NewForTesting(h2))
 
-	op := &failingOperation{role: constants.RoleAll, err: sentinel}
+	m := &failingModule{role: constants.RoleAll, err: sentinel}
 
 	hostGroup := map[string][]remote.Host{"all": {h1, h2}}
 	e := executor.New(executor.WithMaxProcs(1))
 
-	err = e.ExecuteOnHosts("", hostGroup, pool, op)
+	err = e.ExecuteOnHosts("", hostGroup, pool, m)
 
 	require.Error(t, err)
 	require.ErrorIs(t, err, sentinel,

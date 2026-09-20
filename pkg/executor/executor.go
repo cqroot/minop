@@ -58,11 +58,11 @@ func (e Executor) ExecuteOnHosts(
 	outputPrefix string,
 	hostGroup map[string][]remote.Host,
 	pool *remote.HostPool,
-	op module.Module,
+	m module.Module,
 ) error {
-	if localOp, ok := op.(*module.Local); ok {
-		localOp.SetPrefix(outputPrefix)
-		res, err := localOp.Execute(nil)
+	if local, ok := m.(*module.Local); ok {
+		local.SetPrefix(outputPrefix)
+		res, err := local.Execute(nil)
 		if err != nil {
 			return err
 		}
@@ -80,8 +80,8 @@ func (e Executor) ExecuteOnHosts(
 		totalHosts += len(hosts)
 	}
 	logs.Logger().Debug().
-		Str("op", op.Name()).
-		Str("role", op.Role()).
+		Str("module", m.Name()).
+		Str("role", m.Role()).
 		Int("max_procs", e.optMaxProcs).
 		Int("total_hosts", totalHosts).
 		Msg("ExecuteOnHosts start")
@@ -112,20 +112,20 @@ func (e Executor) ExecuteOnHosts(
 	}
 
 	for role, hosts := range hostGroup {
-		if op.Role() != constants.RoleAll && op.Role() != role {
+		if m.Role() != constants.RoleAll && m.Role() != role {
 			logs.Logger().Debug().
-				Str("op", op.Name()).
-				Str("op_role", op.Role()).
+				Str("module", m.Name()).
+				Str("module_role", m.Role()).
 				Str("group_role", role).
-				Msg("skip host group: operation role does not match")
+				Msg("skip host group: module role does not match")
 			continue
 		}
 
 		logs.Logger().Debug().
-			Str("op", op.Name()).
+			Str("module", m.Name()).
 			Str("role", role).
 			Int("host_count", len(hosts)).
-			Msg("dispatching operation to host group")
+			Msg("dispatching module to host group")
 
 		for _, h := range hosts {
 			hostStr := remote.HostStr(h, "")
@@ -133,14 +133,14 @@ func (e Executor) ExecuteOnHosts(
 			if err := sem.Acquire(ctx, 1); err != nil {
 				logs.Logger().Error().
 					Err(err).
-					Str("op", op.Name()).
+					Str("module", m.Name()).
 					Str("host", hostStr).
 					Msg("semaphore acquire failed")
 				if ctx.Err() != nil {
 					if firstErr != nil {
 						logs.Logger().Error().
 							Err(firstErr).
-							Str("op", op.Name()).
+							Str("module", m.Name()).
 							Str("host", hostStr).
 							Msg("context canceled due to an earlier host failure")
 						return firstErr
@@ -155,7 +155,7 @@ func (e Executor) ExecuteOnHosts(
 				sem.Release(1)
 				logs.Logger().Error().
 					Err(err).
-					Str("op", op.Name()).
+					Str("module", m.Name()).
 					Str("host", hostStr).
 					Msg("get remote connection failed")
 				return fmt.Errorf("get remote for host %s: %w", hostStr, err)
@@ -166,18 +166,18 @@ func (e Executor) ExecuteOnHosts(
 				defer sem.Release(1)
 
 				logs.Logger().Debug().
-					Str("op", op.Name()).
+					Str("module", m.Name()).
 					Str("host", hostStr).
-					Msg("executing operation on host")
+					Msg("executing module on host")
 
-				res, err := op.Execute(r)
+				res, err := m.Execute(r)
 				if err != nil {
 					recordFirstErr(hostStr, err)
 					logs.Logger().Error().
 						Err(err).
-						Str("op", op.Name()).
+						Str("module", m.Name()).
 						Str("host", hostStr).
-						Msg("operation execution failed")
+						Msg("module execution failed")
 					return err
 				}
 
@@ -206,18 +206,18 @@ func (e Executor) ExecuteOnHosts(
 	return nil
 }
 
-func (e Executor) ExecuteOperations(
+func (e Executor) ExecuteModules(
 	outputPrefix string,
 	hostGroup map[string][]remote.Host,
-	ops []module.Module,
+	modules []module.Module,
 ) error {
 	termWidth := getTerminalWidth()
 	pool := remote.NewHostPool()
 
-	for _, op := range ops {
-		printTaskHeader(op.Name(), termWidth)
+	for _, m := range modules {
+		printTaskHeader(m.Name(), termWidth)
 
-		if err := e.ExecuteOnHosts(outputPrefix, hostGroup, pool, op); err != nil {
+		if err := e.ExecuteOnHosts(outputPrefix, hostGroup, pool, m); err != nil {
 			return err
 		}
 		fmt.Println()

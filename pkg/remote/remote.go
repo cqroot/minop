@@ -33,7 +33,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// Remote represents a SSH/SFTP client for remote server operations
+// Remote represents a SSH/SFTP client for remote host operations.
 type Remote struct {
 	Address  string
 	Port     int
@@ -92,7 +92,7 @@ func ToUnixPath(pathStr string) string {
 
 // NewForTesting builds a *Remote without establishing an SSH connection.
 // Intended for unit tests that need a non-nil Remote to thread through
-// an Operation while mocking Execute to never touch the underlying SSH
+// a Module while mocking Execute to never touch the underlying SSH
 // or SFTP clients. Production code must use New.
 func NewForTesting(h Host) *Remote {
 	return &Remote{

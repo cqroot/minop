@@ -95,24 +95,24 @@ func TestGetModule(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			op, err := module.GetModule(tt.input)
+			m, err := module.GetModule(tt.input)
 
 			if tt.wantErr != nil {
 				require.True(t, errors.Is(err, tt.wantErr))
-				require.Nil(t, op)
+				require.Nil(t, m)
 			} else {
 				require.NoError(t, err)
-				require.NotNil(t, op)
+				require.NotNil(t, m)
 
 				switch tt.wantType {
 				case "*module.Shell":
-					_, ok := op.(*module.Shell)
+					_, ok := m.(*module.Shell)
 					require.True(t, ok, "expected Shell")
 				case "*module.Copy":
-					_, ok := op.(*module.Copy)
+					_, ok := m.(*module.Copy)
 					require.True(t, ok, "expected Copy")
 				case "*module.Local":
-					_, ok := op.(*module.Local)
+					_, ok := m.(*module.Local)
 					require.True(t, ok, "expected Local")
 				}
 			}

@@ -27,7 +27,7 @@ func WithVerboseLevel(verboseLevel int) Option {
 	}
 }
 
-// WithMaxProcs sets the maximum number of concurrent operations.
+// WithMaxProcs sets the maximum number of concurrent modules.
 // A value of 0 or negative is ignored and the default is kept.
 func WithMaxProcs(maxProcs int) Option {
 	return func(e *Executor) {

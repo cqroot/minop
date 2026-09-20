@@ -63,43 +63,43 @@ func TestNewCopy(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			op, err := module.NewCopy(tt.input)
+			m, err := module.NewCopy(tt.input)
 			if tt.wantErr {
 				require.Error(t, err)
-				require.Nil(t, op)
+				require.Nil(t, m)
 			} else {
 				require.NoError(t, err)
-				require.NotNil(t, op)
+				require.NotNil(t, m)
 			}
 		})
 	}
 }
 
 func TestCopy_Name(t *testing.T) {
-	op, err := module.NewCopy(module.Task{
+	m, err := module.NewCopy(module.Task{
 		Copy: &module.CopySpec{Src: "/local/path", Dest: "/remote/path"},
 	})
 	require.NoError(t, err)
 
-	op.SetName("custom name")
-	require.Equal(t, "custom name", op.Name())
+	m.SetName("custom name")
+	require.Equal(t, "custom name", m.Name())
 }
 
 func TestCopy_DefaultName(t *testing.T) {
-	op, err := module.NewCopy(module.Task{
+	m, err := module.NewCopy(module.Task{
 		Copy: &module.CopySpec{Src: "/local/file.txt", Dest: "/remote/file.txt"},
 	})
 	require.NoError(t, err)
 
-	require.Equal(t, "[copy] /local/file.txt => /remote/file.txt", op.DefaultName())
+	require.Equal(t, "[copy] /local/file.txt => /remote/file.txt", m.DefaultName())
 }
 
 func TestCopy_Role(t *testing.T) {
-	op, err := module.NewCopy(module.Task{
+	m, err := module.NewCopy(module.Task{
 		Copy: &module.CopySpec{Src: "/local/file", Dest: "/remote/file"},
 	})
 	require.NoError(t, err)
 
-	op.SetRole("storage")
-	require.Equal(t, "storage", op.Role())
+	m.SetRole("storage")
+	require.Equal(t, "storage", m.Role())
 }

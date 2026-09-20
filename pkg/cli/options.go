@@ -20,7 +20,7 @@ package cli
 // Option configures a Cli instance.
 type Option func(c *Cli)
 
-// WithMaxProcs sets the maximum number of concurrent operations.
+// WithMaxProcs sets the maximum number of concurrent modules.
 func WithMaxProcs(maxProcs int) Option {
 	return func(c *Cli) {
 		if maxProcs > 0 {

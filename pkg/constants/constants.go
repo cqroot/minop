@@ -28,7 +28,7 @@ const DefaultTaskFile = "minop.yaml"
 // orchestration logic.
 const DefaultHostsFile = "hosts.yaml"
 
-// DefaultMaxProcs is the default maximum number of operations executed
+// DefaultMaxProcs is the default maximum number of modules executed
 // concurrently per task. It is a sensible default for small to medium
 // fleets (10-50 hosts); users with larger fleets or tighter latency
 // budgets can override it via the --max-procs flag.

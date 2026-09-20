@@ -48,37 +48,37 @@ func TestNewShell(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			op, err := module.NewShell(tt.input)
+			m, err := module.NewShell(tt.input)
 			if tt.wantErr {
 				require.Error(t, err)
-				require.Nil(t, op)
+				require.Nil(t, m)
 			} else {
 				require.NoError(t, err)
-				require.NotNil(t, op)
+				require.NotNil(t, m)
 			}
 		})
 	}
 }
 
 func TestShell_Name(t *testing.T) {
-	op, err := module.NewShell(module.Task{Shell: "echo hello"})
+	m, err := module.NewShell(module.Task{Shell: "echo hello"})
 	require.NoError(t, err)
 
-	op.SetName("custom name")
-	require.Equal(t, "custom name", op.Name())
+	m.SetName("custom name")
+	require.Equal(t, "custom name", m.Name())
 }
 
 func TestShell_DefaultName(t *testing.T) {
-	op, err := module.NewShell(module.Task{Shell: "ls -la"})
+	m, err := module.NewShell(module.Task{Shell: "ls -la"})
 	require.NoError(t, err)
 
-	require.Equal(t, "[shell] ls -la", op.DefaultName())
+	require.Equal(t, "[shell] ls -la", m.DefaultName())
 }
 
 func TestShell_Role(t *testing.T) {
-	op, err := module.NewShell(module.Task{Shell: "echo hello"})
+	m, err := module.NewShell(module.Task{Shell: "echo hello"})
 	require.NoError(t, err)
 
-	op.SetRole("web")
-	require.Equal(t, "web", op.Role())
+	m.SetRole("web")
+	require.Equal(t, "web", m.Role())
 }

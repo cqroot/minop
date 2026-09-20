@@ -44,16 +44,16 @@ func NewLocal(in Task) (*Local, error) {
 	}, nil
 }
 
-func (op Local) DefaultName() string {
-	return fmt.Sprintf("[local] %s", op.cmd)
+func (m Local) DefaultName() string {
+	return fmt.Sprintf("[local] %s", m.cmd)
 }
 
-func (op *Local) SetPrefix(prefix string) {
-	op.prefix = prefix
+func (m *Local) SetPrefix(prefix string) {
+	m.prefix = prefix
 }
 
-func (op Local) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
-	cmd := exec.Command("sh", "-c", op.cmd)
+func (m Local) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], error) {
+	cmd := exec.Command("sh", "-c", m.cmd)
 
 	stdoutPipe, err := cmd.StdoutPipe()
 	if err != nil {
@@ -71,7 +71,7 @@ func (op Local) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], e
 	go func() {
 		scanner := bufio.NewScanner(stdoutPipe)
 		for scanner.Scan() {
-			_, err := os.Stdout.Write([]byte(op.prefix))
+			_, err := os.Stdout.Write([]byte(m.prefix))
 			if err != nil {
 				logs.Logger().Warn().Err(err).Msg("failed to write stdout")
 				return
@@ -92,7 +92,7 @@ func (op Local) Execute(r *remote.Remote) (*gtypes.OrderedMap[string, string], e
 	go func() {
 		scanner := bufio.NewScanner(stderrPipe)
 		for scanner.Scan() {
-			_, err := os.Stderr.Write([]byte(op.prefix))
+			_, err := os.Stderr.Write([]byte(m.prefix))
 			if err != nil {
 				logs.Logger().Warn().Err(err).Msg("failed to write stderr")
 				return

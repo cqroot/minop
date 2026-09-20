@@ -25,7 +25,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// RunTaskCmd loads the task file and lists each operation's default
+// RunTaskCmd loads the task file and lists each module's default
 // name as a bullet list, without executing anything.
 func RunTaskCmd(cmd *cobra.Command, args []string) {
 	e := executor.New(
@@ -33,12 +33,12 @@ func RunTaskCmd(cmd *cobra.Command, args []string) {
 		executor.WithMaxProcs(flagMaxProcs),
 	)
 
-	ops, err := e.LoadTasksFile(flagTaskFile)
+	modules, err := e.LoadTasksFile(flagTaskFile)
 	CheckErr(err)
 
 	fmt.Println()
-	for _, op := range ops {
-		fmt.Printf("  %s %s\n", theme.Label().Render("•"), op.DefaultName())
+	for _, m := range modules {
+		fmt.Printf("  %s %s\n", theme.Label().Render("•"), m.DefaultName())
 	}
 }
 
