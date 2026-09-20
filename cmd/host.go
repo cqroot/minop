@@ -110,10 +110,7 @@ func printHostGroup(w io.Writer, hosts []remote.Host, name string) {
 		if i == len(hosts)-1 {
 			branch = theme.TreeBranch().Render("└──")
 		}
-		_, _ = fmt.Fprintf(w, "%s%s %s\n",
-			indent,
-			branch,
-			renderHost(host))
+		_, _ = fmt.Fprintf(w, "%s%s %s\n", indent, branch, renderHost(host))
 	}
 }
 

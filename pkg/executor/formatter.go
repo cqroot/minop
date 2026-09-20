@@ -63,7 +63,7 @@ func printTaskHeader(opName string, termWidth int) {
 }
 
 func printHostResult(prefix string, h remote.Host, res *gtypes.OrderedMap[string, string], verboseLevel int) {
-	hostStr := fmt.Sprintf("%s%s@%s:%d", prefix, h.Username, h.Address, h.Port)
+	hostStr := remote.HostStr(h, prefix)
 	fmt.Printf("%s  %s\n", theme.HostLine().Render(hostStr),
 		theme.Timestamp().Render(time.Now().Format("[2006-01-02 15:04:05]")))
 

@@ -128,7 +128,7 @@ func (e Executor) ExecuteOnHosts(
 			Msg("dispatching operation to host group")
 
 		for _, h := range hosts {
-			hostStr := fmt.Sprintf("%s@%s:%d", h.Username, h.Address, h.Port)
+			hostStr := remote.HostStr(h, "")
 
 			if err := sem.Acquire(ctx, 1); err != nil {
 				logs.Logger().Error().

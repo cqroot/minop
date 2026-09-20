@@ -93,6 +93,14 @@ func ParseHostLine(line string) (Host, error) {
 	return h, nil
 }
 
+// HostStr formats h as "user@addr:port" with the given prefix
+// prepended (use "" for no prefix). The shape is shared by the
+// executor's per-host log lines and cmd/host's tree rendering, so
+// keeping it in one place ensures they stay consistent.
+func HostStr(h Host, prefix string) string {
+	return prefix + fmt.Sprintf("%s@%s:%d", h.Username, h.Address, h.Port)
+}
+
 // parseUserInfo splits "user:password@hostPort" into its components.
 // The rightmost '@' is used as the separator, so passwords may
 // themselves contain '@'.
