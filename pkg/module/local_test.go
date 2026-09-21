@@ -75,12 +75,12 @@ func TestLocal_DefaultName(t *testing.T) {
 	require.Equal(t, "[local] ls -la", m.DefaultName())
 }
 
-func TestLocal_Role(t *testing.T) {
+func TestLocal_Group(t *testing.T) {
 	m, err := module.NewLocal(module.Task{Local: "echo hello"})
 	require.NoError(t, err)
 
-	m.SetRole("local")
-	require.Equal(t, "local", m.Role())
+	m.SetGroup("local")
+	require.Equal(t, "local", m.Group())
 }
 
 func TestLocal_SetPrefix(t *testing.T) {

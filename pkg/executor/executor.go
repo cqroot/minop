@@ -87,7 +87,7 @@ func (e Executor) ExecuteOnHosts(
 	}
 	logs.Logger().Debug().
 		Str("module", m.Name()).
-		Str("role", m.Role()).
+		Str("group", m.Group()).
 		Int("max_procs", e.optMaxProcs).
 		Int("total_hosts", totalHosts).
 		Msg("ExecuteOnHosts start")
@@ -117,19 +117,19 @@ func (e Executor) ExecuteOnHosts(
 		firstErrMu.Unlock()
 	}
 
-	for role, hosts := range hostGroup {
-		if m.Role() != constants.RoleAll && m.Role() != role {
+	for group, hosts := range hostGroup {
+		if m.Group() != constants.GroupAll && m.Group() != group {
 			logs.Logger().Debug().
 				Str("module", m.Name()).
-				Str("module_role", m.Role()).
-				Str("group_role", role).
-				Msg("skip host group: module role does not match")
+				Str("module_group", m.Group()).
+				Str("group_name", group).
+				Msg("skip host group: module group does not match")
 			continue
 		}
 
 		logs.Logger().Debug().
 			Str("module", m.Name()).
-			Str("role", role).
+			Str("group", group).
 			Int("host_count", len(hosts)).
 			Msg("dispatching module to host group")
 

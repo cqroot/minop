@@ -34,12 +34,12 @@ var ErrInvalidModuleSpec = errors.New("invalid module spec")
 // Task is the YAML schema for a single task entry in minop.yaml.
 // A task declares exactly one action: a "shell" string, a "local"
 // string, or a nested "copy" object. Which key is present determines
-// the module kind — mirroring ansible's task module convention.
+// the module kind.
 // Name should be set so that `minop task` shows a human-readable
-// label; Role defaults to "all".
+// label; Group defaults to "all".
 type Task struct {
-	Name string `yaml:"name"`
-	Role string `yaml:"role"`
+	Name  string `yaml:"name"`
+	Group string `yaml:"group"`
 
 	Shell string    `yaml:"shell,omitempty"`
 	Local string    `yaml:"local,omitempty"`
@@ -47,14 +47,14 @@ type Task struct {
 }
 
 type Module interface {
-	// Name and Role identify the module inside the task list and
-	// determine which host group it targets. SetName / SetRole are
+	// Name and Group identify the module inside the task list and
+	// determine which host group it targets. SetName / SetGroup are
 	// setters so the YAML loader and other code paths can populate
 	// them after construction.
 	Name() string
 	SetName(name string)
-	Role() string
-	SetRole(role string)
+	Group() string
+	SetGroup(group string)
 
 	// Execute runs the module against a single remote host and
 	// returns a structured result map for downstream rendering.

@@ -34,7 +34,7 @@ var (
 	// flagTaskFile is the path to the YAML file describing the tasks
 	// to execute. Defaults to ./minop.yaml when empty.
 	flagTaskFile string
-	// flagHostsFile is the path to the YAML file mapping host roles
+	// flagHostsFile is the path to the YAML file mapping host groups
 	// to remote connection strings. Defaults to ./hosts.yaml when
 	// empty.
 	flagHostsFile string

@@ -1,9 +1,9 @@
 # Sample hosts file for minop.
 #
-# The top-level keys are role names. Each value is a list of host
+# The top-level keys are group names. Each value is a list of host
 # strings in the format <user>:<password>@<address>:<port>.
-# A role named "all" is special: every operation applies to hosts
-# in it unless the task specifies a more specific role.
+# A group named "all" is special: every operation applies to hosts
+# in it unless the task specifies a more specific group.
 #
 # Replace PASSWORD with your real credentials before running minop.
 

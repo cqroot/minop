@@ -138,7 +138,7 @@ func (c Cli) Run() error {
 		if err != nil {
 			return err
 		}
-		m.SetRole(constants.RoleAll)
+		m.SetGroup(constants.GroupAll)
 
 		err = e.ExecuteOnHosts("", hostGroup, pool, m)
 		if err != nil {

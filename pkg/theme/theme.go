@@ -81,7 +81,7 @@ func Label() lipgloss.Style {
 		Foreground(lipgloss.Color(colorLabel))
 }
 
-// HostHeader is the bold role-name header in `minop host` (e.g.
+// HostHeader is the bold group-name header in `minop host` (e.g.
 // "• all").
 func HostHeader() lipgloss.Style {
 	return lipgloss.NewStyle().

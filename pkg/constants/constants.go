@@ -17,13 +17,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package constants
 
-// RoleAll is the special role that matches all host groups.
-const RoleAll = "all"
+// GroupAll is the special group name that matches every host group
+// in hosts.yaml.
+const GroupAll = "all"
 
 const DefaultTaskFile = "minop.yaml"
 
 // DefaultHostsFile is the conventional name of the file that lists
-// hosts grouped by role. Hosts live separately from tasks so they can
+// hosts grouped by name. Hosts live separately from tasks so they can
 // be reused across task files and edited independently of the task
 // orchestration logic.
 const DefaultHostsFile = "hosts.yaml"

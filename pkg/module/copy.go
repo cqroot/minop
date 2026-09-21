@@ -29,7 +29,7 @@ import (
 // CopySpec is the nested body of a "copy" task. Src is the local
 // path; Dest is the absolute remote path. When Backup is true,
 // any pre-existing file at Dest is renamed to "Dest.minop_bak"
-// before the upload, mirroring ansible's backup: yes option.
+// before the upload.
 type CopySpec struct {
 	Src    string `yaml:"src"`
 	Dest   string `yaml:"dest"`

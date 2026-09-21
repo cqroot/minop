@@ -17,13 +17,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package module
 
-// commonModule holds the Name and Role fields that every module
+// commonModule holds the Name and Group fields that every module
 // shares, plus the trivial getter/setter pair that the Module
 // interface requires. Concrete module types (Shell, Local, Copy)
 // embed it to inherit the common surface area.
 type commonModule struct {
-	name string
-	role string
+	name  string
+	group string
 }
 
 // Name returns the module's display name.
@@ -32,8 +32,8 @@ func (m commonModule) Name() string { return m.name }
 // SetName replaces the module's display name.
 func (m *commonModule) SetName(name string) { m.name = name }
 
-// Role returns the host role this module targets.
-func (m commonModule) Role() string { return m.role }
+// Group returns the host group this module targets.
+func (m commonModule) Group() string { return m.group }
 
-// SetRole replaces the target host role.
-func (m *commonModule) SetRole(role string) { m.role = role }
+// SetGroup replaces the target host group.
+func (m *commonModule) SetGroup(group string) { m.group = group }

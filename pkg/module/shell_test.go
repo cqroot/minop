@@ -75,10 +75,10 @@ func TestShell_DefaultName(t *testing.T) {
 	require.Equal(t, "[shell] ls -la", m.DefaultName())
 }
 
-func TestShell_Role(t *testing.T) {
+func TestShell_Group(t *testing.T) {
 	m, err := module.NewShell(module.Task{Shell: "echo hello"})
 	require.NoError(t, err)
 
-	m.SetRole("web")
-	require.Equal(t, "web", m.Role())
+	m.SetGroup("web")
+	require.Equal(t, "web", m.Group())
 }

@@ -35,15 +35,15 @@ import (
 // commonModule embedded in the interface is matched by name, not by
 // declaration site, so this works from a test package.
 type failingModule struct {
-	name string
-	role string
-	err  error
+	name  string
+	group string
+	err   error
 }
 
-func (o *failingModule) Name() string     { return o.name }
-func (o *failingModule) SetName(s string) { o.name = s }
-func (o *failingModule) Role() string     { return o.role }
-func (o *failingModule) SetRole(r string) { o.role = r }
+func (o *failingModule) Name() string      { return o.name }
+func (o *failingModule) SetName(s string)  { o.name = s }
+func (o *failingModule) Group() string     { return o.group }
+func (o *failingModule) SetGroup(g string) { o.group = g }
 func (o *failingModule) DefaultName() string {
 	return "failing"
 }
@@ -81,7 +81,7 @@ func TestLocal_ExecuteWithExecutor(t *testing.T) {
 	modules := []module.Module{
 		func() module.Module {
 			m, _ := module.NewLocal(module.Task{Local: "echo hello"})
-			m.SetRole(constants.RoleAll)
+			m.SetGroup(constants.GroupAll)
 			return m
 		}(),
 	}
@@ -110,7 +110,7 @@ func TestExecuteOnHosts_PreservesFirstError(t *testing.T) {
 	pool.Put(h1, remote.NewForTesting(h1))
 	pool.Put(h2, remote.NewForTesting(h2))
 
-	m := &failingModule{role: constants.RoleAll, err: sentinel}
+	m := &failingModule{group: constants.GroupAll, err: sentinel}
 
 	hostGroup := map[string][]remote.Host{"all": {h1, h2}}
 	e := executor.New(executor.WithMaxProcs(1))

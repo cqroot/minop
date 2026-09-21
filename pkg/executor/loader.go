@@ -28,9 +28,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// LoadHostsFile reads a hosts file and returns a map from role name to
+// LoadHostsFile reads a hosts file and returns a map from group name to
 // parsed Host structs. The file is expected to be a flat YAML map
-// keyed by role, for example:
+// keyed by group, for example:
 //
 //	all:
 //	  - ops:PASSWORD@127.0.0.1:9001
@@ -55,13 +55,13 @@ func LoadHostsFile(filename string) (map[string][]remote.Host, error) {
 	}
 
 	hostGroup := make(map[string][]remote.Host, len(raw))
-	for role, lines := range raw {
+	for group, lines := range raw {
 		for _, line := range lines {
 			h, err := remote.ParseHostLine(line)
 			if err != nil {
-				return nil, fmt.Errorf("parse host line for role %q: %w", role, err)
+				return nil, fmt.Errorf("parse host line for group %q: %w", group, err)
 			}
-			hostGroup[role] = append(hostGroup[role], h)
+			hostGroup[group] = append(hostGroup[group], h)
 		}
 	}
 
@@ -71,7 +71,7 @@ func LoadHostsFile(filename string) (map[string][]remote.Host, error) {
 // LoadTasksFile reads a task file and returns the list of modules
 // to execute. The file is a YAML sequence whose top level is the
 // task list — there is no wrapping "tasks:" key. Each entry's name
-// defaults to DefaultName() and its role defaults to RoleAll when
+// defaults to DefaultName() and its group defaults to GroupAll when
 // the corresponding YAML field is empty.
 func LoadTasksFile(filename string) ([]module.Module, error) {
 	logs.Logger().Debug().Str("filename", filename).Msg("loading tasks file")
@@ -101,10 +101,10 @@ func LoadTasksFile(filename string) ([]module.Module, error) {
 			m.SetName(m.DefaultName())
 		}
 
-		if in.Role != "" {
-			m.SetRole(in.Role)
+		if in.Group != "" {
+			m.SetGroup(in.Group)
 		} else {
-			m.SetRole(constants.RoleAll)
+			m.SetGroup(constants.GroupAll)
 		}
 
 		modules[idx] = m

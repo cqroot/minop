@@ -24,6 +24,7 @@ import (
 	"sort"
 	"strconv"
 
+	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/executor"
 	"github.com/cqroot/minop/pkg/remote"
 	"github.com/cqroot/minop/pkg/theme"
@@ -51,7 +52,7 @@ func RunHostCmd(cmd *cobra.Command, args []string) {
 }
 
 // printHostTree renders hostGroup as an indented tree to w. Groups
-// are written in the order returned by that helper — the "all" role
+// are written in the order returned by that helper — the "all" group
 // first, then any remaining groups alphabetically — with a blank
 // line between groups for readability. Groups other than "all" are
 // rendered with an extra indent level so they visually nest under
@@ -77,10 +78,10 @@ func sortedGroupNames(hostGroup map[string][]remote.Host) []string {
 		names = append(names, name)
 	}
 	sort.Slice(names, func(i, j int) bool {
-		if names[i] == "all" {
+		if names[i] == constants.GroupAll {
 			return true
 		}
-		if names[j] == "all" {
+		if names[j] == constants.GroupAll {
 			return false
 		}
 		return names[i] < names[j]
@@ -95,7 +96,7 @@ func sortedGroupNames(hostGroup map[string][]remote.Host) []string {
 // instead of ├── to close the branch.
 func printHostGroup(w io.Writer, hosts []remote.Host, name string) {
 	indent := "  "
-	if name != "all" {
+	if name != constants.GroupAll {
 		indent = "    "
 	}
 

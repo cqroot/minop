@@ -94,12 +94,12 @@ func TestCopy_DefaultName(t *testing.T) {
 	require.Equal(t, "[copy] /local/file.txt => /remote/file.txt", m.DefaultName())
 }
 
-func TestCopy_Role(t *testing.T) {
+func TestCopy_Group(t *testing.T) {
 	m, err := module.NewCopy(module.Task{
 		Copy: &module.CopySpec{Src: "/local/file", Dest: "/remote/file"},
 	})
 	require.NoError(t, err)
 
-	m.SetRole("storage")
-	require.Equal(t, "storage", m.Role())
+	m.SetGroup("storage")
+	require.Equal(t, "storage", m.Group())
 }

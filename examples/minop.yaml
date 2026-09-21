@@ -1,12 +1,11 @@
 # Sample tasks file for minop.
 #
 # The top level is a YAML sequence — each entry describes one
-# operation. The action key determines the operation type, mirroring
-# ansible's task module convention — exactly one of these keys must
-# be present per task:
+# operation. The action key determines the operation type —
+# exactly one of these keys must be present per task:
 #
 #   - name: human-readable label (recommended)
-#     role: target role from hosts.yaml (optional, default: all)
+#     group: target group from hosts.yaml (optional, default: all)
 #
 #   shell: <command>                 # run on every host
 #   local: <command>                 # run on the minop host
