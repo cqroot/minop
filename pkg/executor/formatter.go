@@ -78,7 +78,8 @@ func (p *Printer) PrintTaskHeader(moduleName string) {
 	if delimLen > 0 {
 		delim = strings.Repeat("•", delimLen)
 	}
-	fmt.Fprintf(p.out,
+	_, _ = fmt.Fprintf(
+		p.out,
 		"%s %s %s\n",
 		theme.Task().Render(moduleName),
 		theme.Dim().Render(delim),
@@ -90,7 +91,7 @@ func (p *Printer) PrintTaskHeader(moduleName string) {
 // outputs. Callers invoke this after each module finishes to keep
 // successive banners visually separated.
 func (p *Printer) PrintTaskSeparator() {
-	fmt.Fprintln(p.out)
+	_, _ = fmt.Fprintln(p.out)
 }
 
 // PrintHostResult writes one host's header line and, when res is
@@ -99,7 +100,8 @@ func (p *Printer) PrintTaskSeparator() {
 // task header.
 func (p *Printer) PrintHostResult(prefix string, h remote.Host, res *gtypes.OrderedMap[string, string]) {
 	hostStr := remote.HostStr(h, prefix)
-	fmt.Fprintf(p.out, "%s  %s\n",
+	_, _ = fmt.Fprintf(
+		p.out, "%s  %s\n",
 		theme.HostLine().Render(hostStr),
 		theme.Timestamp().Render(time.Now().Format("[2006-01-02 15:04:05]")),
 	)
@@ -124,14 +126,14 @@ func (p *Printer) PrintKeyValue(prefix string, key string, val string) {
 	indent := prefix + "    "
 	if p.verboseLevel == 0 && isSingleLineValue(val) {
 		keyLabel := theme.ResultLabel().Render(fmt.Sprintf("%s:", key))
-		fmt.Fprintf(p.out, "%s%s %s\n", indent, keyLabel, strings.ReplaceAll(val, "\n", ""))
+		_, _ = fmt.Fprintf(p.out, "%s%s %s\n", indent, keyLabel, strings.ReplaceAll(val, "\n", ""))
 		return
 	}
 
-	fmt.Fprintf(p.out, "%s%s:\n", indent, theme.ResultLabel().Render(key))
+	_, _ = fmt.Fprintf(p.out, "%s%s:\n", indent, theme.ResultLabel().Render(key))
 	scanner := bufio.NewScanner(strings.NewReader(val))
 	for scanner.Scan() {
-		fmt.Fprintf(p.out, "%s    %s\n", indent, scanner.Text())
+		_, _ = fmt.Fprintf(p.out, "%s    %s\n", indent, scanner.Text())
 	}
 }
 
