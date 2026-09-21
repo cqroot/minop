@@ -37,15 +37,6 @@ const (
 	colorTree  = "212" // pink   — tree branch characters
 )
 
-// Brand returns the brand pill style (reverse video) used for the
-// MINOP prompt label.
-func Brand() lipgloss.Style {
-	return lipgloss.NewStyle().
-		Foreground(lipgloss.Color("0")).
-		Background(lipgloss.Color(colorBrand)).
-		Bold(true)
-}
-
 // PromptArrow is the dim "›" separator between the brand pill and
 // the input field in the interactive REPL.
 func PromptArrow() lipgloss.Style {

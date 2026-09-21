@@ -59,8 +59,8 @@ func New(opts ...Option) *Cli {
 	return &c
 }
 
-// MinopTheme customizes the prompt appearance.
-func MinopTheme(msg string, state prompt.State, model string) string {
+// minopTheme customizes the prompt appearance for the interactive REPL.
+func minopTheme(msg string, state prompt.State, model string) string {
 	s := strings.Builder{}
 
 	s.WriteString(promptconstants.DefaultNormalPromptSuffixStyle.Render(msg))
@@ -73,8 +73,9 @@ func MinopTheme(msg string, state prompt.State, model string) string {
 	return s.String()
 }
 
-// ShowHelp displays the available CLI commands.
-func ShowHelp() {
+// showHelp prints the available CLI commands and is invoked from Run
+// when the user types "help" or "h" at the prompt.
+func showHelp() {
 	fmt.Print(theme.Title().Render("\nMINOP CLI COMMANDS\n"))
 
 	helpEntries := gtypes.NewOrderedMap[string, string]()
@@ -106,7 +107,7 @@ func (c Cli) Run() error {
 	pool := remote.NewHostPool()
 
 	for {
-		val, err := prompt.New(prompt.WithTheme(MinopTheme)).Ask("MINOP").
+		val, err := prompt.New(prompt.WithTheme(minopTheme)).Ask("MINOP").
 			Input("", input.WithWidth(0), input.WithCharLimit(0))
 		if err != nil {
 			if errors.Is(err, prompt.ErrUserQuit) {
@@ -127,7 +128,7 @@ func (c Cli) Run() error {
 		}
 
 		if trimmed == "help" || trimmed == "h" {
-			ShowHelp()
+			showHelp()
 			continue
 		}
 

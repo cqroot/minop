@@ -86,7 +86,10 @@ func New(h Host) (*Remote, error) {
 	return r, nil
 }
 
-func ToUnixPath(pathStr string) string {
+// toUnixPath normalises pathStr for use as a remote path: it converts
+// backslashes to forward slashes (Windows-style → Unix-style) and then
+// runs path.Clean to collapse redundant separators.
+func toUnixPath(pathStr string) string {
 	return path.Clean(filepath.ToSlash(pathStr))
 }
 
@@ -184,7 +187,7 @@ func optimalBufferSize(fileSize int64) int {
 
 // UploadFile uploads a local file to remote path with buffer optimization
 func (r *Remote) UploadFile(localPath, remotePath string) (err error) {
-	remotePath = ToUnixPath(remotePath)
+	remotePath = toUnixPath(remotePath)
 
 	startTime := time.Now()
 	r.Logger.Debug().
@@ -230,7 +233,7 @@ func (r *Remote) UploadFile(localPath, remotePath string) (err error) {
 	}
 
 	// Ensure remote directory exists
-	remoteDir := ToUnixPath(filepath.Dir(remotePath))
+	remoteDir := toUnixPath(filepath.Dir(remotePath))
 	if err := r.ensureRemoteDir(remoteDir); err != nil {
 		return fmt.Errorf("ensure remote directory error: %w", err)
 	}
@@ -293,7 +296,7 @@ func (r *Remote) ensureRemoteDir(remoteDir string) error {
 
 // UploadDir uploads a local directory recursively to remote path with better error handling
 func (r *Remote) UploadDir(localDir, remoteDir string) error {
-	remoteDir = ToUnixPath(remoteDir)
+	remoteDir = toUnixPath(remoteDir)
 
 	localInfo, err := os.Stat(localDir)
 	if err != nil {
