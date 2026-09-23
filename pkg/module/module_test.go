@@ -41,14 +41,6 @@ func TestGetModule(t *testing.T) {
 			wantErr:  nil,
 		},
 		{
-			name: "local inferred from local field",
-			input: module.Task{
-				Local: "echo hello",
-			},
-			wantType: "*module.Local",
-			wantErr:  nil,
-		},
-		{
 			name: "copy inferred from copy body",
 			input: module.Task{
 				Copy: &module.CopySpec{
@@ -72,15 +64,6 @@ func TestGetModule(t *testing.T) {
 			},
 			wantType: "*module.Shell",
 			wantErr:  nil,
-		},
-		{
-			name: "multiple actions is rejected",
-			input: module.Task{
-				Shell: "echo hello",
-				Local: "echo world",
-			},
-			wantType: "",
-			wantErr:  module.ErrInvalidModuleSpec,
 		},
 		{
 			name: "shell and copy is rejected",
@@ -111,9 +94,6 @@ func TestGetModule(t *testing.T) {
 				case "*module.Copy":
 					_, ok := m.(*module.Copy)
 					require.True(t, ok, "expected Copy")
-				case "*module.Local":
-					_, ok := m.(*module.Local)
-					require.True(t, ok, "expected Local")
 				}
 			}
 		})

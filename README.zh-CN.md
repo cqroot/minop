@@ -59,7 +59,7 @@ go install github.com/cqroot/minop@latest
 - **文件与目录上传** — 内置 `copy` 任务，可选 `backup: true` 自动保留远端已存在的文件。
 - **本地命令** — 在 minop 主机自身执行 shell 片段，适合编排胶水代码。
 - **交互式 REPL** — `minop cli` 启动 TUI，输入回车即分发到所有目标；输出区在上方独立滚动，输入框固定在底部，并显示快捷键提示。
-- **兼容 ansible 任务语法** — `minop.yaml` 采用 ansible 用户熟悉的"动作 key 即类型"约定：`shell:`、`local:`、`copy:` 各自的动作 key 即决定操作类型，不需要显式 `type:` 字段。
+- **兼容 ansible 任务语法** — `minop.yaml` 采用 ansible 用户熟悉的"动作 key 即类型"约定：`shell:`、`copy:` 各自的动作 key 即决定操作类型，不需要显式 `type:` 字段。
 - **检查命令** — `minop host` 以树状结构展示已解析的主机；`minop task` 列出 `minop.yaml` 中的所有任务但不执行。
 
 ## 用法
@@ -96,7 +96,6 @@ main:
 | 动作 key | 操作 | 值 |
 |---|---|---|
 | `shell: <cmd>` | 在每台目标主机上执行 | 命令字符串 |
-| `local: <cmd>` | 在 minop 主机上执行 | 命令字符串 |
 | `copy: {...}` | 上传文件或目录 | 嵌套对象 |
 
 ```yaml

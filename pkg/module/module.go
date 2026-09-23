@@ -32,9 +32,8 @@ import (
 var ErrInvalidModuleSpec = errors.New("invalid module spec")
 
 // Task is the YAML schema for a single task entry in minop.yaml.
-// A task declares exactly one action: a "shell" string, a "local"
-// string, or a nested "copy" object. Which key is present determines
-// the module kind.
+// A task declares exactly one action: a "shell" string or a nested
+// "copy" object. Which key is present determines the module kind.
 // Name should be set so that `minop task` shows a human-readable
 // label; Group defaults to "all".
 type Task struct {
@@ -42,7 +41,6 @@ type Task struct {
 	Group string `yaml:"group"`
 
 	Shell string    `yaml:"shell,omitempty"`
-	Local string    `yaml:"local,omitempty"`
 	Copy  *CopySpec `yaml:"copy,omitempty"`
 }
 
@@ -83,8 +81,6 @@ func MakeErrInvalidModule(in Task) error {
 	case in.Shell != "":
 		// shell is a single string; if it were missing, GetModule
 		// would have routed elsewhere, so we never get here.
-	case in.Local != "":
-		// local is a single string; same reasoning.
 	case in.Copy != nil:
 		if in.Copy.Src == "" {
 			missing = append(missing, "copy.src")
@@ -95,7 +91,7 @@ func MakeErrInvalidModule(in Task) error {
 	default:
 		// No action key was set; GetModule would have already
 		// errored, but be defensive.
-		missing = append(missing, "shell/local/copy")
+		missing = append(missing, "shell/copy")
 	}
 
 	name := in.Name
@@ -110,14 +106,10 @@ func MakeErrInvalidModule(in Task) error {
 
 func GetModule(in Task) (Module, error) {
 	hasShell := strings.TrimSpace(in.Shell) != ""
-	hasLocal := strings.TrimSpace(in.Local) != ""
 	hasCopy := in.Copy != nil
 
 	count := 0
 	if hasShell {
-		count++
-	}
-	if hasLocal {
 		count++
 	}
 	if hasCopy {
@@ -126,24 +118,22 @@ func GetModule(in Task) (Module, error) {
 
 	switch count {
 	case 0:
-		return nil, fmt.Errorf("%w: task must define exactly one of shell, local, or copy",
+		return nil, fmt.Errorf("%w: task must define exactly one of shell, or copy",
 			ErrInvalidModuleSpec)
 	case 1:
 		// fall through to the action-specific dispatcher below
 	default:
-		return nil, fmt.Errorf("%w: task defines multiple actions; use only one of shell, local, or copy",
+		return nil, fmt.Errorf("%w: task defines multiple actions; use only one of shell, or copy",
 			ErrInvalidModuleSpec)
 	}
 
 	switch {
 	case hasShell:
 		return NewShell(in)
-	case hasLocal:
-		return NewLocal(in)
 	case hasCopy:
 		return NewCopy(in)
 	}
-	// Unreachable: count == 1 guarantees one of the three branches
+	// Unreachable: count == 1 guarantees one of the branches
 	// above matched.
 	return nil, fmt.Errorf("%w: unreachable", ErrInvalidModuleSpec)
 }

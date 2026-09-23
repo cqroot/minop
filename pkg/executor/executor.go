@@ -66,21 +66,6 @@ func (e Executor) ExecuteOnHosts(
 	pool *remote.HostPool,
 	m module.Module,
 ) error {
-	if local, ok := m.(*module.Local); ok {
-		local.SetPrefix(outputPrefix)
-		res, err := local.Execute(nil)
-		if err != nil {
-			return err
-		}
-		if res != nil {
-			_ = res.ForEach(func(key, val string) error {
-				e.optPrinter.PrintKeyValue(outputPrefix, key, val)
-				return nil
-			})
-		}
-		return nil
-	}
-
 	totalHosts := 0
 	for _, hosts := range hostGroup {
 		totalHosts += len(hosts)

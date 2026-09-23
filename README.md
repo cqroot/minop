@@ -57,9 +57,8 @@ Download the binary for your platform from the releases page and add its directo
 
 - **Batch SSH execution** — run shell commands on every host in `hosts.yaml` concurrently (default 10, tunable via `--max-procs`).
 - **File & directory uploads** — built-in `copy` task with optional `backup: true` that preserves any pre-existing remote file.
-- **Local commands** — run shell snippets on the minop host itself, useful for orchestration glue.
 - **Interactive REPL** — `minop cli` opens a TUI where every input line is dispatched to all targets; output scrolls above a pinned input box with hint shortcuts.
-- **Ansible-style task syntax** — `minop.yaml` follows the "action key as type" convention familiar to ansible users: `shell:`, `local:`, and `copy:` each pick the operation type by their key, no explicit `type:` field required.
+- **Ansible-style task syntax** — `minop.yaml` follows the "action key as type" convention familiar to ansible users: `shell:` and `copy:` each pick the operation type by their key, no explicit `type:` field required.
 - **Inspection commands** — `minop host` prints the parsed host tree; `minop task` lists every task in `minop.yaml` without executing.
 
 ## Usage
@@ -98,7 +97,6 @@ operation type, no separate `type:` field is needed.
 | Action key | Operation | Body |
 |---|---|---|
 | `shell: <cmd>` | run on every target host | command string |
-| `local: <cmd>` | run on the minop host | command string |
 | `copy: {...}` | upload a file or directory | nested object |
 
 ```yaml

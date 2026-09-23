@@ -25,7 +25,6 @@ import (
 	"github.com/cqroot/gtypes"
 	"github.com/cqroot/minop/pkg/constants"
 	"github.com/cqroot/minop/pkg/executor"
-	"github.com/cqroot/minop/pkg/module"
 	"github.com/cqroot/minop/pkg/remote"
 	"github.com/stretchr/testify/require"
 )
@@ -73,21 +72,6 @@ func TestExecutor_LoadHostsFile_NotFound(t *testing.T) {
 func TestExecutor_LoadTasksFile_NotFound(t *testing.T) {
 	_, err := executor.LoadTasksFile("/nonexistent/minop.yaml")
 	require.Error(t, err)
-}
-
-func TestLocal_ExecuteWithExecutor(t *testing.T) {
-	e := executor.New()
-
-	modules := []module.Module{
-		func() module.Module {
-			m, _ := module.NewLocal(module.Task{Local: "echo hello"})
-			m.SetGroup(constants.GroupAll)
-			return m
-		}(),
-	}
-
-	err := e.ExecuteModules("", nil, modules)
-	require.NoError(t, err)
 }
 
 // TestExecuteOnHosts_PreservesFirstError verifies that when one host

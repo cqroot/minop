@@ -19,8 +19,8 @@ package module
 
 // commonModule holds the Name and Group fields that every module
 // shares, plus the trivial getter/setter pair that the Module
-// interface requires. Concrete module types (Shell, Local, Copy)
-// embed it to inherit the common surface area.
+// interface requires. Concrete module types (Shell, Copy) embed it
+// to inherit the common surface area.
 type commonModule struct {
 	name  string
 	group string
