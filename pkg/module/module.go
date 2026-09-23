@@ -70,70 +70,36 @@ type Module interface {
 // half-filled action (e.g. copy with src but no dest).
 var ErrInvalidModule = errors.New("invalid module fields")
 
-func MakeErrInvalidModule(in Task) error {
-	// Report the task name and the missing field for the action the
-	// user declared, instead of dumping the whole Task struct — which
-	// adds noise and would risk leaking any future sensitive fields
-	// (passwords, tokens, etc.). GetModule has already selected the
-	// action key, so we only describe what is missing within it.
-	var missing []string
-	switch {
-	case in.Shell != "":
-		// shell is a single string; if it were missing, GetModule
-		// would have routed elsewhere, so we never get here.
-	case in.Copy != nil:
-		if in.Copy.Src == "" {
-			missing = append(missing, "copy.src")
-		}
-		if in.Copy.Dest == "" {
-			missing = append(missing, "copy.dest")
-		}
-	default:
-		// No action key was set; GetModule would have already
-		// errored, but be defensive.
-		missing = append(missing, "shell/copy")
-	}
-
-	name := in.Name
-	if name == "" {
-		name = "<unnamed>"
+// MakeErrInvalidModule formats an ErrInvalidModule with the given
+// task name and the list of field paths that were missing. Each
+// module constructor (NewShell, NewCopy) declares its own missing
+// field list rather than letting this function infer it from the
+// Task — GetModule has already selected the action key, so the
+// dispatcher here would only ever see a single arm.
+func MakeErrInvalidModule(taskName string, missing ...string) error {
+	if taskName == "" {
+		taskName = "<unnamed>"
 	}
 	if len(missing) == 0 {
-		return fmt.Errorf("%w: task %q", ErrInvalidModule, name)
+		return fmt.Errorf("%w: task %q", ErrInvalidModule, taskName)
 	}
-	return fmt.Errorf("%w: task %q missing %s", ErrInvalidModule, name, strings.Join(missing, ", "))
+	return fmt.Errorf("%w: task %q missing %s", ErrInvalidModule, taskName, strings.Join(missing, ", "))
 }
 
 func GetModule(in Task) (Module, error) {
 	hasShell := strings.TrimSpace(in.Shell) != ""
 	hasCopy := in.Copy != nil
 
-	count := 0
-	if hasShell {
-		count++
-	}
-	if hasCopy {
-		count++
-	}
-
-	switch count {
-	case 0:
-		return nil, fmt.Errorf("%w: task must define exactly one of shell, or copy",
-			ErrInvalidModuleSpec)
-	case 1:
-		// fall through to the action-specific dispatcher below
-	default:
-		return nil, fmt.Errorf("%w: task defines multiple actions; use only one of shell, or copy",
-			ErrInvalidModuleSpec)
-	}
-
 	switch {
+	case hasShell && hasCopy:
+		return nil, fmt.Errorf("%w: use only one of shell, copy",
+			ErrInvalidModuleSpec)
 	case hasShell:
 		return NewShell(in)
 	case hasCopy:
 		return NewCopy(in)
+	default:
+		return nil, fmt.Errorf("%w: task must define shell or copy",
+			ErrInvalidModuleSpec)
 	}
-	// Unreachable: count == 1 guarantees one of the branches
-	// above matched.
-	return nil, fmt.Errorf("%w: unreachable", ErrInvalidModuleSpec)
 }

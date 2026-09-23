@@ -48,7 +48,18 @@ type Copy struct {
 // Returns ErrInvalidModule if the copy body, src or dest is missing.
 func NewCopy(in Task) (*Copy, error) {
 	if in.Copy == nil || in.Copy.Src == "" || in.Copy.Dest == "" {
-		return nil, MakeErrInvalidModule(in)
+		var missing []string
+		if in.Copy == nil {
+			missing = append(missing, "copy body")
+		} else {
+			if in.Copy.Src == "" {
+				missing = append(missing, "copy.src")
+			}
+			if in.Copy.Dest == "" {
+				missing = append(missing, "copy.dest")
+			}
+		}
+		return nil, MakeErrInvalidModule(in.Name, missing...)
 	}
 	return &Copy{
 		src:    in.Copy.Src,

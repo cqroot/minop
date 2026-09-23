@@ -112,9 +112,8 @@ func (c Cli) Run() error {
 		if err != nil {
 			if errors.Is(err, prompt.ErrUserQuit) {
 				return nil
-			} else {
-				return err
 			}
+			return err
 		}
 
 		trimmed := strings.Trim(val, " ")

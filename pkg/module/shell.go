@@ -35,7 +35,7 @@ type Shell struct {
 // Returns ErrInvalidModule if Shell field is empty.
 func NewShell(in Task) (*Shell, error) {
 	if in.Shell == "" {
-		return nil, MakeErrInvalidModule(in)
+		return nil, MakeErrInvalidModule(in.Name, "shell command")
 	}
 	return &Shell{
 		cmd: in.Shell,
