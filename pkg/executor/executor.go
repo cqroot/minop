@@ -60,25 +60,53 @@ type execResult struct {
 	res *gtypes.OrderedMap[string, string]
 }
 
+// firstErrorTracker captures the first non-nil per-host error so that
+// downstream context-cancel-induced semaphore acquire failures can be
+// hidden in favor of the original cause. See
+// TestExecuteOnHosts_PreservesFirstError for the failure mode it
+// guards against.
+type firstErrorTracker struct {
+	mu  sync.Mutex
+	err error
+}
+
+func (t *firstErrorTracker) record(hostStr string, err error) {
+	if err == nil {
+		return
+	}
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	if t.err == nil {
+		t.err = fmt.Errorf("host %s: %w", hostStr, err)
+	}
+}
+
+func (t *firstErrorTracker) get() error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return t.err
+}
+
 func (e Executor) ExecuteOnHosts(
 	outputPrefix string,
 	hostGroup map[string][]remote.Host,
 	pool *remote.HostPool,
 	m module.Module,
 ) error {
-	totalHosts := 0
-	for _, hosts := range hostGroup {
-		totalHosts += len(hosts)
-	}
+	sem := semaphore.NewWeighted(int64(e.optMaxProcs))
+	tracker := &firstErrorTracker{}
+
 	logs.Logger().Debug().
 		Str("module", m.Name()).
 		Str("group", m.Group()).
 		Int("max_procs", e.optMaxProcs).
-		Int("total_hosts", totalHosts).
+		Int("total_hosts", totalHostCount(hostGroup)).
 		Msg("ExecuteOnHosts start")
 
+	// The printer drains results as workers produce them. After
+	// g.Wait() we close results to let the printer exit, then wait
+	// on printDone so no goroutine outlives this function.
 	results := make(chan execResult)
-
 	printDone := make(chan struct{})
 	go func() {
 		defer close(printDone)
@@ -87,21 +115,39 @@ func (e Executor) ExecuteOnHosts(
 		}
 	}()
 
-	sem := semaphore.NewWeighted(int64(e.optMaxProcs))
 	g, ctx := errgroup.WithContext(context.Background())
+	dispatchErr := dispatchWorkers(ctx, g, sem, pool, m, hostGroup, results, tracker)
 
-	var (
-		firstErr   error
-		firstErrMu sync.Mutex
-	)
-	recordFirstErr := func(hostStr string, err error) {
-		firstErrMu.Lock()
-		if firstErr == nil {
-			firstErr = fmt.Errorf("host %s: %w", hostStr, err)
-		}
-		firstErrMu.Unlock()
+	waitErr := g.Wait()
+	close(results)
+	<-printDone
+
+	// Prefer a real per-host error over context-cancel-induced noise.
+	if real := tracker.get(); real != nil {
+		return real
 	}
+	if dispatchErr != nil {
+		return dispatchErr
+	}
+	return waitErr
+}
 
+// dispatchWorkers walks hostGroup, filters by m's target group,
+// acquires semaphore slots, and launches one worker per matching
+// host. It returns a non-nil error only when the dispatch loop
+// itself fails (e.g. pool.GetRemote error before any worker has
+// run); per-host execution errors are recorded in tracker so the
+// caller can prefer them over context.Canceled.
+func dispatchWorkers(
+	ctx context.Context,
+	g *errgroup.Group,
+	sem *semaphore.Weighted,
+	pool *remote.HostPool,
+	m module.Module,
+	hostGroup map[string][]remote.Host,
+	results chan<- execResult,
+	tracker *firstErrorTracker,
+) error {
 	for group, hosts := range hostGroup {
 		if m.Group() != constants.GroupAll && m.Group() != group {
 			logs.Logger().Debug().
@@ -128,15 +174,11 @@ func (e Executor) ExecuteOnHosts(
 					Str("host", hostStr).
 					Msg("semaphore acquire failed")
 				if ctx.Err() != nil {
-					if firstErr != nil {
-						logs.Logger().Error().
-							Err(firstErr).
-							Str("module", m.Name()).
-							Str("host", hostStr).
-							Msg("context canceled due to an earlier host failure")
-						return firstErr
-					}
-					return fmt.Errorf("context canceled while waiting for host %s: %w", hostStr, err)
+					// Context canceled by an earlier worker failure
+					// or by pool.GetRemote failing in this iteration.
+					// Bail out — the recorded per-host error (if any)
+					// will surface via tracker.get() in ExecuteOnHosts.
+					return nil
 				}
 				continue
 			}
@@ -152,7 +194,6 @@ func (e Executor) ExecuteOnHosts(
 				return fmt.Errorf("get remote for host %s: %w", hostStr, err)
 			}
 
-			currHost := h
 			g.Go(func() error {
 				defer sem.Release(1)
 
@@ -163,7 +204,7 @@ func (e Executor) ExecuteOnHosts(
 
 				res, err := m.Execute(r)
 				if err != nil {
-					recordFirstErr(hostStr, err)
+					tracker.record(hostStr, err)
 					logs.Logger().Error().
 						Err(err).
 						Str("module", m.Name()).
@@ -172,29 +213,20 @@ func (e Executor) ExecuteOnHosts(
 					return err
 				}
 
-				results <- execResult{
-					h:   currHost,
-					res: res,
-				}
+				results <- execResult{h: h, res: res}
 				return nil
 			})
 		}
 	}
-
-	errCh := make(chan error, 1)
-	go func() {
-		errCh <- g.Wait()
-		close(results)
-	}()
-
-	<-printDone
-	if err := <-errCh; err != nil {
-		if firstErr != nil {
-			return firstErr
-		}
-		return err
-	}
 	return nil
+}
+
+func totalHostCount(hostGroup map[string][]remote.Host) int {
+	n := 0
+	for _, hosts := range hostGroup {
+		n += len(hosts)
+	}
+	return n
 }
 
 func (e Executor) ExecuteModules(
